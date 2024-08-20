@@ -180,6 +180,38 @@
       ],
       "Hash": "9f6b37cdd811ca17407f953111272baf"
     },
+    "arrow": {
+      "Package": "arrow",
+      "Version": "17.0.0",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Requirements": [
+        "R",
+        "R6",
+        "assertthat",
+        "bit64",
+        "cpp11",
+        "glue",
+        "methods",
+        "purrr",
+        "rlang",
+        "stats",
+        "tidyselect",
+        "utils",
+        "vctrs"
+      ],
+      "Hash": "1c613070e06bbe73583142920c6f6ea1"
+    },
+    "assertthat": {
+      "Package": "assertthat",
+      "Version": "0.2.1",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Requirements": [
+        "tools"
+      ],
+      "Hash": "50c838a310445e954bc13f26f26a6ecf"
+    },
     "backports": {
       "Package": "backports",
       "Version": "1.5.0",
@@ -441,6 +473,17 @@
       ],
       "Hash": "411ca2c03b1ce5f548345d2fc2685f7a"
     },
+    "data.table": {
+      "Package": "data.table",
+      "Version": "1.15.4",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Requirements": [
+        "R",
+        "methods"
+      ],
+      "Hash": "8ee9ac56ef633d0c7cab8b2ca87d683e"
+    },
     "digest": {
       "Package": "digest",
       "Version": "0.6.35",
@@ -474,6 +517,30 @@
         "vctrs"
       ],
       "Hash": "fedd9d00c2944ff00a0e2696ccf048ec"
+    },
+    "encore.io": {
+      "Package": "encore.io",
+      "Version": "0.2.0",
+      "Source": "git",
+      "RemoteType": "git",
+      "RemoteUrl": "https://gitlab.partners.org/drugepi/encore/encore.io.git",
+      "RemoteRef": "",
+      "Requirements": [
+        "R",
+        "arrow",
+        "assertthat",
+        "data.table",
+        "dplyr",
+        "forcats",
+        "glue",
+        "gtsummary",
+        "lubridate",
+        "magrittr",
+        "parallel",
+        "stringr",
+        "tidyr"
+      ],
+      "Hash": "56e8fc71b7246f6a365ae67dddba2897"
     },
     "evaluate": {
       "Package": "evaluate",
@@ -941,6 +1008,19 @@
         "utils"
       ],
       "Hash": "16a08fc75007da0d08e0c0388c7c33e6"
+    },
+    "lubridate": {
+      "Package": "lubridate",
+      "Version": "1.9.3",
+      "Source": "Repository",
+      "Repository": "REPO_NAME",
+      "Requirements": [
+        "R",
+        "generics",
+        "methods",
+        "timechange"
+      ],
+      "Hash": "680ad542fbcf801442c83a6ac5a2126c"
     },
     "magrittr": {
       "Package": "magrittr",
@@ -1514,6 +1594,17 @@
         "withr"
       ],
       "Hash": "829f27b9c4919c16b593794a6344d6c0"
+    },
+    "timechange": {
+      "Package": "timechange",
+      "Version": "0.3.0",
+      "Source": "Repository",
+      "Repository": "REPO_NAME",
+      "Requirements": [
+        "R",
+        "cpp11"
+      ],
+      "Hash": "c5f3c201b931cd6474d17d8700ccb1c8"
     },
     "tinytex": {
       "Package": "tinytex",
