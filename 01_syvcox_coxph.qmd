@@ -18,6 +18,7 @@ Load packages:
 #| label: setup
 #| message: false
 
+library(encore.io)
 library(dplyr)
 library(survival)
 library(mice)
@@ -25,8 +26,6 @@ library(MatchThem)
 library(survey)
 library(here)
 library(gtsummary)
-
-source(here("functions", "simulate_flaura.R"))
 ```
 
 ## Data generation

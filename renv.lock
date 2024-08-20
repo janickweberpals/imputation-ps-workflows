@@ -3,12 +3,8 @@
     "Version": "4.4.0",
     "Repositories": [
       {
-        "Name": "CRAN",
-        "URL": "https://packagemanager.posit.co/cran/latest"
-      },
-      {
-        "Name": "RSPM",
-        "URL": "https://packagemanager.posit.co/cran/latest"
+        "Name": "REPO_NAME",
+        "URL": "https://packagemanager.posit.co/cran/2024-04-25"
       }
     ]
   },
@@ -27,8 +23,7 @@
     "MASS": {
       "Package": "MASS",
       "Version": "7.3-60.2",
-      "Source": "Repository",
-      "Repository": "CRAN",
+      "Source": "unknown",
       "Requirements": [
         "R",
         "grDevices",
@@ -138,7 +133,7 @@
       "Package": "RcppEigen",
       "Version": "0.3.4.0.1",
       "Source": "Repository",
-      "Repository": "CRAN",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
       "Requirements": [
         "R",
         "Rcpp",
@@ -158,7 +153,7 @@
       "Package": "V8",
       "Version": "5.0.0",
       "Source": "Repository",
-      "Repository": "CRAN",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
       "Requirements": [
         "Rcpp",
         "curl",
@@ -315,7 +310,7 @@
       "Package": "cards",
       "Version": "0.2.1",
       "Source": "Repository",
-      "Repository": "CRAN",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
       "Requirements": [
         "R",
         "cli",
@@ -697,7 +692,7 @@
       "Package": "gtsummary",
       "Version": "2.0.1",
       "Source": "Repository",
-      "Repository": "CRAN",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
       "Requirements": [
         "R",
         "cards",
@@ -1039,7 +1034,7 @@
       "Package": "minqa",
       "Version": "1.2.8",
       "Source": "Repository",
-      "Repository": "CRAN",
+      "Repository": "https://packagemanager.posit.co/cran/latest",
       "Requirements": [
         "Rcpp"
       ],
@@ -1392,18 +1387,6 @@
         "stats"
       ],
       "Hash": "5c47e84dc0a3ca761ae1d307889e796d"
-    },
-    "simsurv": {
-      "Package": "simsurv",
-      "Version": "1.0.0",
-      "Source": "Repository",
-      "Repository": "REPO_NAME",
-      "Requirements": [
-        "R",
-        "methods",
-        "stats"
-      ],
-      "Hash": "9ea850bdb2184bdaf7eeb71041b95bb9"
     },
     "stringi": {
       "Package": "stringi",
