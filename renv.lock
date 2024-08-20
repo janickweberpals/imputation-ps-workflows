@@ -22,8 +22,9 @@
     },
     "MASS": {
       "Package": "MASS",
-      "Version": "7.3-60.2",
-      "Source": "unknown",
+      "Version": "7.3-60.0.1",
+      "Source": "Repository",
+      "Repository": "REPO_NAME",
       "Requirements": [
         "R",
         "grDevices",
@@ -32,7 +33,7 @@
         "stats",
         "utils"
       ],
-      "Hash": "2f342c46163b0b54d7b64d1f798e2c78"
+      "Hash": "b765b28387acc8ec9e9c1530713cb19c"
     },
     "MatchIt": {
       "Package": "MatchIt",
@@ -521,10 +522,11 @@
     "encore.io": {
       "Package": "encore.io",
       "Version": "0.2.0",
-      "Source": "git",
-      "RemoteType": "git",
+      "Source": "Git",
+      "RemoteType": "xgit",
       "RemoteUrl": "https://gitlab.partners.org/drugepi/encore/encore.io.git",
-      "RemoteRef": "",
+      "RemoteRef": "dev",
+      "RemoteSha": "cf24d0e2df9174005136ac09ded8d009639b6d2c",
       "Requirements": [
         "R",
         "arrow",
@@ -532,15 +534,22 @@
         "data.table",
         "dplyr",
         "forcats",
+        "ggplot2",
         "glue",
+        "gt",
         "gtsummary",
+        "lifecycle",
         "lubridate",
         "magrittr",
+        "mice",
+        "pROC",
         "parallel",
         "stringr",
+        "survival",
+        "tibble",
         "tidyr"
       ],
-      "Hash": "56e8fc71b7246f6a365ae67dddba2897"
+      "Hash": "b66a7a27b2929ee78375139095e86142"
     },
     "evaluate": {
       "Package": "evaluate",
@@ -1220,6 +1229,19 @@
       ],
       "Hash": "4ab0f16b08887630a9c96b8c33ed7b7d"
     },
+    "pROC": {
+      "Package": "pROC",
+      "Version": "1.18.5",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Requirements": [
+        "R",
+        "Rcpp",
+        "methods",
+        "plyr"
+      ],
+      "Hash": "82d32ebd548c6a4e7de73bab96411b3b"
+    },
     "pan": {
       "Package": "pan",
       "Version": "1.9",
@@ -1256,6 +1278,17 @@
         "utils"
       ],
       "Hash": "01f28d4278f15c76cddbea05899c5d6f"
+    },
+    "plyr": {
+      "Package": "plyr",
+      "Version": "1.8.9",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Requirements": [
+        "R",
+        "Rcpp"
+      ],
+      "Hash": "6b8177fd19982f0020743fadbfdbd933"
     },
     "prettyunits": {
       "Package": "prettyunits",

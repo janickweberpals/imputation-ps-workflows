@@ -16,7 +16,7 @@ book:
     - 01_syvcox_coxph.qmd
 
   reader-mode: true
-  #repo-url: 
+  repo-url: https://github.com/janickweberpals/imputation-ps-workflows
   repo-actions: [issue]
 
 format:
