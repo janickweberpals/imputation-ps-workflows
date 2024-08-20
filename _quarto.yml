@@ -1,0 +1,31 @@
+project:
+  type: book
+  post-render: 
+    - update_README.R
+    
+book:
+  title: "Multipe imputation-propensity score workflows"
+  subtitle: "Examples for multiple imputation and propensity score workflows"
+  author: "Janick Weberpals & Rishi Desai"
+  description: |
+    Miscellaneous multiple imputation and propensity score workflows
+    
+  chapters:
+    # landing page
+    - index.qmd
+    - 01_syvcox_coxph.qmd
+
+  reader-mode: true
+  #repo-url: 
+  repo-actions: [issue]
+
+format:
+  html:
+    code-fold: true
+    code-summary: "Show the code"
+    theme: cosmo
+    engine: knitr
+    page-layout: full
+    link-external-icon: true
+    link-external-newwindow: true
+
