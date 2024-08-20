@@ -1,5 +1,5 @@
 ---
-title: "Comparison of coxph versus svycoxph after multiple imputation and propensity score matching"
+title: "Including sampling weights"
 author: Janick Weberpals, RPh, PhD
 date: last-modified
 format: html
@@ -10,7 +10,7 @@ code-tools: true
 editor: visual
 ---
 
-This is a reproducible example on how to use `coxph` and `svycoxph` in combination with multiple imputation and propensity score matching using a `mimids` object from the MatchThem package.
+This is a reproducible example on how to incorporate sampling weights in multiple imputation \> matching/weighting \> balance assessment \> outcome analysis workflows.
 
 Load packages:
 
@@ -24,12 +24,12 @@ library(mice)
 library(MatchThem)
 library(survey)
 library(here)
-library(gtsummary)
+library(anesrake)
 ```
 
 ## Data generation
 
-We use the `simulate_flaura()` function to simulate a realistic oncology comparative effectiveness cohort analytic dataset.
+We use again the `simulate_flaura()` function to simulate a realistic oncology comparative effectiveness cohort analytic dataset.
 
 ```{r}
 #| label: data_generation

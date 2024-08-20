@@ -231,28 +231,6 @@
       ],
       "Hash": "74e1ef476ad0a9ed4ddd7d4a2c728c2f"
     },
-    "arrow": {
-      "Package": "arrow",
-      "Version": "15.0.1",
-      "Source": "Repository",
-      "Repository": "REPO_NAME",
-      "Requirements": [
-        "R",
-        "R6",
-        "assertthat",
-        "bit64",
-        "cpp11",
-        "glue",
-        "methods",
-        "purrr",
-        "rlang",
-        "stats",
-        "tidyselect",
-        "utils",
-        "vctrs"
-      ],
-      "Hash": "85c24dd7844977e4a680ba28f576125c"
-    },
     "assertthat": {
       "Package": "assertthat",
       "Version": "0.2.1",
@@ -662,38 +640,6 @@
         "rlang"
       ],
       "Hash": "bb0eec2fe32e88d9e2836c2f73ea2077"
-    },
-    "encore.io": {
-      "Package": "encore.io",
-      "Version": "0.2.0",
-      "Source": "Git",
-      "RemoteType": "xgit",
-      "RemoteUrl": "https://gitlab.partners.org/drugepi/encore/encore.io.git",
-      "RemoteRef": "dev",
-      "RemoteSha": "cf24d0e2df9174005136ac09ded8d009639b6d2c",
-      "Requirements": [
-        "R",
-        "arrow",
-        "assertthat",
-        "data.table",
-        "dplyr",
-        "forcats",
-        "ggplot2",
-        "glue",
-        "gt",
-        "gtsummary",
-        "lifecycle",
-        "lubridate",
-        "magrittr",
-        "mice",
-        "pROC",
-        "parallel",
-        "stringr",
-        "survival",
-        "tibble",
-        "tidyr"
-      ],
-      "Hash": "b66a7a27b2929ee78375139095e86142"
     },
     "evaluate": {
       "Package": "evaluate",
@@ -1242,19 +1188,6 @@
       ],
       "Hash": "862f9d995f528f3051f524791955b20c"
     },
-    "lubridate": {
-      "Package": "lubridate",
-      "Version": "1.9.3",
-      "Source": "Repository",
-      "Repository": "REPO_NAME",
-      "Requirements": [
-        "R",
-        "generics",
-        "methods",
-        "timechange"
-      ],
-      "Hash": "680ad542fbcf801442c83a6ac5a2126c"
-    },
     "magrittr": {
       "Package": "magrittr",
       "Version": "2.0.3",
@@ -1456,19 +1389,6 @@
       ],
       "Hash": "4ab0f16b08887630a9c96b8c33ed7b7d"
     },
-    "pROC": {
-      "Package": "pROC",
-      "Version": "1.18.5",
-      "Source": "Repository",
-      "Repository": "RSPM",
-      "Requirements": [
-        "R",
-        "Rcpp",
-        "methods",
-        "plyr"
-      ],
-      "Hash": "82d32ebd548c6a4e7de73bab96411b3b"
-    },
     "pan": {
       "Package": "pan",
       "Version": "1.9",
@@ -1541,17 +1461,6 @@
         "withr"
       ],
       "Hash": "876c618df5ae610be84356d5d7a5d124"
-    },
-    "plyr": {
-      "Package": "plyr",
-      "Version": "1.8.9",
-      "Source": "Repository",
-      "Repository": "RSPM",
-      "Requirements": [
-        "R",
-        "Rcpp"
-      ],
-      "Hash": "6b8177fd19982f0020743fadbfdbd933"
     },
     "praise": {
       "Package": "praise",
@@ -1812,6 +1721,18 @@
       ],
       "Hash": "5c47e84dc0a3ca761ae1d307889e796d"
     },
+    "simsurv": {
+      "Package": "simsurv",
+      "Version": "1.0.0",
+      "Source": "Repository",
+      "Repository": "REPO_NAME",
+      "Requirements": [
+        "R",
+        "methods",
+        "stats"
+      ],
+      "Hash": "9ea850bdb2184bdaf7eeb71041b95bb9"
+    },
     "stringi": {
       "Package": "stringi",
       "Version": "1.8.3",
@@ -1967,17 +1888,6 @@
         "withr"
       ],
       "Hash": "829f27b9c4919c16b593794a6344d6c0"
-    },
-    "timechange": {
-      "Package": "timechange",
-      "Version": "0.3.0",
-      "Source": "Repository",
-      "Repository": "REPO_NAME",
-      "Requirements": [
-        "R",
-        "cpp11"
-      ],
-      "Hash": "c5f3c201b931cd6474d17d8700ccb1c8"
     },
     "tinytex": {
       "Package": "tinytex",

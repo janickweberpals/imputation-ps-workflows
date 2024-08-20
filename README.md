@@ -66,17 +66,16 @@ patient-level data is used.
     ## ├── 01_syvcox_coxph.qmd
     ## ├── README.md
     ## ├── RStudio_init.png
-    ## ├── _quarto.yml
-    ## ├── functions
-    ## │   └── simulate_flaura.R
-    ## ├── index.qmd
-    ## ├── miscMIworkflows.Rproj
-    ## ├── public
+    ## ├── _book
     ## │   ├── 01_syvcox_coxph.html
     ## │   ├── RStudio_init.png
     ## │   ├── index.html
     ## │   ├── search.json
     ## │   └── site_libs
+    ## ├── _quarto.yml
+    ## ├── imputation-ps-workflows.Rproj
+    ## ├── index.qmd
+    ## ├── match_re_weight.R
     ## ├── renv
     ## │   ├── activate.R
     ## │   ├── library
