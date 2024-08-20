@@ -2,20 +2,36 @@
 #'
 #' @param i integer, the m_th imputed dataset (can be be used in conjunction with lapply)
 #' @param mids_object mids object with m multiple imputed datasets
-#' @param formula formula of matching model fit
+#' @param ps_formula formula of propensity score model fit
+#' 
+#' @importFrom mice complete
+#' @importFrom MatchIt matchit match.data
+#' @importFrom WeightIt weightit
 #' 
 #' @return matched and re-weighted dataset
 #' 
 #' @export
 #'
 #' @examples
+#' data_miss <- simulate_flaura(
+#'   n_total = 3500, 
+#'   treat_prevalence = .51, 
+#'   seed = 41, 
+#'   include_id = FALSE, 
+#'   imposeNA = TRUE
+#'   )
+#'   
+#'  covariates <- data_miss |> 
+#'    select(starts_with("c_"), starts_with("dem_")) |> 
+#'    colnames()
 #' 
+
 match_re_weight <- function(i, 
                             mids_object = NULL, 
-                            formula = matching_model_fit
+                            ps_formula = NULL,
+                            ...
                             ){
   
-
   # perform matching on the mth imputed dataset -----------------------------
   
   # extract the mth imputed dataset
@@ -23,14 +39,9 @@ match_re_weight <- function(i,
   
   # create a matchit object
   matchit_out <- MatchIt::matchit(
-    formula = formula,
+    formula = ps_formula,
     data = imputed_data_m,
-    ratio = 1,
-    method = "nearest",
-    distance = "glm",
-    link = "logit",
-    caliper = 0.01,
-    replace = F
+    ...
     )
   
   # read data ---------------------------------------------------------------

@@ -47,12 +47,6 @@ data_miss <- simulate_flaura(
 covariates <- data_miss |> 
   select(starts_with("c_"), starts_with("dem_")) |> 
   colnames()
-
-data_miss |> 
-  tbl_summary(
-    by = "treat", 
-    include = covariates
-    )
 ```
 
 ## Multiple imputation
@@ -84,6 +78,21 @@ Apply propensity score matching and weighting with replacement within in each im
 # apply propensity score matching on mids object
 ps_form <- as.formula(paste("treat ~", paste(covariates, collapse = " + ")))
 
+# call match re-weight
+test <- lapply(
+  X = 1:data_imp$m, 
+  FUN = match_re_weight,
+  i = 1,
+  mids_object = data_imp,
+  ps_formula = ps_form,
+  ratio = 1,
+  method = "nearest",
+  distance = "glm",
+  link = "logit",
+  caliper = 0.01,
+  replace = F
+  )
+
 # matching
 data_mimids <- matchthem(
   formula = ps_form,
@@ -94,125 +103,10 @@ data_mimids <- matchthem(
   ratio = 1,
   replace = F
   )
-
-# SMR weighting
-data_wimids <- weightthem(
-  formula = ps_form,
-  datasets = data_imp,
-  approach = 'within',
-  method = "glm",
-  estimand = "ATT"
-  )
-
-# trim extreme weights
-data_wimids <- trim(
-  x = data_wimids, 
-  at = .95, 
-  lower = TRUE
-  )
 ```
 
-## Outcome model comparisons
-
-Next, we compare the marginal treatment effect estimates coming from a Cox proportional hazards model after propensity score matching and weighting as implemented in the `coxph()` and in the `svycoxph()` functions.
-
-From the `MatchThem` documentation:
-
-::: callout-important
--   `with()` applies the supplied model in `expr` to the (matched or weighted) multiply imputed datasets, automatically incorporating the (matching) weights when possible. The argument to `expr` should be of the form `glm(y ~ z, family = quasibinomial)`, for example, excluding the data or weights argument, which are automatically supplied.
-
--   Functions from the **survey** package, such as `svyglm()`, are treated a bit differently. No `svydesign` object needs to be supplied because `with()` automatically constructs and supplies it with the imputed dataset and estimated weights. When `cluster = TRUE` (or `with()` detects that pairs should be clustered; see the `cluster` argument above), pair membership is supplied to the `ids` argument of `svydesign()`.
-
--   After weighting using `weightthem()`, `glm_weightit()` should be used as the modeling function to fit generalized lienar models. It correctly produces robust standard errors that account for estimation of the weights, if possible. See [`WeightIt::glm_weightit()`](http://127.0.0.1:31281/help/library/WeightIt/help/glm_weightit) for details. Otherwise, `svyglm()` should be used rather than `glm()` in order to correctly compute standard errors.
-
--   **For Cox models, `coxph()` will produce approximately correct standard errors when used with weighting, but `svycoxph()` will produce more accurate standard errors when matching is used.**
-:::
-
-::: tabset
-### Matching
-
-We now want to compare treatment effect estimates for `treat` when computed (a) using `coxph` (survival package) and (b) `svycoxph` (survey package). More information on estimating treatment effects after matching is provided in <https://kosukeimai.github.io/MatchIt/articles/estimating-effects.html#survival-outcomes>
-
-::: tabset
-#### `coxph`
+## Define and estimate sampling weights
 
 ```{r}
-#| label: coxph_mimids
 
-# coxph result
-coxph_results <- with(
-  data = data_mimids,
-  expr = coxph(formula = Surv(fu_itt_months, death_itt) ~ treat, 
-               weights = weights, 
-               cluster = subclass,
-               robust = TRUE
-               )
-  ) |> 
-  pool() |> 
-  tidy(exponentiate = TRUE) |> 
-  select(term, estimate, std.error)
-
-coxph_results
 ```
-
-#### `svycoxph`
-
-```{r}
-#| label: svycoxph_mimids
-#| message: false
-
-# svycoxph result
-svycoxph_results <- with(
-  data = data_mimids,
-  expr = svycoxph(formula = Surv(fu_itt_months, death_itt) ~ treat)
-  ) |> 
-  pool() |> 
-  tidy(exponentiate = TRUE, conf.int = TRUE) |> 
-  select(term, estimate, std.error)
-
-svycoxph_results
-```
-:::
-
-### Weighting
-
-::: tabset
-#### `coxph`
-
-```{r}
-#| label: coxph_wimids
-
-# coxph result
-coxph_results <- with(
-  data = data_wimids,
-  expr = coxph(formula = Surv(fu_itt_months, death_itt) ~ treat,
-               weights = weights, 
-               robust = TRUE
-               )
-  ) |> 
-  pool() |> 
-  tidy(exponentiate = TRUE) |> 
-  select(term, estimate, std.error)
-
-coxph_results
-```
-
-#### `svycoxph`
-
-```{r}
-#| label: svycoxph_wimids
-#| message: false
-
-# svycoxph result
-svycoxph_results <- with(
-  data = data_wimids,
-  expr = svycoxph(formula = Surv(fu_itt_months, death_itt) ~ treat)
-  ) |> 
-  pool() |> 
-  tidy(exponentiate = TRUE, conf.int = TRUE) |> 
-  select(term, estimate, std.error)
-
-svycoxph_results
-```
-:::
-:::
