@@ -25,6 +25,9 @@ library(MatchThem)
 library(survey)
 library(here)
 library(gtsummary)
+library(parallelly)
+library(ranger)
+library(furrr)
 
 source(here("functions", "source_encore.io_functions.R"))
 ```
