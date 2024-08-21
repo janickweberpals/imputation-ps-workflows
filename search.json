@@ -1,0 +1,92 @@
+[
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Multipe imputation-propensity score workflows",
+    "section": "",
+    "text": "Background\nMultiple imputation is a powerful tool in presence of missing data. However, especially in combination with propensity score analyses, multiple imputation can lead to challenges since analytic workflows can be become much more complex.",
+    "crumbs": [
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>README</span>"
+    ]
+  },
+  {
+    "objectID": "index.html#objective",
+    "href": "index.html#objective",
+    "title": "Multipe imputation-propensity score workflows",
+    "section": "Objective",
+    "text": "Objective\nThis repository showcases and evaluation different multiple imputation &gt; propensity score &gt; outcome analyses and associated implementation challenges.",
+    "crumbs": [
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>README</span>"
+    ]
+  },
+  {
+    "objectID": "index.html#sec-dependencies",
+    "href": "index.html#sec-dependencies",
+    "title": "Multipe imputation-propensity score workflows",
+    "section": "Dependencies",
+    "text": "Dependencies\nThis is a quarto book project and R package dependencies are managed through the renv package. All packages and their versions can be viewed in the lockfile renv.lock. All required packages and the appropriate versions can be installed by running the following command:\n\nrenv::restore(repos = \"https://packagemanager.posit.co/cran/2024-04-25\")\n\n\n\n\n\n\n\nImportant\n\n\n\nThe dependencies are managed through Posit’s repository package manager (RSPM). If you use a different operating system than macOS, please head over to the RSPM setup website and follow these steps to adjust the URL above.\n\nGo to the RSPM setup website\nChoose the operating system (if Linux, also choose the Linux distribution)\nGo to Repository URL: and copy-paste the URL to the options statement in the .Rprofile file\noptions(repos = c(REPO_NAME = “URL”))",
+    "crumbs": [
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>README</span>"
+    ]
+  },
+  {
+    "objectID": "index.html#reproducibility",
+    "href": "index.html#reproducibility",
+    "title": "Multipe imputation-propensity score workflows",
+    "section": "Reproducibility",
+    "text": "Reproducibility\nFollow these steps in RStudio to reproduce this study:\n\n\n\n\n\n\nNote\n\n\n\n\nClone this repository via git clone &lt;url&gt; or in RStudio via File &gt; New Project &gt; Version Control &gt; Git &gt; then paste the link to repository URL\nInstall all necessary dependencies (see above)\nAdd/adapt the paths to the datasets in .Renviron\nIn RStudio, run all scripts via quarto render or Build &gt; Render Book (make sure quarto is installed)\n\n\n\n\nSteps to clone this repository in RStudio\n\n\n\n\nThe data used in this project is strictly simulated and no real patient-level data is used.",
+    "crumbs": [
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>README</span>"
+    ]
+  },
+  {
+    "objectID": "index.html#repository-structure-and-files",
+    "href": "index.html#repository-structure-and-files",
+    "title": "Multipe imputation-propensity score workflows",
+    "section": "Repository structure and files",
+    "text": "Repository structure and files\n\nDirectory overview\n\n\n.\n├── 01_syvcox_coxph.qmd\n├── 02_re_weight.qmd\n├── README.md\n├── RStudio_init.png\n├── _book\n│   ├── 01_syvcox_coxph.html\n│   ├── RStudio_init.png\n│   ├── index.html\n│   ├── search.json\n│   └── site_libs\n├── _quarto.yml\n├── functions\n│   ├── install_on_demand.R\n│   ├── match_re_weight.R\n│   ├── simulate_flaura.R\n│   └── source_encore.io_functions.R\n├── index.qmd\n├── index.rmarkdown\n├── renv\n│   ├── activate.R\n│   ├── library\n│   ├── settings.json\n│   └── staging\n└── renv.lock",
+    "crumbs": [
+      "<span class='chapter-number'>1</span>  <span class='chapter-title'>README</span>"
+    ]
+  },
+  {
+    "objectID": "01_syvcox_coxph.html",
+    "href": "01_syvcox_coxph.html",
+    "title": "2  Comparison of coxph versus svycoxph after multiple imputation and propensity score matching",
+    "section": "",
+    "text": "2.1 Data generation\nWe use the simulate_flaura() function to simulate a realistic oncology comparative effectiveness cohort analytic dataset.\n# load example dataset with missing observations\ndata_miss &lt;- simulate_flaura(\n  n_total = 3500, \n  treat_prevalence = .51, \n  seed = 41, \n  include_id = FALSE, \n  imposeNA = TRUE\n  )\n\ncovariates &lt;- data_miss |&gt; \n  select(starts_with(\"c_\"), starts_with(\"dem_\")) |&gt; \n  colnames()\n\ndata_miss |&gt; \n  tbl_summary(\n    by = \"treat\", \n    include = covariates\n    )\n\n\n\n\n\n\n\n\n\n\n\n\nCharacteristic\n0\nN = 1,761\n1\n1\nN = 1,739\n1\n\n\n\n\nc_smoking_history\n607 (53%)\n504 (43%)\n\n\n    Unknown\n617\n563\n\n\nc_number_met_sites\n\n\n\n\n\n\n    1\n868 (76%)\n888 (76%)\n\n\n    2\n244 (21%)\n235 (20%)\n\n\n    3\n27 (2.4%)\n45 (3.8%)\n\n\n    4\n4 (0.3%)\n7 (0.6%)\n\n\n    5\n1 (&lt;0.1%)\n1 (&lt;0.1%)\n\n\n    Unknown\n617\n563\n\n\nc_ecog_cont\n697 (61%)\n642 (55%)\n\n\n    Unknown\n617\n563\n\n\nc_stage_initial_dx_cont\n\n\n\n\n\n\n    1\n122 (11%)\n0 (0%)\n\n\n    2\n12 (1.0%)\n16 (1.4%)\n\n\n    3\n20 (1.7%)\n48 (4.1%)\n\n\n    4\n990 (87%)\n1,112 (95%)\n\n\n    Unknown\n617\n563\n\n\nc_hemoglobin_g_dl_cont\n12.95 (12.28, 13.77)\n12.86 (11.91, 13.72)\n\n\n    Unknown\n617\n563\n\n\nc_urea_nitrogen_mg_dl_cont\n2.78 (2.44, 3.11)\n2.76 (2.56, 2.95)\n\n\n    Unknown\n617\n563\n\n\nc_platelets_10_9_l_cont\n257 (216, 293)\n261 (226, 303)\n\n\n    Unknown\n617\n563\n\n\nc_calcium_mg_dl_cont\n2.23 (2.21, 2.25)\n2.24 (2.21, 2.27)\n\n\n    Unknown\n617\n563\n\n\nc_glucose_mg_dl_cont\n4.63 (4.56, 4.71)\n4.65 (4.58, 4.73)\n\n\n    Unknown\n617\n563\n\n\nc_lymphocyte_leukocyte_ratio_cont\n2.94 (2.81, 3.07)\n2.93 (2.82, 3.04)\n\n\n    Unknown\n617\n563\n\n\nc_alp_u_l_cont\n4.47 (4.32, 4.61)\n4.51 (4.42, 4.60)\n\n\n    Unknown\n617\n563\n\n\nc_protein_g_l_cont\n68.1 (65.4, 70.8)\n69.0 (66.2, 71.6)\n\n\n    Unknown\n617\n563\n\n\nc_alt_u_l_cont\n2.91 (2.71, 3.10)\n2.89 (2.66, 3.12)\n\n\n    Unknown\n617\n563\n\n\nc_albumin_g_l_cont\n38.94 (36.87, 41.00)\n39.92 (37.90, 41.96)\n\n\n    Unknown\n617\n563\n\n\nc_bilirubin_mg_dl_cont\n-0.65 (-1.46, 0.16)\n-0.93 (-1.75, -0.09)\n\n\n    Unknown\n617\n563\n\n\nc_chloride_mmol_l_cont\n101.93 (100.01, 103.92)\n101.83 (99.82, 104.21)\n\n\n    Unknown\n617\n563\n\n\nc_monocytes_10_9_l_cont\n-0.49 (-0.76, -0.24)\n-0.49 (-0.67, -0.34)\n\n\n    Unknown\n617\n563\n\n\nc_eosinophils_leukocytes_ratio_cont\n0.72 (0.50, 0.96)\n0.67 (0.28, 1.07)\n\n\n    Unknown\n617\n563\n\n\nc_ldh_u_l_cont\n1.68 (1.65, 1.70)\n1.69 (1.65, 1.72)\n\n\n    Unknown\n617\n563\n\n\nc_hr_cont\n4.41 (4.39, 4.43)\n4.43 (4.40, 4.46)\n\n\n    Unknown\n617\n563\n\n\nc_sbp_cont\n4.86 (4.78, 4.93)\n4.85 (4.79, 4.91)\n\n\n    Unknown\n617\n563\n\n\nc_oxygen_cont\n97.000 (96.985, 97.014)\n96.999 (96.992, 97.006)\n\n\n    Unknown\n617\n563\n\n\nc_neutrophil_lymphocyte_ratio_cont\n1.30 (1.05, 1.54)\n1.29 (1.06, 1.52)\n\n\n    Unknown\n617\n563\n\n\nc_bmi_cont\n3.23 (3.14, 3.32)\n3.24 (3.15, 3.32)\n\n\n    Unknown\n617\n563\n\n\nc_ast_alt_ratio_cont\n0.10 (-0.11, 0.31)\n0.12 (-0.08, 0.32)\n\n\n    Unknown\n617\n563\n\n\nc_time_dx_to_index\n73 (43, 102)\n44 (33, 55)\n\n\n    Unknown\n617\n563\n\n\nc_de_novo_mets_dx\n772 (67%)\n922 (78%)\n\n\n    Unknown\n617\n563\n\n\nc_height_cont\n1.64 (1.60, 1.69)\n1.65 (1.59, 1.70)\n\n\n    Unknown\n617\n563\n\n\nc_weight_cont\n68 (60, 76)\n69 (61, 76)\n\n\n    Unknown\n617\n563\n\n\nc_dbp_cont\n75 (70, 80)\n76 (72, 80)\n\n\n    Unknown\n617\n563\n\n\nc_year_index\n\n\n\n\n\n\n    &lt;2018\n91 (5.2%)\n1,639 (94%)\n\n\n    2018+\n1,670 (95%)\n100 (5.8%)\n\n\ndem_age_index_cont\n70 (64, 76)\n69 (64, 75)\n\n\ndem_sex_cont\n605 (34%)\n598 (34%)\n\n\ndem_race\n\n\n\n\n\n\n    Asian\n137 (12%)\n154 (13%)\n\n\n    Other\n320 (28%)\n355 (30%)\n\n\n    White\n687 (60%)\n667 (57%)\n\n\n    Unknown\n617\n563\n\n\ndem_region\n\n\n\n\n\n\n    Midwest\n117 (10%)\n160 (14%)\n\n\n    Northeast\n391 (34%)\n340 (29%)\n\n\n    South\n424 (37%)\n477 (41%)\n\n\n    West\n212 (19%)\n199 (17%)\n\n\n    Unknown\n617\n563\n\n\ndem_ses\n\n\n\n\n\n\n    1\n138 (12%)\n198 (17%)\n\n\n    2\n156 (14%)\n173 (15%)\n\n\n    3\n299 (26%)\n223 (19%)\n\n\n    4\n245 (21%)\n256 (22%)\n\n\n    5\n306 (27%)\n326 (28%)\n\n\n    Unknown\n617\n563\n\n\n\n1\nn (%); Median (Q1, Q3)",
+    "crumbs": [
+      "<span class='chapter-number'>2</span>  <span class='chapter-title'>Comparison of coxph versus svycoxph after multiple imputation and propensity score matching</span>"
+    ]
+  },
+  {
+    "objectID": "01_syvcox_coxph.html#multiple-imputation",
+    "href": "01_syvcox_coxph.html#multiple-imputation",
+    "title": "2  Comparison of coxph versus svycoxph after multiple imputation and propensity score matching",
+    "section": "2.2 Multiple imputation",
+    "text": "2.2 Multiple imputation\nMultiple imputation using mice:\n\n# impute data\ndata_imp &lt;- futuremice(\n  parallelseed = 42,\n  n.core = 7,\n  data = data_miss,\n  method = \"rf\",\n  m = 10,\n  print = FALSE\n  )\n\nWarning in check.cores(n.core, available, m): 'n.core' exceeds the maximum\nnumber of available cores on your machine or the number of imputations, and is\nset to 3",
+    "crumbs": [
+      "<span class='chapter-number'>2</span>  <span class='chapter-title'>Comparison of coxph versus svycoxph after multiple imputation and propensity score matching</span>"
+    ]
+  },
+  {
+    "objectID": "01_syvcox_coxph.html#propensity-score-matching-and-weighting",
+    "href": "01_syvcox_coxph.html#propensity-score-matching-and-weighting",
+    "title": "2  Comparison of coxph versus svycoxph after multiple imputation and propensity score matching",
+    "section": "2.3 Propensity score matching and weighting",
+    "text": "2.3 Propensity score matching and weighting\nApply propensity score matching and weighting with replacement within in each imputed dataset:\n\n# apply propensity score matching on mids object\nps_form &lt;- as.formula(paste(\"treat ~\", paste(covariates, collapse = \" + \")))\n\n# matching\ndata_mimids &lt;- matchthem(\n  formula = ps_form,\n  datasets = data_imp,\n  approach = 'within',\n  method = 'nearest',\n  caliper = 0.01,\n  ratio = 1,\n  replace = F\n  )\n\n# SMR weighting\ndata_wimids &lt;- weightthem(\n  formula = ps_form,\n  datasets = data_imp,\n  approach = 'within',\n  method = \"glm\",\n  estimand = \"ATT\"\n  )\n\n# trim extreme weights\ndata_wimids &lt;- trim(\n  x = data_wimids, \n  at = .95, \n  lower = TRUE\n  )",
+    "crumbs": [
+      "<span class='chapter-number'>2</span>  <span class='chapter-title'>Comparison of coxph versus svycoxph after multiple imputation and propensity score matching</span>"
+    ]
+  },
+  {
+    "objectID": "01_syvcox_coxph.html#outcome-model-comparisons",
+    "href": "01_syvcox_coxph.html#outcome-model-comparisons",
+    "title": "2  Comparison of coxph versus svycoxph after multiple imputation and propensity score matching",
+    "section": "2.4 Outcome model comparisons",
+    "text": "2.4 Outcome model comparisons\nNext, we compare the marginal treatment effect estimates coming from a Cox proportional hazards model after propensity score matching and weighting as implemented in the coxph() and in the svycoxph() functions.\nFrom the MatchThem documentation:\n\n\n\n\n\n\nImportant\n\n\n\n\nwith() applies the supplied model in expr to the (matched or weighted) multiply imputed datasets, automatically incorporating the (matching) weights when possible. The argument to expr should be of the form glm(y ~ z, family = quasibinomial), for example, excluding the data or weights argument, which are automatically supplied.\nFunctions from the survey package, such as svyglm(), are treated a bit differently. No svydesign object needs to be supplied because with() automatically constructs and supplies it with the imputed dataset and estimated weights. When cluster = TRUE (or with() detects that pairs should be clustered; see the cluster argument above), pair membership is supplied to the ids argument of svydesign().\nAfter weighting using weightthem(), glm_weightit() should be used as the modeling function to fit generalized lienar models. It correctly produces robust standard errors that account for estimation of the weights, if possible. See WeightIt::glm_weightit() for details. Otherwise, svyglm() should be used rather than glm() in order to correctly compute standard errors.\nFor Cox models, coxph() will produce approximately correct standard errors when used with weighting, but svycoxph() will produce more accurate standard errors when matching is used.\n\n\n\n\n\n2.4.1 Matching\nWe now want to compare treatment effect estimates for treat when computed (a) using coxph (survival package) and (b) svycoxph (survey package). More information on estimating treatment effects after matching is provided in https://kosukeimai.github.io/MatchIt/articles/estimating-effects.html#survival-outcomes\n\n\n2.4.1.1 coxph\n\n# coxph result\ncoxph_results &lt;- with(\n  data = data_mimids,\n  expr = coxph(formula = Surv(fu_itt_months, death_itt) ~ treat, \n               weights = weights, \n               cluster = subclass,\n               robust = TRUE\n               )\n  ) |&gt; \n  pool() |&gt; \n  tidy(exponentiate = TRUE) |&gt; \n  select(term, estimate, std.error)\n\ncoxph_results\n\n   term estimate std.error\n1 treat 0.845206 0.1164235\n\n\n\n\n2.4.1.2 svycoxph\n\n# svycoxph result\nsvycoxph_results &lt;- with(\n  data = data_mimids,\n  expr = svycoxph(formula = Surv(fu_itt_months, death_itt) ~ treat)\n  ) |&gt; \n  pool() |&gt; \n  tidy(exponentiate = TRUE, conf.int = TRUE) |&gt; \n  select(term, estimate, std.error)\n\n1 - level Cluster Sampling design (with replacement)\nWith (175) clusters.\nsurvey::svydesign(ids = ~subclass, weights = ~weights, data = m.data.i)\n1 - level Cluster Sampling design (with replacement)\nWith (175) clusters.\nsurvey::svydesign(ids = ~subclass, weights = ~weights, data = m.data.i)\n1 - level Cluster Sampling design (with replacement)\nWith (188) clusters.\nsurvey::svydesign(ids = ~subclass, weights = ~weights, data = m.data.i)\n1 - level Cluster Sampling design (with replacement)\nWith (181) clusters.\nsurvey::svydesign(ids = ~subclass, weights = ~weights, data = m.data.i)\n1 - level Cluster Sampling design (with replacement)\nWith (185) clusters.\nsurvey::svydesign(ids = ~subclass, weights = ~weights, data = m.data.i)\n1 - level Cluster Sampling design (with replacement)\nWith (185) clusters.\nsurvey::svydesign(ids = ~subclass, weights = ~weights, data = m.data.i)\n1 - level Cluster Sampling design (with replacement)\nWith (172) clusters.\nsurvey::svydesign(ids = ~subclass, weights = ~weights, data = m.data.i)\n1 - level Cluster Sampling design (with replacement)\nWith (183) clusters.\nsurvey::svydesign(ids = ~subclass, weights = ~weights, data = m.data.i)\n1 - level Cluster Sampling design (with replacement)\nWith (174) clusters.\nsurvey::svydesign(ids = ~subclass, weights = ~weights, data = m.data.i)\n1 - level Cluster Sampling design (with replacement)\nWith (184) clusters.\nsurvey::svydesign(ids = ~subclass, weights = ~weights, data = m.data.i)\n1 - level Cluster Sampling design (with replacement)\nWith (172) clusters.\nsurvey::svydesign(ids = ~subclass, weights = ~weights, data = m.data.i)\n1 - level Cluster Sampling design (with replacement)\nWith (175) clusters.\nsurvey::svydesign(ids = ~subclass, weights = ~weights, data = m.data.i)\n\nsvycoxph_results\n\n   term estimate std.error\n1 treat 0.845206 0.1166914\n\n\n\n\n\n\n2.4.2 Weighting\n\n\n2.4.2.1 coxph\n\n# coxph result\ncoxph_results &lt;- with(\n  data = data_wimids,\n  expr = coxph(formula = Surv(fu_itt_months, death_itt) ~ treat,\n               weights = weights, \n               robust = TRUE\n               )\n  ) |&gt; \n  pool() |&gt; \n  tidy(exponentiate = TRUE) |&gt; \n  select(term, estimate, std.error)\n\ncoxph_results\n\n   term  estimate  std.error\n1 treat 0.7730624 0.07937731\n\n\n\n\n2.4.2.2 svycoxph\n\n# svycoxph result\nsvycoxph_results &lt;- with(\n  data = data_wimids,\n  expr = svycoxph(formula = Surv(fu_itt_months, death_itt) ~ treat)\n  ) |&gt; \n  pool() |&gt; \n  tidy(exponentiate = TRUE, conf.int = TRUE) |&gt; \n  select(term, estimate, std.error)\n\nIndependent Sampling design (with replacement)\nsurvey::svydesign(~1, weights = ~weights, data = data.i)\nIndependent Sampling design (with replacement)\nsurvey::svydesign(~1, weights = ~weights, data = data.i)\nIndependent Sampling design (with replacement)\nsurvey::svydesign(~1, weights = ~weights, data = data.i)\nIndependent Sampling design (with replacement)\nsurvey::svydesign(~1, weights = ~weights, data = data.i)\nIndependent Sampling design (with replacement)\nsurvey::svydesign(~1, weights = ~weights, data = data.i)\nIndependent Sampling design (with replacement)\nsurvey::svydesign(~1, weights = ~weights, data = data.i)\nIndependent Sampling design (with replacement)\nsurvey::svydesign(~1, weights = ~weights, data = data.i)\nIndependent Sampling design (with replacement)\nsurvey::svydesign(~1, weights = ~weights, data = data.i)\nIndependent Sampling design (with replacement)\nsurvey::svydesign(~1, weights = ~weights, data = data.i)\nIndependent Sampling design (with replacement)\nsurvey::svydesign(~1, weights = ~weights, data = data.i)\nIndependent Sampling design (with replacement)\nsurvey::svydesign(~1, weights = ~weights, data = data.i)\nIndependent Sampling design (with replacement)\nsurvey::svydesign(~1, weights = ~weights, data = data.i)\n\nsvycoxph_results\n\n   term  estimate  std.error\n1 treat 0.7730624 0.07938831",
+    "crumbs": [
+      "<span class='chapter-number'>2</span>  <span class='chapter-title'>Comparison of coxph versus svycoxph after multiple imputation and propensity score matching</span>"
+    ]
+  }
+]
