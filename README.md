@@ -18,7 +18,7 @@ through the `renv` package. All packages and their versions can be
 viewed in the lockfile `renv.lock`. All required packages and the
 appropriate versions can be installed by running the following command:
 
-    renv::restore(repos = "https://packagemanager.posit.co/cran/2024-04-25")
+    renv::restore(repos = "https://packagemanager.posit.co/cran/latest")
 
 The dependencies are managed through Posit’s repository package manager
 (RSPM). If you use a different operating system than macOS, please head

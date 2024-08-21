@@ -2,9 +2,9 @@ project:
   type: book
     
 book:
-  title: "Multipe imputation-propensity score workflows"
+  title: "Multiple imputation-propensity score workflows"
   subtitle: "Examples for multiple imputation and propensity score workflows"
-  author: "Janick Weberpals & Rishi Desai"
+  author: "Janick Weberpals"
   description: |
     Miscellaneous multiple imputation and propensity score workflows
     
