@@ -6,11 +6,11 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="author" content="Janick Weberpals &amp; Rishi Desai">
+<meta name="author" content="Janick Weberpals">
 <meta name="dcterms.date" content="2024-08-21">
 <meta name="description" content="Miscellaneous multiple imputation and propensity score workflows">
 
-<title>Multipe imputation-propensity score workflows</title>
+<title>Multiple imputation-propensity score workflows</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -132,7 +132,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
     <div class="pt-lg-2 mt-2 text-left sidebar-header">
     <div class="sidebar-title mb-0 py-0">
-      <a href="./">Multipe imputation-propensity score workflows</a> 
+      <a href="./">Multiple imputation-propensity score workflows</a> 
         <div class="sidebar-tools-main">
     <a href="https://github.com/janickweberpals/imputation-ps-workflows" title="Source Code" class="quarto-navigation-tool px-1" aria-label="Source Code"><i class="bi bi-github"></i></a>
   <a href="" class="quarto-reader-toggle quarto-navigation-tool px-1" onclick="window.quartoToggleReader(); return false;" title="Toggle reader mode">
@@ -188,7 +188,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Multipe imputation-propensity score workflows</h1>
+<h1 class="title">Multiple imputation-propensity score workflows</h1>
 <p class="subtitle lead">Examples for multiple imputation and propensity score workflows</p>
 </div>
 
@@ -204,7 +204,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Author</div>
     <div class="quarto-title-meta-contents">
-             <p>Janick Weberpals &amp; Rishi Desai </p>
+             <p>Janick Weberpals </p>
           </div>
   </div>
     
@@ -235,7 +235,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 class="unnumbered anchored" data-anchor-id="sec-dependencies">Dependencies</h2>
 <p>This is a quarto book project and R package dependencies are managed through the <code>renv</code> package. All packages and their versions can be viewed in the lockfile <code>renv.lock</code>. All required packages and the appropriate versions can be installed by running the following command:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>renv<span class="sc">::</span><span class="fu">restore</span>(<span class="at">repos =</span> <span class="st">"https://packagemanager.posit.co/cran/2024-04-25"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>renv<span class="sc">::</span><span class="fu">restore</span>(<span class="at">repos =</span> <span class="st">"https://packagemanager.posit.co/cran/latest"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="callout callout-style-default callout-important callout-titled">
 <div class="callout-header d-flex align-content-center">
@@ -314,8 +314,7 @@ Note
 ├── renv
 │   ├── activate.R
 │   ├── library
-│   ├── settings.json
-│   └── staging
+│   └── settings.json
 └── renv.lock</code></pre>
 </div>
 </div>

@@ -2,7 +2,7 @@
   {
     "objectID": "index.html",
     "href": "index.html",
-    "title": "Multipe imputation-propensity score workflows",
+    "title": "Multiple imputation-propensity score workflows",
     "section": "",
     "text": "Background\nMultiple imputation is a powerful tool in presence of missing data. However, especially in combination with propensity score analyses, multiple imputation can lead to challenges since analytic workflows can be become much more complex.",
     "crumbs": [
@@ -12,7 +12,7 @@
   {
     "objectID": "index.html#objective",
     "href": "index.html#objective",
-    "title": "Multipe imputation-propensity score workflows",
+    "title": "Multiple imputation-propensity score workflows",
     "section": "Objective",
     "text": "Objective\nThis repository showcases and evaluation different multiple imputation &gt; propensity score &gt; outcome analyses and associated implementation challenges.",
     "crumbs": [
@@ -22,9 +22,9 @@
   {
     "objectID": "index.html#sec-dependencies",
     "href": "index.html#sec-dependencies",
-    "title": "Multipe imputation-propensity score workflows",
+    "title": "Multiple imputation-propensity score workflows",
     "section": "Dependencies",
-    "text": "Dependencies\nThis is a quarto book project and R package dependencies are managed through the renv package. All packages and their versions can be viewed in the lockfile renv.lock. All required packages and the appropriate versions can be installed by running the following command:\n\nrenv::restore(repos = \"https://packagemanager.posit.co/cran/2024-04-25\")\n\n\n\n\n\n\n\nImportant\n\n\n\nThe dependencies are managed through Posit’s repository package manager (RSPM). If you use a different operating system than macOS, please head over to the RSPM setup website and follow these steps to adjust the URL above.\n\nGo to the RSPM setup website\nChoose the operating system (if Linux, also choose the Linux distribution)\nGo to Repository URL: and copy-paste the URL to the options statement in the .Rprofile file\noptions(repos = c(REPO_NAME = “URL”))",
+    "text": "Dependencies\nThis is a quarto book project and R package dependencies are managed through the renv package. All packages and their versions can be viewed in the lockfile renv.lock. All required packages and the appropriate versions can be installed by running the following command:\n\nrenv::restore(repos = \"https://packagemanager.posit.co/cran/latest\")\n\n\n\n\n\n\n\nImportant\n\n\n\nThe dependencies are managed through Posit’s repository package manager (RSPM). If you use a different operating system than macOS, please head over to the RSPM setup website and follow these steps to adjust the URL above.\n\nGo to the RSPM setup website\nChoose the operating system (if Linux, also choose the Linux distribution)\nGo to Repository URL: and copy-paste the URL to the options statement in the .Rprofile file\noptions(repos = c(REPO_NAME = “URL”))",
     "crumbs": [
       "<span class='chapter-number'>1</span>  <span class='chapter-title'>README</span>"
     ]
@@ -32,7 +32,7 @@
   {
     "objectID": "index.html#reproducibility",
     "href": "index.html#reproducibility",
-    "title": "Multipe imputation-propensity score workflows",
+    "title": "Multiple imputation-propensity score workflows",
     "section": "Reproducibility",
     "text": "Reproducibility\nFollow these steps in RStudio to reproduce this study:\n\n\n\n\n\n\nNote\n\n\n\n\nClone this repository via git clone &lt;url&gt; or in RStudio via File &gt; New Project &gt; Version Control &gt; Git &gt; then paste the link to repository URL\nInstall all necessary dependencies (see above)\nAdd/adapt the paths to the datasets in .Renviron\nIn RStudio, run all scripts via quarto render or Build &gt; Render Book (make sure quarto is installed)\n\n\n\n\nSteps to clone this repository in RStudio\n\n\n\n\nThe data used in this project is strictly simulated and no real patient-level data is used.",
     "crumbs": [
@@ -42,9 +42,9 @@
   {
     "objectID": "index.html#repository-structure-and-files",
     "href": "index.html#repository-structure-and-files",
-    "title": "Multipe imputation-propensity score workflows",
+    "title": "Multiple imputation-propensity score workflows",
     "section": "Repository structure and files",
-    "text": "Repository structure and files\n\nDirectory overview\n\n\n.\n├── 01_syvcox_coxph.qmd\n├── 02_re_weight.qmd\n├── README.md\n├── RStudio_init.png\n├── _book\n│   ├── 01_syvcox_coxph.html\n│   ├── RStudio_init.png\n│   ├── index.html\n│   ├── search.json\n│   └── site_libs\n├── _quarto.yml\n├── functions\n│   ├── install_on_demand.R\n│   ├── match_re_weight.R\n│   ├── simulate_flaura.R\n│   └── source_encore.io_functions.R\n├── index.qmd\n├── index.rmarkdown\n├── renv\n│   ├── activate.R\n│   ├── library\n│   ├── settings.json\n│   └── staging\n└── renv.lock",
+    "text": "Repository structure and files\n\nDirectory overview\n\n\n.\n├── 01_syvcox_coxph.qmd\n├── 02_re_weight.qmd\n├── README.md\n├── RStudio_init.png\n├── _book\n│   ├── 01_syvcox_coxph.html\n│   ├── RStudio_init.png\n│   ├── index.html\n│   ├── search.json\n│   └── site_libs\n├── _quarto.yml\n├── functions\n│   ├── install_on_demand.R\n│   ├── match_re_weight.R\n│   ├── simulate_flaura.R\n│   └── source_encore.io_functions.R\n├── index.qmd\n├── index.rmarkdown\n├── renv\n│   ├── activate.R\n│   ├── library\n│   └── settings.json\n└── renv.lock",
     "crumbs": [
       "<span class='chapter-number'>1</span>  <span class='chapter-title'>README</span>"
     ]
