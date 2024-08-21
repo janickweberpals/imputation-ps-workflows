@@ -18,13 +18,15 @@ Load packages:
 #| label: setup
 #| message: false
 
+library(here)
 library(dplyr)
 library(survival)
 library(mice)
 library(MatchThem)
 library(survey)
-library(here)
 library(anesrake)
+
+source(here("functions", "source_encore.io_functions.R"))
 ```
 
 ## Data generation

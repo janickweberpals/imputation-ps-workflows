@@ -25,6 +25,8 @@ library(MatchThem)
 library(survey)
 library(here)
 library(gtsummary)
+
+source(here("functions", "source_encore.io_functions.R"))
 ```
 
 ## Data generation
