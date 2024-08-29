@@ -2,15 +2,15 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.3.433">
+<meta name="generator" content="quarto-1.4.549">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Janick Weberpals, RPh, PhD">
-<meta name="dcterms.date" content="2024-08-20">
+<meta name="dcterms.date" content="2024-08-29">
 <meta name="description" content="Miscellaneous multiple imputation and propensity score workflows">
 
-<title>Multipe imputation-propensity score workflows - 2&nbsp; Comparison of coxph versus svycoxph after multiple imputation and propensity score matching</title>
+<title>Multiple imputation-propensity score workflows - 2&nbsp; Comparison of coxph versus svycoxph after multiple imputation and propensity score matching</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -25,7 +25,7 @@ ul.task-list li input[type="checkbox"] {
 }
 /* CSS for syntax highlighting */
 pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span { line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
 .sourceCode { overflow: visible; }
 code.sourceCode > span { color: inherit; text-decoration: inherit; }
@@ -83,7 +83,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   "collapse-after": 3,
   "panel-placement": "start",
   "type": "textbox",
-  "limit": 20,
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
   "language": {
     "search-no-results-text": "No results",
     "search-matching-documents-text": "matching documents",
@@ -92,6 +98,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     "search-more-match-text": "more match in this document",
     "search-more-matches-text": "more matches in this document",
     "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
     "search-detached-cancel-button-title": "Cancel",
     "search-submit-button-title": "Submit",
     "search-label": "Search"
@@ -107,12 +114,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <header id="quarto-header" class="headroom fixed-top">
   <nav class="quarto-secondary-nav">
     <div class="container-fluid d-flex">
-      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-      <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./01_syvcox_coxph.html"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Comparison of coxph versus svycoxph after multiple imputation and propensity score matching</span></a></li></ol></nav>
-      <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
-      </a>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./01_syvcox_coxph.html"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Comparison of coxph versus svycoxph after multiple imputation and propensity score matching</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
       <button type="button" class="btn quarto-search-button" aria-label="" onclick="window.quartoOpenSearch();">
         <i class="bi bi-search"></i>
       </button>
@@ -122,12 +129,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <!-- content -->
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-full">
 <!-- sidebar -->
-  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal sidebar-navigation floating overflow-auto">
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
     <div class="pt-lg-2 mt-2 text-left sidebar-header">
     <div class="sidebar-title mb-0 py-0">
-      <a href="./">Multipe imputation-propensity score workflows</a> 
+      <a href="./">Multiple imputation-propensity score workflows</a> 
         <div class="sidebar-tools-main">
-    <a href="https://github.com/janickweberpals/imputation-ps-workflows" rel="" title="Source Code" class="quarto-navigation-tool px-1" aria-label="Source Code"><i class="bi bi-github"></i></a>
+    <a href="https://github.com/janickweberpals/imputation-ps-workflows" title="Source Code" class="quarto-navigation-tool px-1" aria-label="Source Code"><i class="bi bi-github"></i></a>
   <a href="" class="quarto-reader-toggle quarto-navigation-tool px-1" onclick="window.quartoToggleReader(); return false;" title="Toggle reader mode">
   <div class="quarto-reader-toggle-btn">
   <i class="bi"></i>
@@ -158,7 +165,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     </ul>
     </div>
 </nav>
-<div id="quarto-sidebar-glass" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass"></div>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
         <nav id="TOC" role="doc-toc" class="toc-active">
@@ -170,7 +177,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#propensity-score-matching-and-weighting" id="toc-propensity-score-matching-and-weighting" class="nav-link" data-scroll-target="#propensity-score-matching-and-weighting"><span class="header-section-number">2.3</span> Propensity score matching and weighting</a></li>
   <li><a href="#outcome-model-comparisons" id="toc-outcome-model-comparisons" class="nav-link" data-scroll-target="#outcome-model-comparisons"><span class="header-section-number">2.4</span> Outcome model comparisons</a></li>
   </ul>
-<div class="toc-actions"><div><i class="bi bi-github"></i></div><div class="action-links"><p><a href="https://github.com/janickweberpals/imputation-ps-workflows/issues/new" class="toc-action">Report an issue</a></p></div></div></nav>
+<div class="toc-actions"><ul><li><a href="https://github.com/janickweberpals/imputation-ps-workflows/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></nav>
     </div>
 <!-- main -->
 <main class="content column-body" id="quarto-document-content">
@@ -182,7 +189,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 
 
-<div class="quarto-title-meta">
+<div class="quarto-title-meta column-body">
 
     <div>
     <div class="quarto-title-meta-heading">Author</div>
@@ -194,7 +201,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">August 20, 2024</p>
+      <p class="date">August 29, 2024</p>
     </div>
   </div>
   
@@ -202,19 +209,25 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </div>
   
 
+
 </header>
+
 
 <p>This is a reproducible example on how to use <code>coxph</code> and <code>svycoxph</code> in combination with multiple imputation and propensity score matching using a <code>mimids</code> object from the MatchThem package.</p>
 <p>Load packages:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(encore.io)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(survival)</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(mice)</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(MatchThem)</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(survey)</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(here)</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(gtsummary)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(survival)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(mice)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(MatchThem)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(survey)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(here)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(gtsummary)</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(parallelly)</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ranger)</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(furrr)</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="fu">source</span>(<span class="fu">here</span>(<span class="st">"functions"</span>, <span class="st">"source_encore.io_functions.R"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <section id="data-generation" class="level2" data-number="2.1">
 <h2 data-number="2.1" class="anchored" data-anchor-id="data-generation"><span class="header-section-number">2.1</span> Data generation</h2>
@@ -239,7 +252,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">include =</span> covariates</span>
 <span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>    )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-
 <div id="xbutehqlyk" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
 <style>#xbutehqlyk table {
   font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
@@ -679,300 +691,521 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 #xbutehqlyk .gt_indent_5 {
   text-indent: 25px;
 }
+
+#xbutehqlyk .katex-display {
+  display: inline-flex !important;
+  margin-bottom: 0.75em !important;
+}
+
+#xbutehqlyk div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+  height: 0px !important;
+}
 </style>
-<table class="gt_table" data-quarto-disable-processing="false" data-quarto-bootstrap="false">
-  <thead>
-    <tr class="gt_col_headings">
-      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1" scope="col" id="<strong>Characteristic</strong>"><strong>Characteristic</strong></th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="<strong>0</strong>, N = 1,761<span class=&quot;gt_footnote_marks&quot; style=&quot;white-space:nowrap;font-style:italic;font-weight:normal;&quot;><sup>1</sup></span>"><strong>0</strong>, N = 1,761<span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>1</sup></span></th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="<strong>1</strong>, N = 1,739<span class=&quot;gt_footnote_marks&quot; style=&quot;white-space:nowrap;font-style:italic;font-weight:normal;&quot;><sup>1</sup></span>"><strong>1</strong>, N = 1,739<span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>1</sup></span></th>
-    </tr>
-  </thead>
-  <tbody class="gt_table_body">
-    <tr><td headers="label" class="gt_row gt_left">c_smoking_history</td>
-<td headers="stat_1" class="gt_row gt_center">607 (53%)</td>
-<td headers="stat_2" class="gt_row gt_center">504 (43%)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
-<td headers="stat_1" class="gt_row gt_center">617</td>
-<td headers="stat_2" class="gt_row gt_center">563</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">c_number_met_sites</td>
-<td headers="stat_1" class="gt_row gt_center"><br></td>
-<td headers="stat_2" class="gt_row gt_center"><br></td></tr>
-    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;1</td>
-<td headers="stat_1" class="gt_row gt_center">868 (76%)</td>
-<td headers="stat_2" class="gt_row gt_center">888 (76%)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;2</td>
-<td headers="stat_1" class="gt_row gt_center">244 (21%)</td>
-<td headers="stat_2" class="gt_row gt_center">235 (20%)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;3</td>
-<td headers="stat_1" class="gt_row gt_center">27 (2.4%)</td>
-<td headers="stat_2" class="gt_row gt_center">45 (3.8%)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;4</td>
-<td headers="stat_1" class="gt_row gt_center">4 (0.3%)</td>
-<td headers="stat_2" class="gt_row gt_center">7 (0.6%)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;5</td>
-<td headers="stat_1" class="gt_row gt_center">1 (&lt;0.1%)</td>
-<td headers="stat_2" class="gt_row gt_center">1 (&lt;0.1%)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
-<td headers="stat_1" class="gt_row gt_center">617</td>
-<td headers="stat_2" class="gt_row gt_center">563</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">c_ecog_cont</td>
-<td headers="stat_1" class="gt_row gt_center">697 (61%)</td>
-<td headers="stat_2" class="gt_row gt_center">642 (55%)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
-<td headers="stat_1" class="gt_row gt_center">617</td>
-<td headers="stat_2" class="gt_row gt_center">563</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">c_stage_initial_dx_cont</td>
-<td headers="stat_1" class="gt_row gt_center"><br></td>
-<td headers="stat_2" class="gt_row gt_center"><br></td></tr>
-    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;1</td>
-<td headers="stat_1" class="gt_row gt_center">122 (11%)</td>
-<td headers="stat_2" class="gt_row gt_center">0 (0%)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;2</td>
-<td headers="stat_1" class="gt_row gt_center">12 (1.0%)</td>
-<td headers="stat_2" class="gt_row gt_center">16 (1.4%)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;3</td>
-<td headers="stat_1" class="gt_row gt_center">20 (1.7%)</td>
-<td headers="stat_2" class="gt_row gt_center">48 (4.1%)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;4</td>
-<td headers="stat_1" class="gt_row gt_center">990 (87%)</td>
-<td headers="stat_2" class="gt_row gt_center">1,112 (95%)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
-<td headers="stat_1" class="gt_row gt_center">617</td>
-<td headers="stat_2" class="gt_row gt_center">563</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">c_hemoglobin_g_dl_cont</td>
-<td headers="stat_1" class="gt_row gt_center">12.95 (12.28, 13.76)</td>
-<td headers="stat_2" class="gt_row gt_center">12.86 (11.92, 13.72)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
-<td headers="stat_1" class="gt_row gt_center">617</td>
-<td headers="stat_2" class="gt_row gt_center">563</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">c_urea_nitrogen_mg_dl_cont</td>
-<td headers="stat_1" class="gt_row gt_center">2.78 (2.44, 3.11)</td>
-<td headers="stat_2" class="gt_row gt_center">2.76 (2.56, 2.95)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
-<td headers="stat_1" class="gt_row gt_center">617</td>
-<td headers="stat_2" class="gt_row gt_center">563</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">c_platelets_10_9_l_cont</td>
-<td headers="stat_1" class="gt_row gt_center">257 (216, 293)</td>
-<td headers="stat_2" class="gt_row gt_center">261 (226, 303)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
-<td headers="stat_1" class="gt_row gt_center">617</td>
-<td headers="stat_2" class="gt_row gt_center">563</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">c_calcium_mg_dl_cont</td>
-<td headers="stat_1" class="gt_row gt_center">2.23 (2.21, 2.25)</td>
-<td headers="stat_2" class="gt_row gt_center">2.24 (2.21, 2.27)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
-<td headers="stat_1" class="gt_row gt_center">617</td>
-<td headers="stat_2" class="gt_row gt_center">563</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">c_glucose_mg_dl_cont</td>
-<td headers="stat_1" class="gt_row gt_center">4.63 (4.56, 4.71)</td>
-<td headers="stat_2" class="gt_row gt_center">4.65 (4.58, 4.73)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
-<td headers="stat_1" class="gt_row gt_center">617</td>
-<td headers="stat_2" class="gt_row gt_center">563</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">c_lymphocyte_leukocyte_ratio_cont</td>
-<td headers="stat_1" class="gt_row gt_center">2.94 (2.81, 3.07)</td>
-<td headers="stat_2" class="gt_row gt_center">2.93 (2.82, 3.04)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
-<td headers="stat_1" class="gt_row gt_center">617</td>
-<td headers="stat_2" class="gt_row gt_center">563</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">c_alp_u_l_cont</td>
-<td headers="stat_1" class="gt_row gt_center">4.47 (4.32, 4.61)</td>
-<td headers="stat_2" class="gt_row gt_center">4.51 (4.42, 4.60)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
-<td headers="stat_1" class="gt_row gt_center">617</td>
-<td headers="stat_2" class="gt_row gt_center">563</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">c_protein_g_l_cont</td>
-<td headers="stat_1" class="gt_row gt_center">68.1 (65.4, 70.8)</td>
-<td headers="stat_2" class="gt_row gt_center">69.0 (66.2, 71.6)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
-<td headers="stat_1" class="gt_row gt_center">617</td>
-<td headers="stat_2" class="gt_row gt_center">563</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">c_alt_u_l_cont</td>
-<td headers="stat_1" class="gt_row gt_center">2.91 (2.71, 3.10)</td>
-<td headers="stat_2" class="gt_row gt_center">2.89 (2.66, 3.12)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
-<td headers="stat_1" class="gt_row gt_center">617</td>
-<td headers="stat_2" class="gt_row gt_center">563</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">c_albumin_g_l_cont</td>
-<td headers="stat_1" class="gt_row gt_center">38.94 (36.87, 41.00)</td>
-<td headers="stat_2" class="gt_row gt_center">39.92 (37.90, 41.96)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
-<td headers="stat_1" class="gt_row gt_center">617</td>
-<td headers="stat_2" class="gt_row gt_center">563</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">c_bilirubin_mg_dl_cont</td>
-<td headers="stat_1" class="gt_row gt_center">-0.65 (-1.46, 0.16)</td>
-<td headers="stat_2" class="gt_row gt_center">-0.93 (-1.75, -0.09)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
-<td headers="stat_1" class="gt_row gt_center">617</td>
-<td headers="stat_2" class="gt_row gt_center">563</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">c_chloride_mmol_l_cont</td>
-<td headers="stat_1" class="gt_row gt_center">101.93 (100.01, 103.92)</td>
-<td headers="stat_2" class="gt_row gt_center">101.83 (99.82, 104.20)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
-<td headers="stat_1" class="gt_row gt_center">617</td>
-<td headers="stat_2" class="gt_row gt_center">563</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">c_monocytes_10_9_l_cont</td>
-<td headers="stat_1" class="gt_row gt_center">-0.49 (-0.76, -0.24)</td>
-<td headers="stat_2" class="gt_row gt_center">-0.49 (-0.67, -0.34)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
-<td headers="stat_1" class="gt_row gt_center">617</td>
-<td headers="stat_2" class="gt_row gt_center">563</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">c_eosinophils_leukocytes_ratio_cont</td>
-<td headers="stat_1" class="gt_row gt_center">0.72 (0.50, 0.96)</td>
-<td headers="stat_2" class="gt_row gt_center">0.67 (0.28, 1.07)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
-<td headers="stat_1" class="gt_row gt_center">617</td>
-<td headers="stat_2" class="gt_row gt_center">563</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">c_ldh_u_l_cont</td>
-<td headers="stat_1" class="gt_row gt_center">1.68 (1.65, 1.70)</td>
-<td headers="stat_2" class="gt_row gt_center">1.69 (1.65, 1.72)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
-<td headers="stat_1" class="gt_row gt_center">617</td>
-<td headers="stat_2" class="gt_row gt_center">563</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">c_hr_cont</td>
-<td headers="stat_1" class="gt_row gt_center">4.41 (4.39, 4.43)</td>
-<td headers="stat_2" class="gt_row gt_center">4.43 (4.40, 4.46)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
-<td headers="stat_1" class="gt_row gt_center">617</td>
-<td headers="stat_2" class="gt_row gt_center">563</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">c_sbp_cont</td>
-<td headers="stat_1" class="gt_row gt_center">4.86 (4.78, 4.93)</td>
-<td headers="stat_2" class="gt_row gt_center">4.85 (4.79, 4.91)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
-<td headers="stat_1" class="gt_row gt_center">617</td>
-<td headers="stat_2" class="gt_row gt_center">563</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">c_oxygen_cont</td>
-<td headers="stat_1" class="gt_row gt_center">97.000 (96.985, 97.014)</td>
-<td headers="stat_2" class="gt_row gt_center">96.999 (96.992, 97.006)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
-<td headers="stat_1" class="gt_row gt_center">617</td>
-<td headers="stat_2" class="gt_row gt_center">563</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">c_neutrophil_lymphocyte_ratio_cont</td>
-<td headers="stat_1" class="gt_row gt_center">1.30 (1.05, 1.53)</td>
-<td headers="stat_2" class="gt_row gt_center">1.29 (1.06, 1.52)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
-<td headers="stat_1" class="gt_row gt_center">617</td>
-<td headers="stat_2" class="gt_row gt_center">563</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">c_bmi_cont</td>
-<td headers="stat_1" class="gt_row gt_center">3.23 (3.14, 3.32)</td>
-<td headers="stat_2" class="gt_row gt_center">3.24 (3.15, 3.32)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
-<td headers="stat_1" class="gt_row gt_center">617</td>
-<td headers="stat_2" class="gt_row gt_center">563</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">c_ast_alt_ratio_cont</td>
-<td headers="stat_1" class="gt_row gt_center">0.10 (-0.11, 0.31)</td>
-<td headers="stat_2" class="gt_row gt_center">0.12 (-0.08, 0.32)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
-<td headers="stat_1" class="gt_row gt_center">617</td>
-<td headers="stat_2" class="gt_row gt_center">563</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">c_time_dx_to_index</td>
-<td headers="stat_1" class="gt_row gt_center">73 (43, 102)</td>
-<td headers="stat_2" class="gt_row gt_center">44 (33, 55)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
-<td headers="stat_1" class="gt_row gt_center">617</td>
-<td headers="stat_2" class="gt_row gt_center">563</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">c_de_novo_mets_dx</td>
-<td headers="stat_1" class="gt_row gt_center">772 (67%)</td>
-<td headers="stat_2" class="gt_row gt_center">922 (78%)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
-<td headers="stat_1" class="gt_row gt_center">617</td>
-<td headers="stat_2" class="gt_row gt_center">563</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">c_height_cont</td>
-<td headers="stat_1" class="gt_row gt_center">1.64 (1.60, 1.69)</td>
-<td headers="stat_2" class="gt_row gt_center">1.65 (1.59, 1.70)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
-<td headers="stat_1" class="gt_row gt_center">617</td>
-<td headers="stat_2" class="gt_row gt_center">563</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">c_weight_cont</td>
-<td headers="stat_1" class="gt_row gt_center">68 (60, 76)</td>
-<td headers="stat_2" class="gt_row gt_center">69 (61, 76)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
-<td headers="stat_1" class="gt_row gt_center">617</td>
-<td headers="stat_2" class="gt_row gt_center">563</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">c_dbp_cont</td>
-<td headers="stat_1" class="gt_row gt_center">75 (70, 80)</td>
-<td headers="stat_2" class="gt_row gt_center">76 (72, 80)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
-<td headers="stat_1" class="gt_row gt_center">617</td>
-<td headers="stat_2" class="gt_row gt_center">563</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">c_year_index</td>
-<td headers="stat_1" class="gt_row gt_center"><br></td>
-<td headers="stat_2" class="gt_row gt_center"><br></td></tr>
-    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;&lt;2018</td>
-<td headers="stat_1" class="gt_row gt_center">91 (5.2%)</td>
-<td headers="stat_2" class="gt_row gt_center">1,639 (94%)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;2018+</td>
-<td headers="stat_1" class="gt_row gt_center">1,670 (95%)</td>
-<td headers="stat_2" class="gt_row gt_center">100 (5.8%)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">dem_age_index_cont</td>
-<td headers="stat_1" class="gt_row gt_center">70 (64, 76)</td>
-<td headers="stat_2" class="gt_row gt_center">69 (64, 75)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">dem_sex_cont</td>
-<td headers="stat_1" class="gt_row gt_center">605 (34%)</td>
-<td headers="stat_2" class="gt_row gt_center">598 (34%)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">dem_race</td>
-<td headers="stat_1" class="gt_row gt_center"><br></td>
-<td headers="stat_2" class="gt_row gt_center"><br></td></tr>
-    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Asian</td>
-<td headers="stat_1" class="gt_row gt_center">137 (12%)</td>
-<td headers="stat_2" class="gt_row gt_center">154 (13%)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Other</td>
-<td headers="stat_1" class="gt_row gt_center">320 (28%)</td>
-<td headers="stat_2" class="gt_row gt_center">355 (30%)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;White</td>
-<td headers="stat_1" class="gt_row gt_center">687 (60%)</td>
-<td headers="stat_2" class="gt_row gt_center">667 (57%)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
-<td headers="stat_1" class="gt_row gt_center">617</td>
-<td headers="stat_2" class="gt_row gt_center">563</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">dem_region</td>
-<td headers="stat_1" class="gt_row gt_center"><br></td>
-<td headers="stat_2" class="gt_row gt_center"><br></td></tr>
-    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Midwest</td>
-<td headers="stat_1" class="gt_row gt_center">117 (10%)</td>
-<td headers="stat_2" class="gt_row gt_center">160 (14%)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Northeast</td>
-<td headers="stat_1" class="gt_row gt_center">391 (34%)</td>
-<td headers="stat_2" class="gt_row gt_center">340 (29%)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;South</td>
-<td headers="stat_1" class="gt_row gt_center">424 (37%)</td>
-<td headers="stat_2" class="gt_row gt_center">477 (41%)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;West</td>
-<td headers="stat_1" class="gt_row gt_center">212 (19%)</td>
-<td headers="stat_2" class="gt_row gt_center">199 (17%)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
-<td headers="stat_1" class="gt_row gt_center">617</td>
-<td headers="stat_2" class="gt_row gt_center">563</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">dem_ses</td>
-<td headers="stat_1" class="gt_row gt_center"><br></td>
-<td headers="stat_2" class="gt_row gt_center"><br></td></tr>
-    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;1</td>
-<td headers="stat_1" class="gt_row gt_center">138 (12%)</td>
-<td headers="stat_2" class="gt_row gt_center">198 (17%)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;2</td>
-<td headers="stat_1" class="gt_row gt_center">156 (14%)</td>
-<td headers="stat_2" class="gt_row gt_center">173 (15%)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;3</td>
-<td headers="stat_1" class="gt_row gt_center">299 (26%)</td>
-<td headers="stat_2" class="gt_row gt_center">223 (19%)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;4</td>
-<td headers="stat_1" class="gt_row gt_center">245 (21%)</td>
-<td headers="stat_2" class="gt_row gt_center">256 (22%)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;5</td>
-<td headers="stat_1" class="gt_row gt_center">306 (27%)</td>
-<td headers="stat_2" class="gt_row gt_center">326 (28%)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
-<td headers="stat_1" class="gt_row gt_center">617</td>
-<td headers="stat_2" class="gt_row gt_center">563</td></tr>
-  </tbody>
-  
-  <tfoot class="gt_footnotes">
-    <tr>
-      <td class="gt_footnote" colspan="3"><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;"><sup>1</sup></span> n (%); Median (IQR)</td>
-    </tr>
-  </tfoot>
+
+<table class="gt_table table table-sm table-striped small" data-quarto-postprocess="true" data-quarto-disable-processing="false" data-quarto-bootstrap="false">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header gt_col_headings">
+<th id="<div data-qmd-base64=&quot;KipDaGFyYWN0ZXJpc3RpYyoq&quot;><div class='gt_from_md'><p><strong>Characteristic</strong></p>
+</div></div>" class="gt_col_heading gt_columns_bottom_border gt_left" data-quarto-table-cell-role="th" scope="col"><p><strong>Characteristic</strong></p></th>
+<th id="<div data-qmd-base64=&quot;KiowKiogIApOID0gMSw3NjE=&quot;><div class='gt_from_md'><p><strong>0</strong><br />
+N = 1,761</p>
+</div></div><span class=&quot;gt_footnote_marks&quot; style=&quot;white-space:nowrap;font-style:italic;font-weight:normal;line-height: 0;&quot;><sup>1</sup></span>" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col"><p><strong>0</strong><br>
+N = 1,761</p>
+<span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height: 0;"><sup>1</sup></span></th>
+<th id="<div data-qmd-base64=&quot;KioxKiogIApOID0gMSw3Mzk=&quot;><div class='gt_from_md'><p><strong>1</strong><br />
+N = 1,739</p>
+</div></div><span class=&quot;gt_footnote_marks&quot; style=&quot;white-space:nowrap;font-style:italic;font-weight:normal;line-height: 0;&quot;><sup>1</sup></span>" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col"><p><strong>1</strong><br>
+N = 1,739</p>
+<span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height: 0;"><sup>1</sup></span></th>
+</tr>
+</thead>
+<tbody class="gt_table_body">
+<tr class="odd">
+<td class="gt_row gt_left" headers="label">c_smoking_history</td>
+<td class="gt_row gt_center" headers="stat_1">607 (53%)</td>
+<td class="gt_row gt_center" headers="stat_2">504 (43%)</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
+<td class="gt_row gt_center" headers="stat_1">617</td>
+<td class="gt_row gt_center" headers="stat_2">563</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="label">c_number_met_sites</td>
+<td class="gt_row gt_center" headers="stat_1"><br>
+</td>
+<td class="gt_row gt_center" headers="stat_2"><br>
+</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;1</td>
+<td class="gt_row gt_center" headers="stat_1">868 (76%)</td>
+<td class="gt_row gt_center" headers="stat_2">888 (76%)</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;2</td>
+<td class="gt_row gt_center" headers="stat_1">244 (21%)</td>
+<td class="gt_row gt_center" headers="stat_2">235 (20%)</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;3</td>
+<td class="gt_row gt_center" headers="stat_1">27 (2.4%)</td>
+<td class="gt_row gt_center" headers="stat_2">45 (3.8%)</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;4</td>
+<td class="gt_row gt_center" headers="stat_1">4 (0.3%)</td>
+<td class="gt_row gt_center" headers="stat_2">7 (0.6%)</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;5</td>
+<td class="gt_row gt_center" headers="stat_1">1 (&lt;0.1%)</td>
+<td class="gt_row gt_center" headers="stat_2">1 (&lt;0.1%)</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
+<td class="gt_row gt_center" headers="stat_1">617</td>
+<td class="gt_row gt_center" headers="stat_2">563</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="label">c_ecog_cont</td>
+<td class="gt_row gt_center" headers="stat_1">697 (61%)</td>
+<td class="gt_row gt_center" headers="stat_2">642 (55%)</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
+<td class="gt_row gt_center" headers="stat_1">617</td>
+<td class="gt_row gt_center" headers="stat_2">563</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="label">c_stage_initial_dx_cont</td>
+<td class="gt_row gt_center" headers="stat_1"><br>
+</td>
+<td class="gt_row gt_center" headers="stat_2"><br>
+</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;1</td>
+<td class="gt_row gt_center" headers="stat_1">122 (11%)</td>
+<td class="gt_row gt_center" headers="stat_2">0 (0%)</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;2</td>
+<td class="gt_row gt_center" headers="stat_1">12 (1.0%)</td>
+<td class="gt_row gt_center" headers="stat_2">16 (1.4%)</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;3</td>
+<td class="gt_row gt_center" headers="stat_1">20 (1.7%)</td>
+<td class="gt_row gt_center" headers="stat_2">48 (4.1%)</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;4</td>
+<td class="gt_row gt_center" headers="stat_1">990 (87%)</td>
+<td class="gt_row gt_center" headers="stat_2">1,112 (95%)</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
+<td class="gt_row gt_center" headers="stat_1">617</td>
+<td class="gt_row gt_center" headers="stat_2">563</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="label">c_hemoglobin_g_dl_cont</td>
+<td class="gt_row gt_center" headers="stat_1">12.95 (12.28, 13.77)</td>
+<td class="gt_row gt_center" headers="stat_2">12.86 (11.91, 13.72)</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
+<td class="gt_row gt_center" headers="stat_1">617</td>
+<td class="gt_row gt_center" headers="stat_2">563</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="label">c_urea_nitrogen_mg_dl_cont</td>
+<td class="gt_row gt_center" headers="stat_1">2.78 (2.44, 3.11)</td>
+<td class="gt_row gt_center" headers="stat_2">2.76 (2.56, 2.95)</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
+<td class="gt_row gt_center" headers="stat_1">617</td>
+<td class="gt_row gt_center" headers="stat_2">563</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="label">c_platelets_10_9_l_cont</td>
+<td class="gt_row gt_center" headers="stat_1">257 (216, 293)</td>
+<td class="gt_row gt_center" headers="stat_2">261 (226, 303)</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
+<td class="gt_row gt_center" headers="stat_1">617</td>
+<td class="gt_row gt_center" headers="stat_2">563</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="label">c_calcium_mg_dl_cont</td>
+<td class="gt_row gt_center" headers="stat_1">2.23 (2.21, 2.25)</td>
+<td class="gt_row gt_center" headers="stat_2">2.24 (2.21, 2.27)</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
+<td class="gt_row gt_center" headers="stat_1">617</td>
+<td class="gt_row gt_center" headers="stat_2">563</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="label">c_glucose_mg_dl_cont</td>
+<td class="gt_row gt_center" headers="stat_1">4.63 (4.56, 4.71)</td>
+<td class="gt_row gt_center" headers="stat_2">4.65 (4.58, 4.73)</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
+<td class="gt_row gt_center" headers="stat_1">617</td>
+<td class="gt_row gt_center" headers="stat_2">563</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="label">c_lymphocyte_leukocyte_ratio_cont</td>
+<td class="gt_row gt_center" headers="stat_1">2.94 (2.81, 3.07)</td>
+<td class="gt_row gt_center" headers="stat_2">2.93 (2.82, 3.04)</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
+<td class="gt_row gt_center" headers="stat_1">617</td>
+<td class="gt_row gt_center" headers="stat_2">563</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="label">c_alp_u_l_cont</td>
+<td class="gt_row gt_center" headers="stat_1">4.47 (4.32, 4.61)</td>
+<td class="gt_row gt_center" headers="stat_2">4.51 (4.42, 4.60)</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
+<td class="gt_row gt_center" headers="stat_1">617</td>
+<td class="gt_row gt_center" headers="stat_2">563</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="label">c_protein_g_l_cont</td>
+<td class="gt_row gt_center" headers="stat_1">68.1 (65.4, 70.8)</td>
+<td class="gt_row gt_center" headers="stat_2">69.0 (66.2, 71.6)</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
+<td class="gt_row gt_center" headers="stat_1">617</td>
+<td class="gt_row gt_center" headers="stat_2">563</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="label">c_alt_u_l_cont</td>
+<td class="gt_row gt_center" headers="stat_1">2.91 (2.71, 3.10)</td>
+<td class="gt_row gt_center" headers="stat_2">2.89 (2.66, 3.12)</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
+<td class="gt_row gt_center" headers="stat_1">617</td>
+<td class="gt_row gt_center" headers="stat_2">563</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="label">c_albumin_g_l_cont</td>
+<td class="gt_row gt_center" headers="stat_1">38.94 (36.87, 41.00)</td>
+<td class="gt_row gt_center" headers="stat_2">39.92 (37.90, 41.96)</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
+<td class="gt_row gt_center" headers="stat_1">617</td>
+<td class="gt_row gt_center" headers="stat_2">563</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="label">c_bilirubin_mg_dl_cont</td>
+<td class="gt_row gt_center" headers="stat_1">-0.65 (-1.46, 0.16)</td>
+<td class="gt_row gt_center" headers="stat_2">-0.93 (-1.75, -0.09)</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
+<td class="gt_row gt_center" headers="stat_1">617</td>
+<td class="gt_row gt_center" headers="stat_2">563</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="label">c_chloride_mmol_l_cont</td>
+<td class="gt_row gt_center" headers="stat_1">101.93 (100.01, 103.92)</td>
+<td class="gt_row gt_center" headers="stat_2">101.83 (99.82, 104.21)</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
+<td class="gt_row gt_center" headers="stat_1">617</td>
+<td class="gt_row gt_center" headers="stat_2">563</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="label">c_monocytes_10_9_l_cont</td>
+<td class="gt_row gt_center" headers="stat_1">-0.49 (-0.76, -0.24)</td>
+<td class="gt_row gt_center" headers="stat_2">-0.49 (-0.67, -0.34)</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
+<td class="gt_row gt_center" headers="stat_1">617</td>
+<td class="gt_row gt_center" headers="stat_2">563</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="label">c_eosinophils_leukocytes_ratio_cont</td>
+<td class="gt_row gt_center" headers="stat_1">0.72 (0.50, 0.96)</td>
+<td class="gt_row gt_center" headers="stat_2">0.67 (0.28, 1.07)</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
+<td class="gt_row gt_center" headers="stat_1">617</td>
+<td class="gt_row gt_center" headers="stat_2">563</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="label">c_ldh_u_l_cont</td>
+<td class="gt_row gt_center" headers="stat_1">1.68 (1.65, 1.70)</td>
+<td class="gt_row gt_center" headers="stat_2">1.69 (1.65, 1.72)</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
+<td class="gt_row gt_center" headers="stat_1">617</td>
+<td class="gt_row gt_center" headers="stat_2">563</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="label">c_hr_cont</td>
+<td class="gt_row gt_center" headers="stat_1">4.41 (4.39, 4.43)</td>
+<td class="gt_row gt_center" headers="stat_2">4.43 (4.40, 4.46)</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
+<td class="gt_row gt_center" headers="stat_1">617</td>
+<td class="gt_row gt_center" headers="stat_2">563</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="label">c_sbp_cont</td>
+<td class="gt_row gt_center" headers="stat_1">4.86 (4.78, 4.93)</td>
+<td class="gt_row gt_center" headers="stat_2">4.85 (4.79, 4.91)</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
+<td class="gt_row gt_center" headers="stat_1">617</td>
+<td class="gt_row gt_center" headers="stat_2">563</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="label">c_oxygen_cont</td>
+<td class="gt_row gt_center" headers="stat_1">97.000 (96.985, 97.014)</td>
+<td class="gt_row gt_center" headers="stat_2">96.999 (96.992, 97.006)</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
+<td class="gt_row gt_center" headers="stat_1">617</td>
+<td class="gt_row gt_center" headers="stat_2">563</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="label">c_neutrophil_lymphocyte_ratio_cont</td>
+<td class="gt_row gt_center" headers="stat_1">1.30 (1.05, 1.54)</td>
+<td class="gt_row gt_center" headers="stat_2">1.29 (1.06, 1.52)</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
+<td class="gt_row gt_center" headers="stat_1">617</td>
+<td class="gt_row gt_center" headers="stat_2">563</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="label">c_bmi_cont</td>
+<td class="gt_row gt_center" headers="stat_1">3.23 (3.14, 3.32)</td>
+<td class="gt_row gt_center" headers="stat_2">3.24 (3.15, 3.32)</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
+<td class="gt_row gt_center" headers="stat_1">617</td>
+<td class="gt_row gt_center" headers="stat_2">563</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="label">c_ast_alt_ratio_cont</td>
+<td class="gt_row gt_center" headers="stat_1">0.10 (-0.11, 0.31)</td>
+<td class="gt_row gt_center" headers="stat_2">0.12 (-0.08, 0.32)</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
+<td class="gt_row gt_center" headers="stat_1">617</td>
+<td class="gt_row gt_center" headers="stat_2">563</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="label">c_time_dx_to_index</td>
+<td class="gt_row gt_center" headers="stat_1">73 (43, 102)</td>
+<td class="gt_row gt_center" headers="stat_2">44 (33, 55)</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
+<td class="gt_row gt_center" headers="stat_1">617</td>
+<td class="gt_row gt_center" headers="stat_2">563</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="label">c_de_novo_mets_dx</td>
+<td class="gt_row gt_center" headers="stat_1">772 (67%)</td>
+<td class="gt_row gt_center" headers="stat_2">922 (78%)</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
+<td class="gt_row gt_center" headers="stat_1">617</td>
+<td class="gt_row gt_center" headers="stat_2">563</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="label">c_height_cont</td>
+<td class="gt_row gt_center" headers="stat_1">1.64 (1.60, 1.69)</td>
+<td class="gt_row gt_center" headers="stat_2">1.65 (1.59, 1.70)</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
+<td class="gt_row gt_center" headers="stat_1">617</td>
+<td class="gt_row gt_center" headers="stat_2">563</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="label">c_weight_cont</td>
+<td class="gt_row gt_center" headers="stat_1">68 (60, 76)</td>
+<td class="gt_row gt_center" headers="stat_2">69 (61, 76)</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
+<td class="gt_row gt_center" headers="stat_1">617</td>
+<td class="gt_row gt_center" headers="stat_2">563</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="label">c_dbp_cont</td>
+<td class="gt_row gt_center" headers="stat_1">75 (70, 80)</td>
+<td class="gt_row gt_center" headers="stat_2">76 (72, 80)</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
+<td class="gt_row gt_center" headers="stat_1">617</td>
+<td class="gt_row gt_center" headers="stat_2">563</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="label">c_year_index</td>
+<td class="gt_row gt_center" headers="stat_1"><br>
+</td>
+<td class="gt_row gt_center" headers="stat_2"><br>
+</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;&lt;2018</td>
+<td class="gt_row gt_center" headers="stat_1">91 (5.2%)</td>
+<td class="gt_row gt_center" headers="stat_2">1,639 (94%)</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;2018+</td>
+<td class="gt_row gt_center" headers="stat_1">1,670 (95%)</td>
+<td class="gt_row gt_center" headers="stat_2">100 (5.8%)</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="label">dem_age_index_cont</td>
+<td class="gt_row gt_center" headers="stat_1">70 (64, 76)</td>
+<td class="gt_row gt_center" headers="stat_2">69 (64, 75)</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="label">dem_sex_cont</td>
+<td class="gt_row gt_center" headers="stat_1">605 (34%)</td>
+<td class="gt_row gt_center" headers="stat_2">598 (34%)</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="label">dem_race</td>
+<td class="gt_row gt_center" headers="stat_1"><br>
+</td>
+<td class="gt_row gt_center" headers="stat_2"><br>
+</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Asian</td>
+<td class="gt_row gt_center" headers="stat_1">137 (12%)</td>
+<td class="gt_row gt_center" headers="stat_2">154 (13%)</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Other</td>
+<td class="gt_row gt_center" headers="stat_1">320 (28%)</td>
+<td class="gt_row gt_center" headers="stat_2">355 (30%)</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;White</td>
+<td class="gt_row gt_center" headers="stat_1">687 (60%)</td>
+<td class="gt_row gt_center" headers="stat_2">667 (57%)</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
+<td class="gt_row gt_center" headers="stat_1">617</td>
+<td class="gt_row gt_center" headers="stat_2">563</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="label">dem_region</td>
+<td class="gt_row gt_center" headers="stat_1"><br>
+</td>
+<td class="gt_row gt_center" headers="stat_2"><br>
+</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Midwest</td>
+<td class="gt_row gt_center" headers="stat_1">117 (10%)</td>
+<td class="gt_row gt_center" headers="stat_2">160 (14%)</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Northeast</td>
+<td class="gt_row gt_center" headers="stat_1">391 (34%)</td>
+<td class="gt_row gt_center" headers="stat_2">340 (29%)</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;South</td>
+<td class="gt_row gt_center" headers="stat_1">424 (37%)</td>
+<td class="gt_row gt_center" headers="stat_2">477 (41%)</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;West</td>
+<td class="gt_row gt_center" headers="stat_1">212 (19%)</td>
+<td class="gt_row gt_center" headers="stat_2">199 (17%)</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
+<td class="gt_row gt_center" headers="stat_1">617</td>
+<td class="gt_row gt_center" headers="stat_2">563</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="label">dem_ses</td>
+<td class="gt_row gt_center" headers="stat_1"><br>
+</td>
+<td class="gt_row gt_center" headers="stat_2"><br>
+</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;1</td>
+<td class="gt_row gt_center" headers="stat_1">138 (12%)</td>
+<td class="gt_row gt_center" headers="stat_2">198 (17%)</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;2</td>
+<td class="gt_row gt_center" headers="stat_1">156 (14%)</td>
+<td class="gt_row gt_center" headers="stat_2">173 (15%)</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;3</td>
+<td class="gt_row gt_center" headers="stat_1">299 (26%)</td>
+<td class="gt_row gt_center" headers="stat_2">223 (19%)</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;4</td>
+<td class="gt_row gt_center" headers="stat_1">245 (21%)</td>
+<td class="gt_row gt_center" headers="stat_2">256 (22%)</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;5</td>
+<td class="gt_row gt_center" headers="stat_1">306 (27%)</td>
+<td class="gt_row gt_center" headers="stat_2">326 (28%)</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
+<td class="gt_row gt_center" headers="stat_1">617</td>
+<td class="gt_row gt_center" headers="stat_2">563</td>
+</tr>
+</tbody><tfoot class="gt_footnotes">
+<tr class="odd">
+<td colspan="3" class="gt_footnote"><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height: 0;"><sup>1</sup></span>
+<p>n (%); Median (Q1, Q3)</p></td>
+</tr>
+</tfoot>
+
 </table>
+
 </div>
 </div>
 </div>
@@ -1344,10 +1577,29 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
   if (showAllCode) {
     showAllCode.addEventListener("click", toggleCodeHandler(true));
   }
-  function tippyHover(el, contentFn) {
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+          // target, if specified
+          link.setAttribute("target", "_blank");
+          if (link.getAttribute("rel") === null) {
+            link.setAttribute("rel", "noopener");
+          }
+          // default icon
+          link.classList.add("external");
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
     const config = {
       allowHTML: true,
-      content: contentFn,
       maxWidth: 500,
       delay: 100,
       arrow: false,
@@ -1357,8 +1609,17 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       interactive: true,
       interactiveBorder: 10,
       theme: 'quarto',
-      placement: 'bottom-start'
+      placement: 'bottom-start',
     };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
     window.tippy(el, config); 
   }
   const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
@@ -1371,6 +1632,125 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       const id = href.replace(/^#\/?/, "");
       const note = window.document.getElementById(id);
       return note.innerHTML;
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
     });
   }
       let selectedAnnoteEl;
@@ -1414,6 +1794,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
             }
             div.style.top = top - 2 + "px";
             div.style.height = height + 4 + "px";
+            div.style.left = 0;
             let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
             if (gutterDiv === null) {
               gutterDiv = window.document.createElement("div");
@@ -1439,6 +1820,32 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
         });
         selectedAnnoteEl = undefined;
       };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
       // Attach click handler to the DT
       const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
       for (const annoteDlNode of annoteDls) {
@@ -1496,27 +1903,11 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       });
     }
   }
-    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
-      var filterRegex = new RegExp('/' + window.location.host + '/');
-    var isInternal = (href) => {
-        return filterRegex.test(href) || localhostRegex.test(href);
-    }
-    // Inspect non-navigation links and adorn them if external
- 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item)');
-    for (var i=0; i<links.length; i++) {
-      const link = links[i];
-      if (!isInternal(link.href)) {
-          // target, if specified
-          link.setAttribute("target", "_blank");
-          // default icon
-          link.classList.add("external");
-      }
-    }
 });
 </script>
 <nav class="page-navigation column-body">
   <div class="nav-page nav-page-previous">
-      <a href="./index.html" class="pagination-link">
+      <a href="./index.html" class="pagination-link  aria-label=" &lt;span="">
         <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">README</span></span>
       </a>          
   </div>
@@ -1543,209 +1934,214 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb17-20"><a href="#cb17-20" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: setup</span></span>
 <span id="cb17-21"><a href="#cb17-21" aria-hidden="true" tabindex="-1"></a><span class="co">#| message: false</span></span>
 <span id="cb17-22"><a href="#cb17-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-23"><a href="#cb17-23" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(encore.io)</span>
-<span id="cb17-24"><a href="#cb17-24" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
-<span id="cb17-25"><a href="#cb17-25" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(survival)</span>
-<span id="cb17-26"><a href="#cb17-26" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(mice)</span>
-<span id="cb17-27"><a href="#cb17-27" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(MatchThem)</span>
-<span id="cb17-28"><a href="#cb17-28" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(survey)</span>
-<span id="cb17-29"><a href="#cb17-29" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(here)</span>
-<span id="cb17-30"><a href="#cb17-30" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(gtsummary)</span>
-<span id="cb17-31"><a href="#cb17-31" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb17-32"><a href="#cb17-32" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-33"><a href="#cb17-33" aria-hidden="true" tabindex="-1"></a><span class="fu">## Data generation</span></span>
-<span id="cb17-34"><a href="#cb17-34" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-35"><a href="#cb17-35" aria-hidden="true" tabindex="-1"></a>We use the <span class="in">`simulate_flaura()`</span> function to simulate a realistic oncology comparative effectiveness cohort analytic dataset.</span>
+<span id="cb17-23"><a href="#cb17-23" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb17-24"><a href="#cb17-24" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(survival)</span>
+<span id="cb17-25"><a href="#cb17-25" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(mice)</span>
+<span id="cb17-26"><a href="#cb17-26" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(MatchThem)</span>
+<span id="cb17-27"><a href="#cb17-27" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(survey)</span>
+<span id="cb17-28"><a href="#cb17-28" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(here)</span>
+<span id="cb17-29"><a href="#cb17-29" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(gtsummary)</span>
+<span id="cb17-30"><a href="#cb17-30" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(parallelly)</span>
+<span id="cb17-31"><a href="#cb17-31" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ranger)</span>
+<span id="cb17-32"><a href="#cb17-32" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(furrr)</span>
+<span id="cb17-33"><a href="#cb17-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-34"><a href="#cb17-34" aria-hidden="true" tabindex="-1"></a><span class="fu">source</span>(<span class="fu">here</span>(<span class="st">"functions"</span>, <span class="st">"source_encore.io_functions.R"</span>))</span>
+<span id="cb17-35"><a href="#cb17-35" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb17-36"><a href="#cb17-36" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-39"><a href="#cb17-39" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb17-40"><a href="#cb17-40" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: data_generation</span></span>
-<span id="cb17-41"><a href="#cb17-41" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning: false</span></span>
-<span id="cb17-42"><a href="#cb17-42" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-43"><a href="#cb17-43" aria-hidden="true" tabindex="-1"></a><span class="co"># load example dataset with missing observations</span></span>
-<span id="cb17-44"><a href="#cb17-44" aria-hidden="true" tabindex="-1"></a>data_miss <span class="ot">&lt;-</span> <span class="fu">simulate_flaura</span>(</span>
-<span id="cb17-45"><a href="#cb17-45" aria-hidden="true" tabindex="-1"></a>  <span class="at">n_total =</span> <span class="dv">3500</span>, </span>
-<span id="cb17-46"><a href="#cb17-46" aria-hidden="true" tabindex="-1"></a>  <span class="at">treat_prevalence =</span> .<span class="dv">51</span>, </span>
-<span id="cb17-47"><a href="#cb17-47" aria-hidden="true" tabindex="-1"></a>  <span class="at">seed =</span> <span class="dv">41</span>, </span>
-<span id="cb17-48"><a href="#cb17-48" aria-hidden="true" tabindex="-1"></a>  <span class="at">include_id =</span> <span class="cn">FALSE</span>, </span>
-<span id="cb17-49"><a href="#cb17-49" aria-hidden="true" tabindex="-1"></a>  <span class="at">imposeNA =</span> <span class="cn">TRUE</span></span>
-<span id="cb17-50"><a href="#cb17-50" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb17-51"><a href="#cb17-51" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-52"><a href="#cb17-52" aria-hidden="true" tabindex="-1"></a>covariates <span class="ot">&lt;-</span> data_miss <span class="sc">|&gt;</span> </span>
-<span id="cb17-53"><a href="#cb17-53" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="fu">starts_with</span>(<span class="st">"c_"</span>), <span class="fu">starts_with</span>(<span class="st">"dem_"</span>)) <span class="sc">|&gt;</span> </span>
-<span id="cb17-54"><a href="#cb17-54" aria-hidden="true" tabindex="-1"></a>  <span class="fu">colnames</span>()</span>
+<span id="cb17-37"><a href="#cb17-37" aria-hidden="true" tabindex="-1"></a><span class="fu">## Data generation</span></span>
+<span id="cb17-38"><a href="#cb17-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-39"><a href="#cb17-39" aria-hidden="true" tabindex="-1"></a>We use the <span class="in">`simulate_flaura()`</span> function to simulate a realistic oncology comparative effectiveness cohort analytic dataset.</span>
+<span id="cb17-40"><a href="#cb17-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-43"><a href="#cb17-43" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb17-44"><a href="#cb17-44" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: data_generation</span></span>
+<span id="cb17-45"><a href="#cb17-45" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning: false</span></span>
+<span id="cb17-46"><a href="#cb17-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-47"><a href="#cb17-47" aria-hidden="true" tabindex="-1"></a><span class="co"># load example dataset with missing observations</span></span>
+<span id="cb17-48"><a href="#cb17-48" aria-hidden="true" tabindex="-1"></a>data_miss <span class="ot">&lt;-</span> <span class="fu">simulate_flaura</span>(</span>
+<span id="cb17-49"><a href="#cb17-49" aria-hidden="true" tabindex="-1"></a>  <span class="at">n_total =</span> <span class="dv">3500</span>, </span>
+<span id="cb17-50"><a href="#cb17-50" aria-hidden="true" tabindex="-1"></a>  <span class="at">treat_prevalence =</span> .<span class="dv">51</span>, </span>
+<span id="cb17-51"><a href="#cb17-51" aria-hidden="true" tabindex="-1"></a>  <span class="at">seed =</span> <span class="dv">41</span>, </span>
+<span id="cb17-52"><a href="#cb17-52" aria-hidden="true" tabindex="-1"></a>  <span class="at">include_id =</span> <span class="cn">FALSE</span>, </span>
+<span id="cb17-53"><a href="#cb17-53" aria-hidden="true" tabindex="-1"></a>  <span class="at">imposeNA =</span> <span class="cn">TRUE</span></span>
+<span id="cb17-54"><a href="#cb17-54" aria-hidden="true" tabindex="-1"></a>  )</span>
 <span id="cb17-55"><a href="#cb17-55" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-56"><a href="#cb17-56" aria-hidden="true" tabindex="-1"></a>data_miss <span class="sc">|&gt;</span> </span>
-<span id="cb17-57"><a href="#cb17-57" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tbl_summary</span>(</span>
-<span id="cb17-58"><a href="#cb17-58" aria-hidden="true" tabindex="-1"></a>    <span class="at">by =</span> <span class="st">"treat"</span>, </span>
-<span id="cb17-59"><a href="#cb17-59" aria-hidden="true" tabindex="-1"></a>    <span class="at">include =</span> covariates</span>
-<span id="cb17-60"><a href="#cb17-60" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb17-61"><a href="#cb17-61" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb17-62"><a href="#cb17-62" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-63"><a href="#cb17-63" aria-hidden="true" tabindex="-1"></a><span class="fu">## Multiple imputation</span></span>
-<span id="cb17-64"><a href="#cb17-64" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-65"><a href="#cb17-65" aria-hidden="true" tabindex="-1"></a>Multiple imputation using <span class="in">`mice:`</span></span>
+<span id="cb17-56"><a href="#cb17-56" aria-hidden="true" tabindex="-1"></a>covariates <span class="ot">&lt;-</span> data_miss <span class="sc">|&gt;</span> </span>
+<span id="cb17-57"><a href="#cb17-57" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="fu">starts_with</span>(<span class="st">"c_"</span>), <span class="fu">starts_with</span>(<span class="st">"dem_"</span>)) <span class="sc">|&gt;</span> </span>
+<span id="cb17-58"><a href="#cb17-58" aria-hidden="true" tabindex="-1"></a>  <span class="fu">colnames</span>()</span>
+<span id="cb17-59"><a href="#cb17-59" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-60"><a href="#cb17-60" aria-hidden="true" tabindex="-1"></a>data_miss <span class="sc">|&gt;</span> </span>
+<span id="cb17-61"><a href="#cb17-61" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tbl_summary</span>(</span>
+<span id="cb17-62"><a href="#cb17-62" aria-hidden="true" tabindex="-1"></a>    <span class="at">by =</span> <span class="st">"treat"</span>, </span>
+<span id="cb17-63"><a href="#cb17-63" aria-hidden="true" tabindex="-1"></a>    <span class="at">include =</span> covariates</span>
+<span id="cb17-64"><a href="#cb17-64" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb17-65"><a href="#cb17-65" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb17-66"><a href="#cb17-66" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-69"><a href="#cb17-69" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb17-70"><a href="#cb17-70" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: mice</span></span>
-<span id="cb17-71"><a href="#cb17-71" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-72"><a href="#cb17-72" aria-hidden="true" tabindex="-1"></a><span class="co"># impute data</span></span>
-<span id="cb17-73"><a href="#cb17-73" aria-hidden="true" tabindex="-1"></a>data_imp <span class="ot">&lt;-</span> <span class="fu">futuremice</span>(</span>
-<span id="cb17-74"><a href="#cb17-74" aria-hidden="true" tabindex="-1"></a>  <span class="at">parallelseed =</span> <span class="dv">42</span>,</span>
-<span id="cb17-75"><a href="#cb17-75" aria-hidden="true" tabindex="-1"></a>  <span class="at">n.core =</span> <span class="dv">7</span>,</span>
-<span id="cb17-76"><a href="#cb17-76" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> data_miss,</span>
-<span id="cb17-77"><a href="#cb17-77" aria-hidden="true" tabindex="-1"></a>  <span class="at">method =</span> <span class="st">"rf"</span>,</span>
-<span id="cb17-78"><a href="#cb17-78" aria-hidden="true" tabindex="-1"></a>  <span class="at">m =</span> <span class="dv">10</span>,</span>
-<span id="cb17-79"><a href="#cb17-79" aria-hidden="true" tabindex="-1"></a>  <span class="at">print =</span> <span class="cn">FALSE</span></span>
-<span id="cb17-80"><a href="#cb17-80" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb17-81"><a href="#cb17-81" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb17-82"><a href="#cb17-82" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-83"><a href="#cb17-83" aria-hidden="true" tabindex="-1"></a><span class="fu">## Propensity score matching and weighting</span></span>
-<span id="cb17-84"><a href="#cb17-84" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-85"><a href="#cb17-85" aria-hidden="true" tabindex="-1"></a>Apply propensity score matching and weighting with replacement within in each imputed dataset:</span>
+<span id="cb17-67"><a href="#cb17-67" aria-hidden="true" tabindex="-1"></a><span class="fu">## Multiple imputation</span></span>
+<span id="cb17-68"><a href="#cb17-68" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-69"><a href="#cb17-69" aria-hidden="true" tabindex="-1"></a>Multiple imputation using <span class="in">`mice:`</span></span>
+<span id="cb17-70"><a href="#cb17-70" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-73"><a href="#cb17-73" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb17-74"><a href="#cb17-74" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: mice</span></span>
+<span id="cb17-75"><a href="#cb17-75" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-76"><a href="#cb17-76" aria-hidden="true" tabindex="-1"></a><span class="co"># impute data</span></span>
+<span id="cb17-77"><a href="#cb17-77" aria-hidden="true" tabindex="-1"></a>data_imp <span class="ot">&lt;-</span> <span class="fu">futuremice</span>(</span>
+<span id="cb17-78"><a href="#cb17-78" aria-hidden="true" tabindex="-1"></a>  <span class="at">parallelseed =</span> <span class="dv">42</span>,</span>
+<span id="cb17-79"><a href="#cb17-79" aria-hidden="true" tabindex="-1"></a>  <span class="at">n.core =</span> <span class="dv">7</span>,</span>
+<span id="cb17-80"><a href="#cb17-80" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> data_miss,</span>
+<span id="cb17-81"><a href="#cb17-81" aria-hidden="true" tabindex="-1"></a>  <span class="at">method =</span> <span class="st">"rf"</span>,</span>
+<span id="cb17-82"><a href="#cb17-82" aria-hidden="true" tabindex="-1"></a>  <span class="at">m =</span> <span class="dv">10</span>,</span>
+<span id="cb17-83"><a href="#cb17-83" aria-hidden="true" tabindex="-1"></a>  <span class="at">print =</span> <span class="cn">FALSE</span></span>
+<span id="cb17-84"><a href="#cb17-84" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb17-85"><a href="#cb17-85" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb17-86"><a href="#cb17-86" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-89"><a href="#cb17-89" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb17-90"><a href="#cb17-90" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: matching-weighting</span></span>
-<span id="cb17-91"><a href="#cb17-91" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning: false</span></span>
-<span id="cb17-92"><a href="#cb17-92" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-93"><a href="#cb17-93" aria-hidden="true" tabindex="-1"></a><span class="co"># apply propensity score matching on mids object</span></span>
-<span id="cb17-94"><a href="#cb17-94" aria-hidden="true" tabindex="-1"></a>ps_form <span class="ot">&lt;-</span> <span class="fu">as.formula</span>(<span class="fu">paste</span>(<span class="st">"treat ~"</span>, <span class="fu">paste</span>(covariates, <span class="at">collapse =</span> <span class="st">" + "</span>)))</span>
-<span id="cb17-95"><a href="#cb17-95" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-96"><a href="#cb17-96" aria-hidden="true" tabindex="-1"></a><span class="co"># matching</span></span>
-<span id="cb17-97"><a href="#cb17-97" aria-hidden="true" tabindex="-1"></a>data_mimids <span class="ot">&lt;-</span> <span class="fu">matchthem</span>(</span>
-<span id="cb17-98"><a href="#cb17-98" aria-hidden="true" tabindex="-1"></a>  <span class="at">formula =</span> ps_form,</span>
-<span id="cb17-99"><a href="#cb17-99" aria-hidden="true" tabindex="-1"></a>  <span class="at">datasets =</span> data_imp,</span>
-<span id="cb17-100"><a href="#cb17-100" aria-hidden="true" tabindex="-1"></a>  <span class="at">approach =</span> <span class="st">'within'</span>,</span>
-<span id="cb17-101"><a href="#cb17-101" aria-hidden="true" tabindex="-1"></a>  <span class="at">method =</span> <span class="st">'nearest'</span>,</span>
-<span id="cb17-102"><a href="#cb17-102" aria-hidden="true" tabindex="-1"></a>  <span class="at">caliper =</span> <span class="fl">0.01</span>,</span>
-<span id="cb17-103"><a href="#cb17-103" aria-hidden="true" tabindex="-1"></a>  <span class="at">ratio =</span> <span class="dv">1</span>,</span>
-<span id="cb17-104"><a href="#cb17-104" aria-hidden="true" tabindex="-1"></a>  <span class="at">replace =</span> F</span>
-<span id="cb17-105"><a href="#cb17-105" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb17-106"><a href="#cb17-106" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-107"><a href="#cb17-107" aria-hidden="true" tabindex="-1"></a><span class="co"># SMR weighting</span></span>
-<span id="cb17-108"><a href="#cb17-108" aria-hidden="true" tabindex="-1"></a>data_wimids <span class="ot">&lt;-</span> <span class="fu">weightthem</span>(</span>
-<span id="cb17-109"><a href="#cb17-109" aria-hidden="true" tabindex="-1"></a>  <span class="at">formula =</span> ps_form,</span>
-<span id="cb17-110"><a href="#cb17-110" aria-hidden="true" tabindex="-1"></a>  <span class="at">datasets =</span> data_imp,</span>
-<span id="cb17-111"><a href="#cb17-111" aria-hidden="true" tabindex="-1"></a>  <span class="at">approach =</span> <span class="st">'within'</span>,</span>
-<span id="cb17-112"><a href="#cb17-112" aria-hidden="true" tabindex="-1"></a>  <span class="at">method =</span> <span class="st">"glm"</span>,</span>
-<span id="cb17-113"><a href="#cb17-113" aria-hidden="true" tabindex="-1"></a>  <span class="at">estimand =</span> <span class="st">"ATT"</span></span>
-<span id="cb17-114"><a href="#cb17-114" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb17-115"><a href="#cb17-115" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-116"><a href="#cb17-116" aria-hidden="true" tabindex="-1"></a><span class="co"># trim extreme weights</span></span>
-<span id="cb17-117"><a href="#cb17-117" aria-hidden="true" tabindex="-1"></a>data_wimids <span class="ot">&lt;-</span> <span class="fu">trim</span>(</span>
-<span id="cb17-118"><a href="#cb17-118" aria-hidden="true" tabindex="-1"></a>  <span class="at">x =</span> data_wimids, </span>
-<span id="cb17-119"><a href="#cb17-119" aria-hidden="true" tabindex="-1"></a>  <span class="at">at =</span> .<span class="dv">95</span>, </span>
-<span id="cb17-120"><a href="#cb17-120" aria-hidden="true" tabindex="-1"></a>  <span class="at">lower =</span> <span class="cn">TRUE</span></span>
-<span id="cb17-121"><a href="#cb17-121" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb17-122"><a href="#cb17-122" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb17-123"><a href="#cb17-123" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-124"><a href="#cb17-124" aria-hidden="true" tabindex="-1"></a><span class="fu">## Outcome model comparisons</span></span>
-<span id="cb17-125"><a href="#cb17-125" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-126"><a href="#cb17-126" aria-hidden="true" tabindex="-1"></a>Next, we compare the marginal treatment effect estimates coming from a Cox proportional hazards model after propensity score matching and weighting as implemented in the <span class="in">`coxph()`</span> and in the <span class="in">`svycoxph()`</span> functions.</span>
+<span id="cb17-87"><a href="#cb17-87" aria-hidden="true" tabindex="-1"></a><span class="fu">## Propensity score matching and weighting</span></span>
+<span id="cb17-88"><a href="#cb17-88" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-89"><a href="#cb17-89" aria-hidden="true" tabindex="-1"></a>Apply propensity score matching and weighting with replacement within in each imputed dataset:</span>
+<span id="cb17-90"><a href="#cb17-90" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-93"><a href="#cb17-93" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb17-94"><a href="#cb17-94" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: matching-weighting</span></span>
+<span id="cb17-95"><a href="#cb17-95" aria-hidden="true" tabindex="-1"></a><span class="co">#| warning: false</span></span>
+<span id="cb17-96"><a href="#cb17-96" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-97"><a href="#cb17-97" aria-hidden="true" tabindex="-1"></a><span class="co"># apply propensity score matching on mids object</span></span>
+<span id="cb17-98"><a href="#cb17-98" aria-hidden="true" tabindex="-1"></a>ps_form <span class="ot">&lt;-</span> <span class="fu">as.formula</span>(<span class="fu">paste</span>(<span class="st">"treat ~"</span>, <span class="fu">paste</span>(covariates, <span class="at">collapse =</span> <span class="st">" + "</span>)))</span>
+<span id="cb17-99"><a href="#cb17-99" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-100"><a href="#cb17-100" aria-hidden="true" tabindex="-1"></a><span class="co"># matching</span></span>
+<span id="cb17-101"><a href="#cb17-101" aria-hidden="true" tabindex="-1"></a>data_mimids <span class="ot">&lt;-</span> <span class="fu">matchthem</span>(</span>
+<span id="cb17-102"><a href="#cb17-102" aria-hidden="true" tabindex="-1"></a>  <span class="at">formula =</span> ps_form,</span>
+<span id="cb17-103"><a href="#cb17-103" aria-hidden="true" tabindex="-1"></a>  <span class="at">datasets =</span> data_imp,</span>
+<span id="cb17-104"><a href="#cb17-104" aria-hidden="true" tabindex="-1"></a>  <span class="at">approach =</span> <span class="st">'within'</span>,</span>
+<span id="cb17-105"><a href="#cb17-105" aria-hidden="true" tabindex="-1"></a>  <span class="at">method =</span> <span class="st">'nearest'</span>,</span>
+<span id="cb17-106"><a href="#cb17-106" aria-hidden="true" tabindex="-1"></a>  <span class="at">caliper =</span> <span class="fl">0.01</span>,</span>
+<span id="cb17-107"><a href="#cb17-107" aria-hidden="true" tabindex="-1"></a>  <span class="at">ratio =</span> <span class="dv">1</span>,</span>
+<span id="cb17-108"><a href="#cb17-108" aria-hidden="true" tabindex="-1"></a>  <span class="at">replace =</span> F</span>
+<span id="cb17-109"><a href="#cb17-109" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb17-110"><a href="#cb17-110" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-111"><a href="#cb17-111" aria-hidden="true" tabindex="-1"></a><span class="co"># SMR weighting</span></span>
+<span id="cb17-112"><a href="#cb17-112" aria-hidden="true" tabindex="-1"></a>data_wimids <span class="ot">&lt;-</span> <span class="fu">weightthem</span>(</span>
+<span id="cb17-113"><a href="#cb17-113" aria-hidden="true" tabindex="-1"></a>  <span class="at">formula =</span> ps_form,</span>
+<span id="cb17-114"><a href="#cb17-114" aria-hidden="true" tabindex="-1"></a>  <span class="at">datasets =</span> data_imp,</span>
+<span id="cb17-115"><a href="#cb17-115" aria-hidden="true" tabindex="-1"></a>  <span class="at">approach =</span> <span class="st">'within'</span>,</span>
+<span id="cb17-116"><a href="#cb17-116" aria-hidden="true" tabindex="-1"></a>  <span class="at">method =</span> <span class="st">"glm"</span>,</span>
+<span id="cb17-117"><a href="#cb17-117" aria-hidden="true" tabindex="-1"></a>  <span class="at">estimand =</span> <span class="st">"ATT"</span></span>
+<span id="cb17-118"><a href="#cb17-118" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb17-119"><a href="#cb17-119" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-120"><a href="#cb17-120" aria-hidden="true" tabindex="-1"></a><span class="co"># trim extreme weights</span></span>
+<span id="cb17-121"><a href="#cb17-121" aria-hidden="true" tabindex="-1"></a>data_wimids <span class="ot">&lt;-</span> <span class="fu">trim</span>(</span>
+<span id="cb17-122"><a href="#cb17-122" aria-hidden="true" tabindex="-1"></a>  <span class="at">x =</span> data_wimids, </span>
+<span id="cb17-123"><a href="#cb17-123" aria-hidden="true" tabindex="-1"></a>  <span class="at">at =</span> .<span class="dv">95</span>, </span>
+<span id="cb17-124"><a href="#cb17-124" aria-hidden="true" tabindex="-1"></a>  <span class="at">lower =</span> <span class="cn">TRUE</span></span>
+<span id="cb17-125"><a href="#cb17-125" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb17-126"><a href="#cb17-126" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb17-127"><a href="#cb17-127" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-128"><a href="#cb17-128" aria-hidden="true" tabindex="-1"></a>From the <span class="in">`MatchThem`</span> documentation:</span>
+<span id="cb17-128"><a href="#cb17-128" aria-hidden="true" tabindex="-1"></a><span class="fu">## Outcome model comparisons</span></span>
 <span id="cb17-129"><a href="#cb17-129" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-130"><a href="#cb17-130" aria-hidden="true" tabindex="-1"></a>::: callout-important</span>
-<span id="cb17-131"><a href="#cb17-131" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="in">`with()`</span> applies the supplied model in <span class="in">`expr`</span> to the (matched or weighted) multiply imputed datasets, automatically incorporating the (matching) weights when possible. The argument to <span class="in">`expr`</span> should be of the form <span class="in">`glm(y ~ z, family = quasibinomial)`</span>, for example, excluding the data or weights argument, which are automatically supplied.</span>
-<span id="cb17-132"><a href="#cb17-132" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-133"><a href="#cb17-133" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>Functions from the **survey** package, such as <span class="in">`svyglm()`</span>, are treated a bit differently. No <span class="in">`svydesign`</span> object needs to be supplied because <span class="in">`with()`</span> automatically constructs and supplies it with the imputed dataset and estimated weights. When <span class="in">`cluster = TRUE`</span> (or <span class="in">`with()`</span> detects that pairs should be clustered; see the <span class="in">`cluster`</span> argument above), pair membership is supplied to the <span class="in">`ids`</span> argument of <span class="in">`svydesign()`</span>.</span>
-<span id="cb17-134"><a href="#cb17-134" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-135"><a href="#cb17-135" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>After weighting using <span class="in">`weightthem()`</span>, <span class="in">`glm_weightit()`</span> should be used as the modeling function to fit generalized lienar models. It correctly produces robust standard errors that account for estimation of the weights, if possible. See <span class="co">[</span><span class="ot">`WeightIt::glm_weightit()`</span><span class="co">](http://127.0.0.1:31281/help/library/WeightIt/help/glm_weightit)</span> for details. Otherwise, <span class="in">`svyglm()`</span> should be used rather than <span class="in">`glm()`</span> in order to correctly compute standard errors.</span>
+<span id="cb17-130"><a href="#cb17-130" aria-hidden="true" tabindex="-1"></a>Next, we compare the marginal treatment effect estimates coming from a Cox proportional hazards model after propensity score matching and weighting as implemented in the <span class="in">`coxph()`</span> and in the <span class="in">`svycoxph()`</span> functions.</span>
+<span id="cb17-131"><a href="#cb17-131" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-132"><a href="#cb17-132" aria-hidden="true" tabindex="-1"></a>From the <span class="in">`MatchThem`</span> documentation:</span>
+<span id="cb17-133"><a href="#cb17-133" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-134"><a href="#cb17-134" aria-hidden="true" tabindex="-1"></a>::: callout-important</span>
+<span id="cb17-135"><a href="#cb17-135" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="in">`with()`</span> applies the supplied model in <span class="in">`expr`</span> to the (matched or weighted) multiply imputed datasets, automatically incorporating the (matching) weights when possible. The argument to <span class="in">`expr`</span> should be of the form <span class="in">`glm(y ~ z, family = quasibinomial)`</span>, for example, excluding the data or weights argument, which are automatically supplied.</span>
 <span id="cb17-136"><a href="#cb17-136" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-137"><a href="#cb17-137" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>**For Cox models, `coxph()` will produce approximately correct standard errors when used with weighting, but `svycoxph()` will produce more accurate standard errors when matching is used.**</span>
-<span id="cb17-138"><a href="#cb17-138" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb17-139"><a href="#cb17-139" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-140"><a href="#cb17-140" aria-hidden="true" tabindex="-1"></a>::: tabset</span>
-<span id="cb17-141"><a href="#cb17-141" aria-hidden="true" tabindex="-1"></a><span class="fu">### Matching</span></span>
-<span id="cb17-142"><a href="#cb17-142" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-143"><a href="#cb17-143" aria-hidden="true" tabindex="-1"></a>We now want to compare treatment effect estimates for <span class="in">`treat`</span> when computed (a) using <span class="in">`coxph`</span> (survival package) and (b) <span class="in">`svycoxph`</span> (survey package). More information on estimating treatment effects after matching is provided in <span class="ot">&lt;https://kosukeimai.github.io/MatchIt/articles/estimating-effects.html#survival-outcomes&gt;</span></span>
-<span id="cb17-144"><a href="#cb17-144" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-145"><a href="#cb17-145" aria-hidden="true" tabindex="-1"></a>::: tabset</span>
-<span id="cb17-146"><a href="#cb17-146" aria-hidden="true" tabindex="-1"></a><span class="fu">#### `coxph`</span></span>
-<span id="cb17-147"><a href="#cb17-147" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-150"><a href="#cb17-150" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb17-151"><a href="#cb17-151" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: coxph_mimids</span></span>
-<span id="cb17-152"><a href="#cb17-152" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-153"><a href="#cb17-153" aria-hidden="true" tabindex="-1"></a><span class="co"># coxph result</span></span>
-<span id="cb17-154"><a href="#cb17-154" aria-hidden="true" tabindex="-1"></a>coxph_results <span class="ot">&lt;-</span> <span class="fu">with</span>(</span>
-<span id="cb17-155"><a href="#cb17-155" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> data_mimids,</span>
-<span id="cb17-156"><a href="#cb17-156" aria-hidden="true" tabindex="-1"></a>  <span class="at">expr =</span> <span class="fu">coxph</span>(<span class="at">formula =</span> <span class="fu">Surv</span>(fu_itt_months, death_itt) <span class="sc">~</span> treat, </span>
-<span id="cb17-157"><a href="#cb17-157" aria-hidden="true" tabindex="-1"></a>               <span class="at">weights =</span> weights, </span>
-<span id="cb17-158"><a href="#cb17-158" aria-hidden="true" tabindex="-1"></a>               <span class="at">cluster =</span> subclass,</span>
-<span id="cb17-159"><a href="#cb17-159" aria-hidden="true" tabindex="-1"></a>               <span class="at">robust =</span> <span class="cn">TRUE</span></span>
-<span id="cb17-160"><a href="#cb17-160" aria-hidden="true" tabindex="-1"></a>               )</span>
-<span id="cb17-161"><a href="#cb17-161" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span> </span>
-<span id="cb17-162"><a href="#cb17-162" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pool</span>() <span class="sc">|&gt;</span> </span>
-<span id="cb17-163"><a href="#cb17-163" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tidy</span>(<span class="at">exponentiate =</span> <span class="cn">TRUE</span>) <span class="sc">|&gt;</span> </span>
-<span id="cb17-164"><a href="#cb17-164" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(term, estimate, std.error)</span>
-<span id="cb17-165"><a href="#cb17-165" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-166"><a href="#cb17-166" aria-hidden="true" tabindex="-1"></a>coxph_results</span>
-<span id="cb17-167"><a href="#cb17-167" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb17-168"><a href="#cb17-168" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-169"><a href="#cb17-169" aria-hidden="true" tabindex="-1"></a><span class="fu">#### `svycoxph`</span></span>
-<span id="cb17-170"><a href="#cb17-170" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-173"><a href="#cb17-173" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb17-174"><a href="#cb17-174" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: svycoxph_mimids</span></span>
-<span id="cb17-175"><a href="#cb17-175" aria-hidden="true" tabindex="-1"></a><span class="co">#| message: false</span></span>
-<span id="cb17-176"><a href="#cb17-176" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-177"><a href="#cb17-177" aria-hidden="true" tabindex="-1"></a><span class="co"># svycoxph result</span></span>
-<span id="cb17-178"><a href="#cb17-178" aria-hidden="true" tabindex="-1"></a>svycoxph_results <span class="ot">&lt;-</span> <span class="fu">with</span>(</span>
-<span id="cb17-179"><a href="#cb17-179" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> data_mimids,</span>
-<span id="cb17-180"><a href="#cb17-180" aria-hidden="true" tabindex="-1"></a>  <span class="at">expr =</span> <span class="fu">svycoxph</span>(<span class="at">formula =</span> <span class="fu">Surv</span>(fu_itt_months, death_itt) <span class="sc">~</span> treat)</span>
-<span id="cb17-181"><a href="#cb17-181" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span> </span>
-<span id="cb17-182"><a href="#cb17-182" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pool</span>() <span class="sc">|&gt;</span> </span>
-<span id="cb17-183"><a href="#cb17-183" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tidy</span>(<span class="at">exponentiate =</span> <span class="cn">TRUE</span>, <span class="at">conf.int =</span> <span class="cn">TRUE</span>) <span class="sc">|&gt;</span> </span>
-<span id="cb17-184"><a href="#cb17-184" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(term, estimate, std.error)</span>
-<span id="cb17-185"><a href="#cb17-185" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-186"><a href="#cb17-186" aria-hidden="true" tabindex="-1"></a>svycoxph_results</span>
-<span id="cb17-187"><a href="#cb17-187" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb17-188"><a href="#cb17-188" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb17-137"><a href="#cb17-137" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>Functions from the **survey** package, such as <span class="in">`svyglm()`</span>, are treated a bit differently. No <span class="in">`svydesign`</span> object needs to be supplied because <span class="in">`with()`</span> automatically constructs and supplies it with the imputed dataset and estimated weights. When <span class="in">`cluster = TRUE`</span> (or <span class="in">`with()`</span> detects that pairs should be clustered; see the <span class="in">`cluster`</span> argument above), pair membership is supplied to the <span class="in">`ids`</span> argument of <span class="in">`svydesign()`</span>.</span>
+<span id="cb17-138"><a href="#cb17-138" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-139"><a href="#cb17-139" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>After weighting using <span class="in">`weightthem()`</span>, <span class="in">`glm_weightit()`</span> should be used as the modeling function to fit generalized lienar models. It correctly produces robust standard errors that account for estimation of the weights, if possible. See <span class="co">[</span><span class="ot">`WeightIt::glm_weightit()`</span><span class="co">](http://127.0.0.1:31281/help/library/WeightIt/help/glm_weightit)</span> for details. Otherwise, <span class="in">`svyglm()`</span> should be used rather than <span class="in">`glm()`</span> in order to correctly compute standard errors.</span>
+<span id="cb17-140"><a href="#cb17-140" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-141"><a href="#cb17-141" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>**For Cox models, `coxph()` will produce approximately correct standard errors when used with weighting, but `svycoxph()` will produce more accurate standard errors when matching is used.**</span>
+<span id="cb17-142"><a href="#cb17-142" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb17-143"><a href="#cb17-143" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-144"><a href="#cb17-144" aria-hidden="true" tabindex="-1"></a>::: tabset</span>
+<span id="cb17-145"><a href="#cb17-145" aria-hidden="true" tabindex="-1"></a><span class="fu">### Matching</span></span>
+<span id="cb17-146"><a href="#cb17-146" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-147"><a href="#cb17-147" aria-hidden="true" tabindex="-1"></a>We now want to compare treatment effect estimates for <span class="in">`treat`</span> when computed (a) using <span class="in">`coxph`</span> (survival package) and (b) <span class="in">`svycoxph`</span> (survey package). More information on estimating treatment effects after matching is provided in <span class="ot">&lt;https://kosukeimai.github.io/MatchIt/articles/estimating-effects.html#survival-outcomes&gt;</span></span>
+<span id="cb17-148"><a href="#cb17-148" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-149"><a href="#cb17-149" aria-hidden="true" tabindex="-1"></a>::: tabset</span>
+<span id="cb17-150"><a href="#cb17-150" aria-hidden="true" tabindex="-1"></a><span class="fu">#### `coxph`</span></span>
+<span id="cb17-151"><a href="#cb17-151" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-154"><a href="#cb17-154" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb17-155"><a href="#cb17-155" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: coxph_mimids</span></span>
+<span id="cb17-156"><a href="#cb17-156" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-157"><a href="#cb17-157" aria-hidden="true" tabindex="-1"></a><span class="co"># coxph result</span></span>
+<span id="cb17-158"><a href="#cb17-158" aria-hidden="true" tabindex="-1"></a>coxph_results <span class="ot">&lt;-</span> <span class="fu">with</span>(</span>
+<span id="cb17-159"><a href="#cb17-159" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> data_mimids,</span>
+<span id="cb17-160"><a href="#cb17-160" aria-hidden="true" tabindex="-1"></a>  <span class="at">expr =</span> <span class="fu">coxph</span>(<span class="at">formula =</span> <span class="fu">Surv</span>(fu_itt_months, death_itt) <span class="sc">~</span> treat, </span>
+<span id="cb17-161"><a href="#cb17-161" aria-hidden="true" tabindex="-1"></a>               <span class="at">weights =</span> weights, </span>
+<span id="cb17-162"><a href="#cb17-162" aria-hidden="true" tabindex="-1"></a>               <span class="at">cluster =</span> subclass,</span>
+<span id="cb17-163"><a href="#cb17-163" aria-hidden="true" tabindex="-1"></a>               <span class="at">robust =</span> <span class="cn">TRUE</span></span>
+<span id="cb17-164"><a href="#cb17-164" aria-hidden="true" tabindex="-1"></a>               )</span>
+<span id="cb17-165"><a href="#cb17-165" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span> </span>
+<span id="cb17-166"><a href="#cb17-166" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pool</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb17-167"><a href="#cb17-167" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tidy</span>(<span class="at">exponentiate =</span> <span class="cn">TRUE</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb17-168"><a href="#cb17-168" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(term, estimate, std.error)</span>
+<span id="cb17-169"><a href="#cb17-169" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-170"><a href="#cb17-170" aria-hidden="true" tabindex="-1"></a>coxph_results</span>
+<span id="cb17-171"><a href="#cb17-171" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb17-172"><a href="#cb17-172" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-173"><a href="#cb17-173" aria-hidden="true" tabindex="-1"></a><span class="fu">#### `svycoxph`</span></span>
+<span id="cb17-174"><a href="#cb17-174" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-177"><a href="#cb17-177" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb17-178"><a href="#cb17-178" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: svycoxph_mimids</span></span>
+<span id="cb17-179"><a href="#cb17-179" aria-hidden="true" tabindex="-1"></a><span class="co">#| message: false</span></span>
+<span id="cb17-180"><a href="#cb17-180" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-181"><a href="#cb17-181" aria-hidden="true" tabindex="-1"></a><span class="co"># svycoxph result</span></span>
+<span id="cb17-182"><a href="#cb17-182" aria-hidden="true" tabindex="-1"></a>svycoxph_results <span class="ot">&lt;-</span> <span class="fu">with</span>(</span>
+<span id="cb17-183"><a href="#cb17-183" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> data_mimids,</span>
+<span id="cb17-184"><a href="#cb17-184" aria-hidden="true" tabindex="-1"></a>  <span class="at">expr =</span> <span class="fu">svycoxph</span>(<span class="at">formula =</span> <span class="fu">Surv</span>(fu_itt_months, death_itt) <span class="sc">~</span> treat)</span>
+<span id="cb17-185"><a href="#cb17-185" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span> </span>
+<span id="cb17-186"><a href="#cb17-186" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pool</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb17-187"><a href="#cb17-187" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tidy</span>(<span class="at">exponentiate =</span> <span class="cn">TRUE</span>, <span class="at">conf.int =</span> <span class="cn">TRUE</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb17-188"><a href="#cb17-188" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(term, estimate, std.error)</span>
 <span id="cb17-189"><a href="#cb17-189" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-190"><a href="#cb17-190" aria-hidden="true" tabindex="-1"></a><span class="fu">### Weighting</span></span>
-<span id="cb17-191"><a href="#cb17-191" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-192"><a href="#cb17-192" aria-hidden="true" tabindex="-1"></a>::: tabset</span>
-<span id="cb17-193"><a href="#cb17-193" aria-hidden="true" tabindex="-1"></a><span class="fu">#### `coxph`</span></span>
-<span id="cb17-194"><a href="#cb17-194" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-197"><a href="#cb17-197" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb17-198"><a href="#cb17-198" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: coxph_wimids</span></span>
-<span id="cb17-199"><a href="#cb17-199" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-200"><a href="#cb17-200" aria-hidden="true" tabindex="-1"></a><span class="co"># coxph result</span></span>
-<span id="cb17-201"><a href="#cb17-201" aria-hidden="true" tabindex="-1"></a>coxph_results <span class="ot">&lt;-</span> <span class="fu">with</span>(</span>
-<span id="cb17-202"><a href="#cb17-202" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> data_wimids,</span>
-<span id="cb17-203"><a href="#cb17-203" aria-hidden="true" tabindex="-1"></a>  <span class="at">expr =</span> <span class="fu">coxph</span>(<span class="at">formula =</span> <span class="fu">Surv</span>(fu_itt_months, death_itt) <span class="sc">~</span> treat,</span>
-<span id="cb17-204"><a href="#cb17-204" aria-hidden="true" tabindex="-1"></a>               <span class="at">weights =</span> weights, </span>
-<span id="cb17-205"><a href="#cb17-205" aria-hidden="true" tabindex="-1"></a>               <span class="at">robust =</span> <span class="cn">TRUE</span></span>
-<span id="cb17-206"><a href="#cb17-206" aria-hidden="true" tabindex="-1"></a>               )</span>
-<span id="cb17-207"><a href="#cb17-207" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span> </span>
-<span id="cb17-208"><a href="#cb17-208" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pool</span>() <span class="sc">|&gt;</span> </span>
-<span id="cb17-209"><a href="#cb17-209" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tidy</span>(<span class="at">exponentiate =</span> <span class="cn">TRUE</span>) <span class="sc">|&gt;</span> </span>
-<span id="cb17-210"><a href="#cb17-210" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(term, estimate, std.error)</span>
-<span id="cb17-211"><a href="#cb17-211" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-212"><a href="#cb17-212" aria-hidden="true" tabindex="-1"></a>coxph_results</span>
-<span id="cb17-213"><a href="#cb17-213" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb17-214"><a href="#cb17-214" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-215"><a href="#cb17-215" aria-hidden="true" tabindex="-1"></a><span class="fu">#### `svycoxph`</span></span>
-<span id="cb17-216"><a href="#cb17-216" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-219"><a href="#cb17-219" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb17-220"><a href="#cb17-220" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: svycoxph_wimids</span></span>
-<span id="cb17-221"><a href="#cb17-221" aria-hidden="true" tabindex="-1"></a><span class="co">#| message: false</span></span>
-<span id="cb17-222"><a href="#cb17-222" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-223"><a href="#cb17-223" aria-hidden="true" tabindex="-1"></a><span class="co"># svycoxph result</span></span>
-<span id="cb17-224"><a href="#cb17-224" aria-hidden="true" tabindex="-1"></a>svycoxph_results <span class="ot">&lt;-</span> <span class="fu">with</span>(</span>
-<span id="cb17-225"><a href="#cb17-225" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> data_wimids,</span>
-<span id="cb17-226"><a href="#cb17-226" aria-hidden="true" tabindex="-1"></a>  <span class="at">expr =</span> <span class="fu">svycoxph</span>(<span class="at">formula =</span> <span class="fu">Surv</span>(fu_itt_months, death_itt) <span class="sc">~</span> treat)</span>
-<span id="cb17-227"><a href="#cb17-227" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span> </span>
-<span id="cb17-228"><a href="#cb17-228" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pool</span>() <span class="sc">|&gt;</span> </span>
-<span id="cb17-229"><a href="#cb17-229" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tidy</span>(<span class="at">exponentiate =</span> <span class="cn">TRUE</span>, <span class="at">conf.int =</span> <span class="cn">TRUE</span>) <span class="sc">|&gt;</span> </span>
-<span id="cb17-230"><a href="#cb17-230" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(term, estimate, std.error)</span>
-<span id="cb17-231"><a href="#cb17-231" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-232"><a href="#cb17-232" aria-hidden="true" tabindex="-1"></a>svycoxph_results</span>
-<span id="cb17-233"><a href="#cb17-233" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb17-234"><a href="#cb17-234" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb17-235"><a href="#cb17-235" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb17-190"><a href="#cb17-190" aria-hidden="true" tabindex="-1"></a>svycoxph_results</span>
+<span id="cb17-191"><a href="#cb17-191" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb17-192"><a href="#cb17-192" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb17-193"><a href="#cb17-193" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-194"><a href="#cb17-194" aria-hidden="true" tabindex="-1"></a><span class="fu">### Weighting</span></span>
+<span id="cb17-195"><a href="#cb17-195" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-196"><a href="#cb17-196" aria-hidden="true" tabindex="-1"></a>::: tabset</span>
+<span id="cb17-197"><a href="#cb17-197" aria-hidden="true" tabindex="-1"></a><span class="fu">#### `coxph`</span></span>
+<span id="cb17-198"><a href="#cb17-198" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-201"><a href="#cb17-201" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb17-202"><a href="#cb17-202" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: coxph_wimids</span></span>
+<span id="cb17-203"><a href="#cb17-203" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-204"><a href="#cb17-204" aria-hidden="true" tabindex="-1"></a><span class="co"># coxph result</span></span>
+<span id="cb17-205"><a href="#cb17-205" aria-hidden="true" tabindex="-1"></a>coxph_results <span class="ot">&lt;-</span> <span class="fu">with</span>(</span>
+<span id="cb17-206"><a href="#cb17-206" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> data_wimids,</span>
+<span id="cb17-207"><a href="#cb17-207" aria-hidden="true" tabindex="-1"></a>  <span class="at">expr =</span> <span class="fu">coxph</span>(<span class="at">formula =</span> <span class="fu">Surv</span>(fu_itt_months, death_itt) <span class="sc">~</span> treat,</span>
+<span id="cb17-208"><a href="#cb17-208" aria-hidden="true" tabindex="-1"></a>               <span class="at">weights =</span> weights, </span>
+<span id="cb17-209"><a href="#cb17-209" aria-hidden="true" tabindex="-1"></a>               <span class="at">robust =</span> <span class="cn">TRUE</span></span>
+<span id="cb17-210"><a href="#cb17-210" aria-hidden="true" tabindex="-1"></a>               )</span>
+<span id="cb17-211"><a href="#cb17-211" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span> </span>
+<span id="cb17-212"><a href="#cb17-212" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pool</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb17-213"><a href="#cb17-213" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tidy</span>(<span class="at">exponentiate =</span> <span class="cn">TRUE</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb17-214"><a href="#cb17-214" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(term, estimate, std.error)</span>
+<span id="cb17-215"><a href="#cb17-215" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-216"><a href="#cb17-216" aria-hidden="true" tabindex="-1"></a>coxph_results</span>
+<span id="cb17-217"><a href="#cb17-217" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb17-218"><a href="#cb17-218" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-219"><a href="#cb17-219" aria-hidden="true" tabindex="-1"></a><span class="fu">#### `svycoxph`</span></span>
+<span id="cb17-220"><a href="#cb17-220" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-223"><a href="#cb17-223" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb17-224"><a href="#cb17-224" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: svycoxph_wimids</span></span>
+<span id="cb17-225"><a href="#cb17-225" aria-hidden="true" tabindex="-1"></a><span class="co">#| message: false</span></span>
+<span id="cb17-226"><a href="#cb17-226" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-227"><a href="#cb17-227" aria-hidden="true" tabindex="-1"></a><span class="co"># svycoxph result</span></span>
+<span id="cb17-228"><a href="#cb17-228" aria-hidden="true" tabindex="-1"></a>svycoxph_results <span class="ot">&lt;-</span> <span class="fu">with</span>(</span>
+<span id="cb17-229"><a href="#cb17-229" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> data_wimids,</span>
+<span id="cb17-230"><a href="#cb17-230" aria-hidden="true" tabindex="-1"></a>  <span class="at">expr =</span> <span class="fu">svycoxph</span>(<span class="at">formula =</span> <span class="fu">Surv</span>(fu_itt_months, death_itt) <span class="sc">~</span> treat)</span>
+<span id="cb17-231"><a href="#cb17-231" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span> </span>
+<span id="cb17-232"><a href="#cb17-232" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pool</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb17-233"><a href="#cb17-233" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tidy</span>(<span class="at">exponentiate =</span> <span class="cn">TRUE</span>, <span class="at">conf.int =</span> <span class="cn">TRUE</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb17-234"><a href="#cb17-234" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(term, estimate, std.error)</span>
+<span id="cb17-235"><a href="#cb17-235" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-236"><a href="#cb17-236" aria-hidden="true" tabindex="-1"></a>svycoxph_results</span>
+<span id="cb17-237"><a href="#cb17-237" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb17-238"><a href="#cb17-238" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb17-239"><a href="#cb17-239" aria-hidden="true" tabindex="-1"></a>:::</span>
 </code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 
 
 
-</body></html>
+
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/janickweberpals/imputation-ps-workflows/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>

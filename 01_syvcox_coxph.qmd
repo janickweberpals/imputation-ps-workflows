@@ -1,5 +1,6 @@
 ---
-title: "Comparison of coxph versus svycoxph after multiple imputation and propensity score matching"
+title: "`coxph` versus `svycoxph`"
+subtitle: "Comparison of coxph versus svycoxph after multiple imputation and propensity score matching"
 author: Janick Weberpals, RPh, PhD
 date: last-modified
 format: html
@@ -70,7 +71,7 @@ Multiple imputation using `mice:`
 # impute data
 data_imp <- futuremice(
   parallelseed = 42,
-  n.core = 7,
+  n.core = parallel::detectCores()-1,
   data = data_miss,
   method = "rf",
   m = 10,
