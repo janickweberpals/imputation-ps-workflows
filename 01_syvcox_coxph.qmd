@@ -134,16 +134,16 @@ From the `MatchThem` documentation:
 -   **For Cox models, `coxph()` will produce approximately correct standard errors when used with weighting, but `svycoxph()` will produce more accurate standard errors when matching is used.**
 :::
 
-::: tabset
+::: {.panel-tabset}
 ### Matching
 
 We now want to compare treatment effect estimates for `treat` when computed (a) using `coxph` (survival package) and (b) `svycoxph` (survey package). More information on estimating treatment effects after matching is provided in <https://kosukeimai.github.io/MatchIt/articles/estimating-effects.html#survival-outcomes>
 
-::: tabset
 #### `coxph`
 
 ```{r}
 #| label: coxph_mimids
+#| results: hide
 
 # coxph result
 coxph_results <- with(
@@ -156,7 +156,8 @@ coxph_results <- with(
   ) |> 
   pool() |> 
   tidy(exponentiate = TRUE) |> 
-  select(term, estimate, std.error)
+  mutate(package = "survival") |> 
+  select(package, term, estimate, std.error) 
 
 coxph_results
 ```
@@ -165,8 +166,7 @@ coxph_results
 
 ```{r}
 #| label: svycoxph_mimids
-#| message: false
-#| warning: false
+#| results: hide
 
 # svycoxph result
 svycoxph_results <- with(
@@ -175,21 +175,25 @@ svycoxph_results <- with(
   ) |> 
   pool() |> 
   tidy(exponentiate = TRUE, conf.int = TRUE) |> 
-  select(term, estimate, std.error)
+  mutate(package = "survey") |> 
+  select(package, term, estimate, std.error)
 
 svycoxph_results
 ```
-:::
+
+#### Summary
+
+```{r}
+rbind(coxph_results, svycoxph_results)
+```
 
 ### Weighting
 
-::: tabset
 #### `coxph`
 
 ```{r}
 #| label: coxph_wimids
-#| message: false
-#| warning: false
+#| results: hide
 
 # coxph result
 coxph_results <- with(
@@ -201,7 +205,8 @@ coxph_results <- with(
   ) |> 
   pool() |> 
   tidy(exponentiate = TRUE) |> 
-  select(term, estimate, std.error)
+  mutate(package = "survival") |> 
+  select(package, term, estimate, std.error) 
 
 coxph_results
 ```
@@ -210,7 +215,7 @@ coxph_results
 
 ```{r}
 #| label: svycoxph_wimids
-#| message: false
+#| results: hide
 
 # svycoxph result
 svycoxph_results <- with(
@@ -219,9 +224,16 @@ svycoxph_results <- with(
   ) |> 
   pool() |> 
   tidy(exponentiate = TRUE, conf.int = TRUE) |> 
-  select(term, estimate, std.error)
+  mutate(package = "survey") |> 
+  select(package, term, estimate, std.error) 
 
 svycoxph_results
 ```
-:::
+
+#### Summary
+
+```{r}
+rbind(coxph_results, svycoxph_results)
+```
+
 :::
