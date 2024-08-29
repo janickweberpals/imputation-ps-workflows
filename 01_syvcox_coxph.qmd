@@ -166,6 +166,7 @@ coxph_results
 ```{r}
 #| label: svycoxph_mimids
 #| message: false
+#| warning: false
 
 # svycoxph result
 svycoxph_results <- with(
@@ -187,6 +188,8 @@ svycoxph_results
 
 ```{r}
 #| label: coxph_wimids
+#| message: false
+#| warning: false
 
 # coxph result
 coxph_results <- with(
