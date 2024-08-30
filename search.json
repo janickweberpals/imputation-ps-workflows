@@ -44,7 +44,7 @@
     "href": "index.html#repository-structure-and-files",
     "title": "Multiple imputation-propensity score workflows",
     "section": "Repository structure and files",
-    "text": "Repository structure and files\n\nDirectory overview\n\n\n.\n├── 01_syvcox_coxph.md\n├── 01_syvcox_coxph.qmd\n├── 02_re_weight.qmd\n├── README.md\n├── RStudio_init.png\n├── _book\n│   ├── 01_syvcox_coxph.html\n│   ├── RStudio_init.png\n│   ├── index.html\n│   ├── search.json\n│   └── site_libs\n├── _quarto.yml\n├── functions\n│   ├── install_on_demand.R\n│   ├── match_re_weight.R\n│   ├── simulate_flaura.R\n│   └── source_encore.io_functions.R\n├── index.qmd\n├── index.rmarkdown\n├── nejm_tbl1.png\n├── renv\n│   ├── activate.R\n│   ├── library\n│   ├── settings.json\n│   └── staging\n├── renv.lock\n└── site_libs\n    ├── bootstrap\n    ├── clipboard\n    ├── quarto-html\n    ├── quarto-nav\n    └── quarto-search",
+    "text": "Repository structure and files\n\nDirectory overview\n\n\n.\n├── 01_syvcox_coxph.md\n├── 01_syvcox_coxph.qmd\n├── 02_re_weight.qmd\n├── README.md\n├── RStudio_init.png\n├── _book\n│   ├── 01_syvcox_coxph.html\n│   ├── RStudio_init.png\n│   ├── index.html\n│   ├── search.json\n│   └── site_libs\n├── _quarto.yml\n├── functions\n│   ├── install_on_demand.R\n│   ├── match_re_weight.R\n│   ├── simulate_flaura.R\n│   └── source_encore.io_functions.R\n├── index.qmd\n├── index.rmarkdown\n├── nejm_tbl1.png\n├── renv\n│   ├── activate.R\n│   ├── library\n│   └── settings.json\n├── renv.lock\n└── site_libs\n    ├── bootstrap\n    ├── clipboard\n    ├── quarto-html\n    ├── quarto-nav\n    └── quarto-search",
     "crumbs": [
       "<span class='chapter-number'>1</span>  <span class='chapter-title'>README</span>"
     ]
