@@ -7,6 +7,7 @@ code-fold: false
 toc: true
 toc-depth: 3
 code-tools: true
+keep-md: true
 editor: visual
 ---
 
@@ -69,6 +70,57 @@ data_imp <- futuremice(
   )
 ```
 
+Defining target distributions
+
+Before applying the re-weighting, we need to define the target distributions of patient characteristics that we want to match from the clinical trial using the *raking* procedure. The following distributions are taken from Table 1 of the FLAURA trial.
+
+```{r}
+# Define FLAURA distributions for key covariates --------------------------
+# order is as in Table 1
+
+## sex ---------------------------------------------------------------------
+
+# male sex by exposure
+avg_prop_male <- .37
+
+# female (0) to male (1) proportion:
+sex_target <- c(1-avg_prop_male, avg_prop_male) 
+names(sex_target) <- c("0", "1")
+
+## race --------------------------------------------------------------------
+# asian, non-asian
+# asian (TRUE) to non-asian (FALSE) proportion
+# note: logical variables in dataframe can be matched to a numeric vector of length 2 and ordered with the TRUE target as the first element and the FALSE target as the second element.
+asian_prop <- .62 # "other" is rounded up to 2% to sum up to 100%
+race_target <- c(asian_prop, 1-asian_prop)
+
+## smoking -----------------------------------------------------------------
+
+# never smoking by exposure
+avg_prop_never_smoker <- .64
+
+# current/former smoker (TRUE) to never smoker (FALSE) proportion
+# note: logical variables in dataframe can be matched to a numeric vector of length 2 and ordered with the TRUE target as the first element and the FALSE target as the second element.
+smoker_target <- c(1-avg_prop_never_smoker, avg_prop_never_smoker)
+
+## ecog --------------------------------------------------------------------
+
+# ecog 0 by exposure 
+avg_prop_ecog0 <- .41
+
+# ecog 0 to ecog 1 proportion
+ecog_target <- c(avg_prop_ecog0, 1-avg_prop_ecog0)
+names(ecog_target) <- c("0", "1")
+
+
+# summarize target distributions in a named list vector --------------
+targets <- list(sex_target, race_target, smoker_target, ecog_target)
+names(targets) <- c("dem_sex_cont", "dem_race", "c_smoking_history", "c_ecog_cont")
+
+# print
+targets
+```
+
 ## Propensity score matching and weighting
 
 Apply propensity score matching and weighting with replacement within in each imputed dataset:
@@ -80,19 +132,40 @@ Apply propensity score matching and weighting with replacement within in each im
 # apply propensity score matching on mids object
 ps_form <- as.formula(paste("treat ~", paste(covariates, collapse = " + ")))
 
+# create a mild object containing lists of data.frames
+data_mild <- mice::complete(data = data_imp, action = "all", include = FALSE)
+
+# we have to convert sex and ecog into a factor variable 
+# since anesrake doesn't accept 0/1 numeric encoding for 
+# binary variables
+data_mild <- lapply(
+  X = data_mild, 
+  FUN = function(df) {
+    df <- df |> 
+      mutate(
+        across(c(dem_sex_cont, c_ecog_cont), function(x) factor(as.character(x))))
+    }
+  )
+    
 # call match re-weight
-test <- lapply(
-  X = 1:data_imp$m, 
+matchit_out_list <- lapply(
+  X = data_mild, 
   FUN = match_re_weight,
-  i = 1,
-  mids_object = data_imp,
-  ps_formula = ps_form,
+  targets = targets,
+  # arguments passed on to matchit
+  formula = ps_form,
   ratio = 1,
   method = "nearest",
   distance = "glm",
   link = "logit",
   caliper = 0.01,
   replace = F
+  )
+
+# convert the output back into a mimids object
+data_mimids_from_function <- MatchThem::as.mimids(
+  x = matchit_out_list, 
+  datasets = mids_object
   )
 
 # matching
@@ -105,6 +178,10 @@ data_mimids <- matchthem(
   ratio = 1,
   replace = F
   )
+```
+
+```{r}
+waldo::compare(data_mimids_from_function, data_mimids)
 ```
 
 ## Define and estimate sampling weights
