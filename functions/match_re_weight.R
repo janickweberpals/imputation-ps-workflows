@@ -21,8 +21,10 @@
 #' 
 #' @param x data.frame or mild object/list of data.frames if used in combination with lapply
 #' @param targets named list of all target values for the raking procedure (see \code{\link[anesrake]{anesrake}})
-#' @param method character, one of "matching" or "weighting"
-#' @param ... other arguments and specifications to pass on to \code{\link[MatchIt]{matchit}} or \code{\link[WeightIt]{weighit}}, depending on chosen \code{method}
+#' @param matching_weighting character, one of "matching" or "weighting"
+#' @param ... other arguments and specifications to pass on to 
+#' \code{\link[MatchIt]{matchit}} or \code{\link[WeightIt]{weighit}}, 
+#' depending on chosen method (\code{matching_weighting}).
 #' 
 #' @importFrom mice complete
 #' @importFrom MatchIt matchit match.data
@@ -83,6 +85,7 @@
 #'   X = data_mild, 
 #'   FUN = match_re_weight,
 #'   targets = targets,
+#'   matching_weighting = "matching",
 #'   # arguments passed on to matchit
 #'   formula = ps_form,
 #'   ratio = 1,
@@ -102,18 +105,18 @@
 
 match_re_weight <- function(x,
                             targets = NULL,
-                            method = NULL,
+                            matching_weighting = NULL,
                             ...
                             ){
   
   # checks
   assertthat::assert_that(inherits(x, c("data.frame", "list")), msg = "<x> needs to be a data frame or a list of data frames")
-  assertthat::assert_that(method %in% c("matching", "weighting"), msg = "<method> needs to be either matching or weighting")
+  assertthat::assert_that(matching_weighting %in% c("matching", "weighting"), msg = "<matching_weighting> needs to be either matching or weighting")
   
   if(is.null(targets)) message("No target distributions specified, no re-weighting will be performed.")
   
   # perform matching on the imputed dataset -----------------------------
-  if(method == "matching"){
+  if(matching_weighting == "matching"){
     
     # create a matchit object on x
     # if no re-weighting is desired
@@ -136,7 +139,7 @@ match_re_weight <- function(x,
       # = matched patients
       mutate(reweight = weights)
     
-  }else if(method == "weighting"){
+  }else if(matching_weighting == "weighting"){
     
     # create a matchit object on x
     # if no re-weighting is desired
@@ -194,7 +197,7 @@ match_re_weight <- function(x,
       # now we can drop the temporary id
       dplyr::select(-caseid)
     
-    if(method == "matching"){
+    if(matching_weighting == "matching"){
       
       # add sampling weights to the matchit object so that 
       # they are incorporated into balance assessment 
@@ -204,7 +207,7 @@ match_re_weight <- function(x,
         s.weights = data_all$re_weights
         )
       
-    }else if(method == "weighting"){
+    }else if(matching_weighting == "weighting"){
       
       object_out <- WeightIt::as.weightit(
         x = weighit_out$weights,
