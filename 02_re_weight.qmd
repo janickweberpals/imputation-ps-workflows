@@ -45,7 +45,11 @@ data_miss <- simulate_flaura(
   seed = 41, 
   include_id = FALSE, 
   imposeNA = TRUE
-  )
+  ) |> 
+  # we have to convert sex and ecog into a factor variable 
+  # since anesrake doesn't accept 0/1 numeric encoding for 
+  # binary variables
+  mutate(across(c(dem_sex_cont, c_ecog_cont), function(x) factor(as.character(x))))
 
 covariates <- data_miss |> 
   select(starts_with("c_"), starts_with("dem_")) |> 
@@ -134,24 +138,13 @@ ps_form <- as.formula(paste("treat ~", paste(covariates, collapse = " + ")))
 
 # create a mild object containing lists of data.frames
 data_mild <- mice::complete(data = data_imp, action = "all", include = FALSE)
-
-# we have to convert sex and ecog into a factor variable 
-# since anesrake doesn't accept 0/1 numeric encoding for 
-# binary variables
-data_mild <- lapply(
-  X = data_mild, 
-  FUN = function(df) {
-    df <- df |> 
-      mutate(
-        across(c(dem_sex_cont, c_ecog_cont), function(x) factor(as.character(x))))
-    }
-  )
     
 # call match re-weight
 matchit_out_list <- lapply(
   X = data_mild, 
   FUN = match_re_weight,
-  targets = targets,
+  targets = NULL,
+  matching_weighting = "matching",
   # arguments passed on to matchit
   formula = ps_form,
   ratio = 1,
@@ -165,7 +158,7 @@ matchit_out_list <- lapply(
 # convert the output back into a mimids object
 data_mimids_from_function <- MatchThem::as.mimids(
   x = matchit_out_list, 
-  datasets = mids_object
+  datasets = data_imp
   )
 
 # matching
@@ -181,7 +174,10 @@ data_mimids <- matchthem(
 ```
 
 ```{r}
-waldo::compare(data_mimids_from_function, data_mimids)
+waldo::compare(
+  MatchThem::complete(data_mimids_from_function), 
+  MatchThem::complete(data_mimids)
+  )
 ```
 
 ## Define and estimate sampling weights
