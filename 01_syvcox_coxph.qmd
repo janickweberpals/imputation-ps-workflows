@@ -1,6 +1,6 @@
 ---
 title: "`coxph` versus `svycoxph`"
-subtitle: "Comparison of coxph versus svycoxph after multiple imputation and propensity score matching"
+subtitle: "Comparison of `coxph` versus `svycoxph` after multiple imputation and propensity score matching"
 author: Janick Weberpals, RPh, PhD
 date: last-modified
 format: html
@@ -8,6 +8,7 @@ code-fold: false
 toc: true
 toc-depth: 3
 code-tools: true
+keep-md: true
 editor: visual
 ---
 
@@ -45,7 +46,7 @@ We use the `simulate_flaura()` function to simulate a realistic oncology compara
 data_miss <- simulate_flaura(
   n_total = 3500, 
   treat_prevalence = .51, 
-  seed = 41, 
+  seed = 42, 
   include_id = FALSE, 
   imposeNA = TRUE
   )
@@ -129,12 +130,12 @@ From the `MatchThem` documentation:
 
 -   Functions from the **survey** package, such as `svyglm()`, are treated a bit differently. No `svydesign` object needs to be supplied because `with()` automatically constructs and supplies it with the imputed dataset and estimated weights. When `cluster = TRUE` (or `with()` detects that pairs should be clustered; see the `cluster` argument above), pair membership is supplied to the `ids` argument of `svydesign()`.
 
--   After weighting using `weightthem()`, `glm_weightit()` should be used as the modeling function to fit generalized lienar models. It correctly produces robust standard errors that account for estimation of the weights, if possible. See [`WeightIt::glm_weightit()`](http://127.0.0.1:31281/help/library/WeightIt/help/glm_weightit) for details. Otherwise, `svyglm()` should be used rather than `glm()` in order to correctly compute standard errors.
+-   After weighting using `weightthem()`, `glm_weightit()` should be used as the modeling function to fit generalized linear models. It correctly produces robust standard errors that account for estimation of the weights, if possible. See [`WeightIt::glm_weightit()`](http://127.0.0.1:31281/help/library/WeightIt/help/glm_weightit) for details. Otherwise, `svyglm()` should be used rather than `glm()` in order to correctly compute standard errors.
 
 -   **For Cox models, `coxph()` will produce approximately correct standard errors when used with weighting, but `svycoxph()` will produce more accurate standard errors when matching is used.**
 :::
 
-::: {.panel-tabset}
+::: panel-tabset
 ### Matching
 
 We now want to compare treatment effect estimates for `treat` when computed (a) using `coxph` (survival package) and (b) `svycoxph` (survey package). More information on estimating treatment effects after matching is provided in <https://kosukeimai.github.io/MatchIt/articles/estimating-effects.html#survival-outcomes>
@@ -155,9 +156,9 @@ coxph_results <- with(
                )
   ) |> 
   pool() |> 
-  tidy(exponentiate = TRUE) |> 
+  tidy(exponentiate = TRUE, conf.int = TRUE) |> 
   mutate(package = "survival") |> 
-  select(package, term, estimate, std.error) 
+  select(package, term, estimate, std.error, conf.low, conf.high) 
 
 coxph_results
 ```
@@ -171,12 +172,13 @@ coxph_results
 # svycoxph result
 svycoxph_results <- with(
   data = data_mimids,
-  expr = svycoxph(formula = Surv(fu_itt_months, death_itt) ~ treat)
+  expr = svycoxph(formula = Surv(fu_itt_months, death_itt) ~ treat),
+  cluster = TRUE
   ) |> 
   pool() |> 
   tidy(exponentiate = TRUE, conf.int = TRUE) |> 
   mutate(package = "survey") |> 
-  select(package, term, estimate, std.error)
+  select(package, term, estimate, std.error, conf.low, conf.high)
 
 svycoxph_results
 ```
@@ -204,9 +206,9 @@ coxph_results <- with(
                )
   ) |> 
   pool() |> 
-  tidy(exponentiate = TRUE) |> 
+  tidy(exponentiate = TRUE, conf.int = TRUE) |> 
   mutate(package = "survival") |> 
-  select(package, term, estimate, std.error) 
+  select(package, term, estimate, std.error, conf.low, conf.high) 
 
 coxph_results
 ```
@@ -220,12 +222,13 @@ coxph_results
 # svycoxph result
 svycoxph_results <- with(
   data = data_wimids,
-  expr = svycoxph(formula = Surv(fu_itt_months, death_itt) ~ treat)
+  expr = svycoxph(formula = Surv(fu_itt_months, death_itt) ~ treat),
+  cluster = TRUE
   ) |> 
   pool() |> 
   tidy(exponentiate = TRUE, conf.int = TRUE) |> 
   mutate(package = "survey") |> 
-  select(package, term, estimate, std.error) 
+  select(package, term, estimate, std.error, conf.low, conf.high) 
 
 svycoxph_results
 ```
@@ -235,5 +238,4 @@ svycoxph_results
 ```{r}
 rbind(coxph_results, svycoxph_results)
 ```
-
 :::

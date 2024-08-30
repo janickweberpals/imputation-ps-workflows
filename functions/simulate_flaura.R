@@ -98,11 +98,11 @@ simulate_flaura <- function(n_total = 3500,
       sample(c(4, 3, 2, 1), size = n_total, replace = TRUE, prob = c(.95, 0.04, 0.01, 0)),
       sample(c(4, 3, 2, 1), size = n_total, replace = TRUE, prob = c(.95, 0.02, 0.01, 0.1))
       ),
-    # dem_race
-    dem_race = factor(ifelse(
+    # dem_race (1 is asian, 0 is non-asian)
+    dem_race = ifelse(
       treat == 1, 
-      sample(c("White", "Asian", "Other"), size = n_total, replace = TRUE, prob = c(.57, .13, .3)),
-      sample(c("White", "Asian", "Other"), size = n_total, replace = TRUE, prob = c(.60, .11, .29)))
+      sample(c(TRUE, FALSE), size = n_total, replace = TRUE, prob = c(.64, .36)),
+      sample(c(TRUE, FALSE), size = n_total, replace = TRUE, prob = c(.61, .39))
       ),
     # dem_region
     dem_region = factor(ifelse(
@@ -282,7 +282,12 @@ simulate_flaura <- function(n_total = 3500,
   
   # assign betas for hazard model
   betas_os <- c(
-    treat = log(0.8)
+    treat = log(0.8),
+    dem_sex_cont = log(0.79),
+    dem_age_index_cont = log(1.02),
+    dem_race = log(.54),
+    c_smoking_history = log(.70),
+    c_ecog_cont = log(.7)
     )
   
   set.seed(seed)
