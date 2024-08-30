@@ -2,12 +2,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.4.549">
+<meta name="generator" content="quarto-1.3.433">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Janick Weberpals, RPh, PhD">
-<meta name="dcterms.date" content="2024-08-29">
+<meta name="dcterms.date" content="2024-08-30">
 <meta name="description" content="Miscellaneous multiple imputation and propensity score workflows">
 
 <title>Multiple imputation-propensity score workflows - 2&nbsp; coxph versus svycoxph</title>
@@ -25,7 +25,7 @@ ul.task-list li input[type="checkbox"] {
 }
 /* CSS for syntax highlighting */
 pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
 .sourceCode { overflow: visible; }
 code.sourceCode > span { color: inherit; text-decoration: inherit; }
@@ -83,13 +83,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   "collapse-after": 3,
   "panel-placement": "start",
   "type": "textbox",
-  "limit": 50,
-  "keyboard-shortcut": [
-    "f",
-    "/",
-    "s"
-  ],
-  "show-item-context": false,
+  "limit": 20,
   "language": {
     "search-no-results-text": "No results",
     "search-matching-documents-text": "matching documents",
@@ -98,7 +92,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     "search-more-match-text": "more match in this document",
     "search-more-matches-text": "more matches in this document",
     "search-clear-button-title": "Clear",
-    "search-text-placeholder": "",
     "search-detached-cancel-button-title": "Cancel",
     "search-submit-button-title": "Submit",
     "search-label": "Search"
@@ -114,12 +107,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <header id="quarto-header" class="headroom fixed-top">
   <nav class="quarto-secondary-nav">
     <div class="container-fluid d-flex">
-      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./01_syvcox_coxph.html"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title"><code>coxph</code> versus <code>svycoxph</code></span></a></li></ol></nav>
-        <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
-        </a>
+      <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./01_syvcox_coxph.html"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">`coxph` versus `svycoxph`</span></a></li></ol></nav>
+      <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+      </a>
       <button type="button" class="btn quarto-search-button" aria-label="" onclick="window.quartoOpenSearch();">
         <i class="bi bi-search"></i>
       </button>
@@ -129,12 +122,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <!-- content -->
 <div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-full">
 <!-- sidebar -->
-  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal sidebar-navigation floating overflow-auto">
     <div class="pt-lg-2 mt-2 text-left sidebar-header">
     <div class="sidebar-title mb-0 py-0">
       <a href="./">Multiple imputation-propensity score workflows</a> 
         <div class="sidebar-tools-main">
-    <a href="https://github.com/janickweberpals/imputation-ps-workflows" title="Source Code" class="quarto-navigation-tool px-1" aria-label="Source Code"><i class="bi bi-github"></i></a>
+    <a href="https://github.com/janickweberpals/imputation-ps-workflows" rel="" title="Source Code" class="quarto-navigation-tool px-1" aria-label="Source Code"><i class="bi bi-github"></i></a>
   <a href="" class="quarto-reader-toggle quarto-navigation-tool px-1" onclick="window.quartoToggleReader(); return false;" title="Toggle reader mode">
   <div class="quarto-reader-toggle-btn">
   <i class="bi"></i>
@@ -165,7 +158,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     </ul>
     </div>
 </nav>
-<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<div id="quarto-sidebar-glass" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass"></div>
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
         <nav id="TOC" role="doc-toc" class="toc-active">
@@ -177,7 +170,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#propensity-score-matching-and-weighting" id="toc-propensity-score-matching-and-weighting" class="nav-link" data-scroll-target="#propensity-score-matching-and-weighting"><span class="header-section-number">2.3</span> Propensity score matching and weighting</a></li>
   <li><a href="#outcome-model-comparisons" id="toc-outcome-model-comparisons" class="nav-link" data-scroll-target="#outcome-model-comparisons"><span class="header-section-number">2.4</span> Outcome model comparisons</a></li>
   </ul>
-<div class="toc-actions"><ul><li><a href="https://github.com/janickweberpals/imputation-ps-workflows/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></nav>
+<div class="toc-actions"><div><i class="bi bi-github"></i></div><div class="action-links"><p><a href="https://github.com/janickweberpals/imputation-ps-workflows/issues/new" class="toc-action">Report an issue</a></p></div></div></nav>
     </div>
 <!-- main -->
 <main class="content column-body" id="quarto-document-content">
@@ -185,12 +178,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
 <div class="quarto-title-block"><div><h1 class="title"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title"><code>coxph</code> versus <code>svycoxph</code></span></h1><button type="button" class="btn code-tools-button" id="quarto-code-tools-source"><i class="bi"></i> Code</button></div></div>
-<p class="subtitle lead">Comparison of coxph versus svycoxph after multiple imputation and propensity score matching</p>
+<p class="subtitle lead">Comparison of <code>coxph</code> versus <code>svycoxph</code> after multiple imputation and propensity score matching</p>
 </div>
 
 
 
-<div class="quarto-title-meta column-body">
+<div class="quarto-title-meta">
 
     <div>
     <div class="quarto-title-meta-heading">Author</div>
@@ -202,7 +195,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">August 29, 2024</p>
+      <p class="date">August 30, 2024</p>
     </div>
   </div>
   
@@ -210,9 +203,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </div>
   
 
-
 </header>
-
 
 <p>This is a reproducible example on how to use <code>coxph</code> and <code>svycoxph</code> in combination with multiple imputation and propensity score matching using a <code>mimids</code> object from the MatchThem package.</p>
 <p>Load packages:</p>
@@ -238,7 +229,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>data_miss <span class="ot">&lt;-</span> <span class="fu">simulate_flaura</span>(</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">n_total =</span> <span class="dv">3500</span>, </span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">treat_prevalence =</span> .<span class="dv">51</span>, </span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">seed =</span> <span class="dv">41</span>, </span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">seed =</span> <span class="dv">42</span>, </span>
 <span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">include_id =</span> <span class="cn">FALSE</span>, </span>
 <span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">imposeNA =</span> <span class="cn">TRUE</span></span>
 <span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  )</span>
@@ -253,23 +244,24 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">include =</span> covariates</span>
 <span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>    )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
-<div id="xbutehqlyk" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#xbutehqlyk table {
+
+<div id="mhvesddiol" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#mhvesddiol table {
   font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-#xbutehqlyk thead, #xbutehqlyk tbody, #xbutehqlyk tfoot, #xbutehqlyk tr, #xbutehqlyk td, #xbutehqlyk th {
+#mhvesddiol thead, #mhvesddiol tbody, #mhvesddiol tfoot, #mhvesddiol tr, #mhvesddiol td, #mhvesddiol th {
   border-style: none;
 }
 
-#xbutehqlyk p {
+#mhvesddiol p {
   margin: 0;
   padding: 0;
 }
 
-#xbutehqlyk .gt_table {
+#mhvesddiol .gt_table {
   display: table;
   border-collapse: collapse;
   line-height: normal;
@@ -295,12 +287,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-left-color: #D3D3D3;
 }
 
-#xbutehqlyk .gt_caption {
+#mhvesddiol .gt_caption {
   padding-top: 4px;
   padding-bottom: 4px;
 }
 
-#xbutehqlyk .gt_title {
+#mhvesddiol .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -312,7 +304,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-bottom-width: 0;
 }
 
-#xbutehqlyk .gt_subtitle {
+#mhvesddiol .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -324,7 +316,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-top-width: 0;
 }
 
-#xbutehqlyk .gt_heading {
+#mhvesddiol .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -336,13 +328,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-right-color: #D3D3D3;
 }
 
-#xbutehqlyk .gt_bottom_border {
+#mhvesddiol .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-#xbutehqlyk .gt_col_headings {
+#mhvesddiol .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -357,7 +349,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-right-color: #D3D3D3;
 }
 
-#xbutehqlyk .gt_col_heading {
+#mhvesddiol .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -377,7 +369,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   overflow-x: hidden;
 }
 
-#xbutehqlyk .gt_column_spanner_outer {
+#mhvesddiol .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -389,15 +381,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   padding-right: 4px;
 }
 
-#xbutehqlyk .gt_column_spanner_outer:first-child {
+#mhvesddiol .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#xbutehqlyk .gt_column_spanner_outer:last-child {
+#mhvesddiol .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#xbutehqlyk .gt_column_spanner {
+#mhvesddiol .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -409,11 +401,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   width: 100%;
 }
 
-#xbutehqlyk .gt_spanner_row {
+#mhvesddiol .gt_spanner_row {
   border-bottom-style: hidden;
 }
 
-#xbutehqlyk .gt_group_heading {
+#mhvesddiol .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -439,7 +431,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   text-align: left;
 }
 
-#xbutehqlyk .gt_empty_group_heading {
+#mhvesddiol .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -454,15 +446,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   vertical-align: middle;
 }
 
-#xbutehqlyk .gt_from_md > :first-child {
+#mhvesddiol .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#xbutehqlyk .gt_from_md > :last-child {
+#mhvesddiol .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#xbutehqlyk .gt_row {
+#mhvesddiol .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -481,7 +473,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   overflow-x: hidden;
 }
 
-#xbutehqlyk .gt_stub {
+#mhvesddiol .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -494,7 +486,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   padding-right: 5px;
 }
 
-#xbutehqlyk .gt_stub_row_group {
+#mhvesddiol .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -508,15 +500,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   vertical-align: top;
 }
 
-#xbutehqlyk .gt_row_group_first td {
+#mhvesddiol .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-#xbutehqlyk .gt_row_group_first th {
+#mhvesddiol .gt_row_group_first th {
   border-top-width: 2px;
 }
 
-#xbutehqlyk .gt_summary_row {
+#mhvesddiol .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -526,16 +518,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   padding-right: 5px;
 }
 
-#xbutehqlyk .gt_first_summary_row {
+#mhvesddiol .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D3D3D3;
 }
 
-#xbutehqlyk .gt_first_summary_row.thick {
+#mhvesddiol .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-#xbutehqlyk .gt_last_summary_row {
+#mhvesddiol .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -545,7 +537,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-bottom-color: #D3D3D3;
 }
 
-#xbutehqlyk .gt_grand_summary_row {
+#mhvesddiol .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -555,7 +547,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   padding-right: 5px;
 }
 
-#xbutehqlyk .gt_first_grand_summary_row {
+#mhvesddiol .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -565,7 +557,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-top-color: #D3D3D3;
 }
 
-#xbutehqlyk .gt_last_grand_summary_row_top {
+#mhvesddiol .gt_last_grand_summary_row_top {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -575,11 +567,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-bottom-color: #D3D3D3;
 }
 
-#xbutehqlyk .gt_striped {
+#mhvesddiol .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-#xbutehqlyk .gt_table_body {
+#mhvesddiol .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -588,7 +580,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-bottom-color: #D3D3D3;
 }
 
-#xbutehqlyk .gt_footnotes {
+#mhvesddiol .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -602,7 +594,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-right-color: #D3D3D3;
 }
 
-#xbutehqlyk .gt_footnote {
+#mhvesddiol .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-top: 4px;
@@ -611,7 +603,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   padding-right: 5px;
 }
 
-#xbutehqlyk .gt_sourcenotes {
+#mhvesddiol .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -625,7 +617,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   border-right-color: #D3D3D3;
 }
 
-#xbutehqlyk .gt_sourcenote {
+#mhvesddiol .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -633,580 +625,367 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   padding-right: 5px;
 }
 
-#xbutehqlyk .gt_left {
+#mhvesddiol .gt_left {
   text-align: left;
 }
 
-#xbutehqlyk .gt_center {
+#mhvesddiol .gt_center {
   text-align: center;
 }
 
-#xbutehqlyk .gt_right {
+#mhvesddiol .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#xbutehqlyk .gt_font_normal {
+#mhvesddiol .gt_font_normal {
   font-weight: normal;
 }
 
-#xbutehqlyk .gt_font_bold {
+#mhvesddiol .gt_font_bold {
   font-weight: bold;
 }
 
-#xbutehqlyk .gt_font_italic {
+#mhvesddiol .gt_font_italic {
   font-style: italic;
 }
 
-#xbutehqlyk .gt_super {
+#mhvesddiol .gt_super {
   font-size: 65%;
 }
 
-#xbutehqlyk .gt_footnote_marks {
+#mhvesddiol .gt_footnote_marks {
   font-size: 75%;
   vertical-align: 0.4em;
   position: initial;
 }
 
-#xbutehqlyk .gt_asterisk {
+#mhvesddiol .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-#xbutehqlyk .gt_indent_1 {
+#mhvesddiol .gt_indent_1 {
   text-indent: 5px;
 }
 
-#xbutehqlyk .gt_indent_2 {
+#mhvesddiol .gt_indent_2 {
   text-indent: 10px;
 }
 
-#xbutehqlyk .gt_indent_3 {
+#mhvesddiol .gt_indent_3 {
   text-indent: 15px;
 }
 
-#xbutehqlyk .gt_indent_4 {
+#mhvesddiol .gt_indent_4 {
   text-indent: 20px;
 }
 
-#xbutehqlyk .gt_indent_5 {
+#mhvesddiol .gt_indent_5 {
   text-indent: 25px;
 }
 
-#xbutehqlyk .katex-display {
+#mhvesddiol .katex-display {
   display: inline-flex !important;
   margin-bottom: 0.75em !important;
 }
 
-#xbutehqlyk div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+#mhvesddiol div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
   height: 0px !important;
 }
 </style>
-
-<table class="gt_table table table-sm table-striped small" data-quarto-postprocess="true" data-quarto-disable-processing="false" data-quarto-bootstrap="false">
-<colgroup>
-<col style="width: 33%">
-<col style="width: 33%">
-<col style="width: 33%">
-</colgroup>
-<thead>
-<tr class="header gt_col_headings">
-<th id="<div data-qmd-base64=&quot;KipDaGFyYWN0ZXJpc3RpYyoq&quot;><div class='gt_from_md'><p><strong>Characteristic</strong></p>
-</div></div>" class="gt_col_heading gt_columns_bottom_border gt_left" data-quarto-table-cell-role="th" scope="col"><p><strong>Characteristic</strong></p></th>
-<th id="<div data-qmd-base64=&quot;KiowKiogIApOID0gMSw3NjE=&quot;><div class='gt_from_md'><p><strong>0</strong><br />
-N = 1,761</p>
-</div></div><span class=&quot;gt_footnote_marks&quot; style=&quot;white-space:nowrap;font-style:italic;font-weight:normal;line-height: 0;&quot;><sup>1</sup></span>" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col"><p><strong>0</strong><br>
-N = 1,761</p>
-<span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height: 0;"><sup>1</sup></span></th>
-<th id="<div data-qmd-base64=&quot;KioxKiogIApOID0gMSw3Mzk=&quot;><div class='gt_from_md'><p><strong>1</strong><br />
-N = 1,739</p>
-</div></div><span class=&quot;gt_footnote_marks&quot; style=&quot;white-space:nowrap;font-style:italic;font-weight:normal;line-height: 0;&quot;><sup>1</sup></span>" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col"><p><strong>1</strong><br>
-N = 1,739</p>
-<span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height: 0;"><sup>1</sup></span></th>
-</tr>
-</thead>
-<tbody class="gt_table_body">
-<tr class="odd">
-<td class="gt_row gt_left" headers="label">c_smoking_history</td>
-<td class="gt_row gt_center" headers="stat_1">607 (53%)</td>
-<td class="gt_row gt_center" headers="stat_2">504 (43%)</td>
-</tr>
-<tr class="even">
-<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
-<td class="gt_row gt_center" headers="stat_1">617</td>
-<td class="gt_row gt_center" headers="stat_2">563</td>
-</tr>
-<tr class="odd">
-<td class="gt_row gt_left" headers="label">c_number_met_sites</td>
-<td class="gt_row gt_center" headers="stat_1"><br>
-</td>
-<td class="gt_row gt_center" headers="stat_2"><br>
-</td>
-</tr>
-<tr class="even">
-<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;1</td>
-<td class="gt_row gt_center" headers="stat_1">868 (76%)</td>
-<td class="gt_row gt_center" headers="stat_2">888 (76%)</td>
-</tr>
-<tr class="odd">
-<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;2</td>
-<td class="gt_row gt_center" headers="stat_1">244 (21%)</td>
-<td class="gt_row gt_center" headers="stat_2">235 (20%)</td>
-</tr>
-<tr class="even">
-<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;3</td>
-<td class="gt_row gt_center" headers="stat_1">27 (2.4%)</td>
-<td class="gt_row gt_center" headers="stat_2">45 (3.8%)</td>
-</tr>
-<tr class="odd">
-<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;4</td>
-<td class="gt_row gt_center" headers="stat_1">4 (0.3%)</td>
-<td class="gt_row gt_center" headers="stat_2">7 (0.6%)</td>
-</tr>
-<tr class="even">
-<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;5</td>
-<td class="gt_row gt_center" headers="stat_1">1 (&lt;0.1%)</td>
-<td class="gt_row gt_center" headers="stat_2">1 (&lt;0.1%)</td>
-</tr>
-<tr class="odd">
-<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
-<td class="gt_row gt_center" headers="stat_1">617</td>
-<td class="gt_row gt_center" headers="stat_2">563</td>
-</tr>
-<tr class="even">
-<td class="gt_row gt_left" headers="label">c_ecog_cont</td>
-<td class="gt_row gt_center" headers="stat_1">697 (61%)</td>
-<td class="gt_row gt_center" headers="stat_2">642 (55%)</td>
-</tr>
-<tr class="odd">
-<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
-<td class="gt_row gt_center" headers="stat_1">617</td>
-<td class="gt_row gt_center" headers="stat_2">563</td>
-</tr>
-<tr class="even">
-<td class="gt_row gt_left" headers="label">c_stage_initial_dx_cont</td>
-<td class="gt_row gt_center" headers="stat_1"><br>
-</td>
-<td class="gt_row gt_center" headers="stat_2"><br>
-</td>
-</tr>
-<tr class="odd">
-<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;1</td>
-<td class="gt_row gt_center" headers="stat_1">122 (11%)</td>
-<td class="gt_row gt_center" headers="stat_2">0 (0%)</td>
-</tr>
-<tr class="even">
-<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;2</td>
-<td class="gt_row gt_center" headers="stat_1">12 (1.0%)</td>
-<td class="gt_row gt_center" headers="stat_2">16 (1.4%)</td>
-</tr>
-<tr class="odd">
-<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;3</td>
-<td class="gt_row gt_center" headers="stat_1">20 (1.7%)</td>
-<td class="gt_row gt_center" headers="stat_2">48 (4.1%)</td>
-</tr>
-<tr class="even">
-<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;4</td>
-<td class="gt_row gt_center" headers="stat_1">990 (87%)</td>
-<td class="gt_row gt_center" headers="stat_2">1,112 (95%)</td>
-</tr>
-<tr class="odd">
-<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
-<td class="gt_row gt_center" headers="stat_1">617</td>
-<td class="gt_row gt_center" headers="stat_2">563</td>
-</tr>
-<tr class="even">
-<td class="gt_row gt_left" headers="label">c_hemoglobin_g_dl_cont</td>
-<td class="gt_row gt_center" headers="stat_1">12.95 (12.28, 13.77)</td>
-<td class="gt_row gt_center" headers="stat_2">12.86 (11.91, 13.72)</td>
-</tr>
-<tr class="odd">
-<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
-<td class="gt_row gt_center" headers="stat_1">617</td>
-<td class="gt_row gt_center" headers="stat_2">563</td>
-</tr>
-<tr class="even">
-<td class="gt_row gt_left" headers="label">c_urea_nitrogen_mg_dl_cont</td>
-<td class="gt_row gt_center" headers="stat_1">2.78 (2.44, 3.11)</td>
-<td class="gt_row gt_center" headers="stat_2">2.76 (2.56, 2.95)</td>
-</tr>
-<tr class="odd">
-<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
-<td class="gt_row gt_center" headers="stat_1">617</td>
-<td class="gt_row gt_center" headers="stat_2">563</td>
-</tr>
-<tr class="even">
-<td class="gt_row gt_left" headers="label">c_platelets_10_9_l_cont</td>
-<td class="gt_row gt_center" headers="stat_1">257 (216, 293)</td>
-<td class="gt_row gt_center" headers="stat_2">261 (226, 303)</td>
-</tr>
-<tr class="odd">
-<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
-<td class="gt_row gt_center" headers="stat_1">617</td>
-<td class="gt_row gt_center" headers="stat_2">563</td>
-</tr>
-<tr class="even">
-<td class="gt_row gt_left" headers="label">c_calcium_mg_dl_cont</td>
-<td class="gt_row gt_center" headers="stat_1">2.23 (2.21, 2.25)</td>
-<td class="gt_row gt_center" headers="stat_2">2.24 (2.21, 2.27)</td>
-</tr>
-<tr class="odd">
-<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
-<td class="gt_row gt_center" headers="stat_1">617</td>
-<td class="gt_row gt_center" headers="stat_2">563</td>
-</tr>
-<tr class="even">
-<td class="gt_row gt_left" headers="label">c_glucose_mg_dl_cont</td>
-<td class="gt_row gt_center" headers="stat_1">4.63 (4.56, 4.71)</td>
-<td class="gt_row gt_center" headers="stat_2">4.65 (4.58, 4.73)</td>
-</tr>
-<tr class="odd">
-<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
-<td class="gt_row gt_center" headers="stat_1">617</td>
-<td class="gt_row gt_center" headers="stat_2">563</td>
-</tr>
-<tr class="even">
-<td class="gt_row gt_left" headers="label">c_lymphocyte_leukocyte_ratio_cont</td>
-<td class="gt_row gt_center" headers="stat_1">2.94 (2.81, 3.07)</td>
-<td class="gt_row gt_center" headers="stat_2">2.93 (2.82, 3.04)</td>
-</tr>
-<tr class="odd">
-<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
-<td class="gt_row gt_center" headers="stat_1">617</td>
-<td class="gt_row gt_center" headers="stat_2">563</td>
-</tr>
-<tr class="even">
-<td class="gt_row gt_left" headers="label">c_alp_u_l_cont</td>
-<td class="gt_row gt_center" headers="stat_1">4.47 (4.32, 4.61)</td>
-<td class="gt_row gt_center" headers="stat_2">4.51 (4.42, 4.60)</td>
-</tr>
-<tr class="odd">
-<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
-<td class="gt_row gt_center" headers="stat_1">617</td>
-<td class="gt_row gt_center" headers="stat_2">563</td>
-</tr>
-<tr class="even">
-<td class="gt_row gt_left" headers="label">c_protein_g_l_cont</td>
-<td class="gt_row gt_center" headers="stat_1">68.1 (65.4, 70.8)</td>
-<td class="gt_row gt_center" headers="stat_2">69.0 (66.2, 71.6)</td>
-</tr>
-<tr class="odd">
-<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
-<td class="gt_row gt_center" headers="stat_1">617</td>
-<td class="gt_row gt_center" headers="stat_2">563</td>
-</tr>
-<tr class="even">
-<td class="gt_row gt_left" headers="label">c_alt_u_l_cont</td>
-<td class="gt_row gt_center" headers="stat_1">2.91 (2.71, 3.10)</td>
-<td class="gt_row gt_center" headers="stat_2">2.89 (2.66, 3.12)</td>
-</tr>
-<tr class="odd">
-<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
-<td class="gt_row gt_center" headers="stat_1">617</td>
-<td class="gt_row gt_center" headers="stat_2">563</td>
-</tr>
-<tr class="even">
-<td class="gt_row gt_left" headers="label">c_albumin_g_l_cont</td>
-<td class="gt_row gt_center" headers="stat_1">38.94 (36.87, 41.00)</td>
-<td class="gt_row gt_center" headers="stat_2">39.92 (37.90, 41.96)</td>
-</tr>
-<tr class="odd">
-<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
-<td class="gt_row gt_center" headers="stat_1">617</td>
-<td class="gt_row gt_center" headers="stat_2">563</td>
-</tr>
-<tr class="even">
-<td class="gt_row gt_left" headers="label">c_bilirubin_mg_dl_cont</td>
-<td class="gt_row gt_center" headers="stat_1">-0.65 (-1.46, 0.16)</td>
-<td class="gt_row gt_center" headers="stat_2">-0.93 (-1.75, -0.09)</td>
-</tr>
-<tr class="odd">
-<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
-<td class="gt_row gt_center" headers="stat_1">617</td>
-<td class="gt_row gt_center" headers="stat_2">563</td>
-</tr>
-<tr class="even">
-<td class="gt_row gt_left" headers="label">c_chloride_mmol_l_cont</td>
-<td class="gt_row gt_center" headers="stat_1">101.93 (100.01, 103.92)</td>
-<td class="gt_row gt_center" headers="stat_2">101.83 (99.82, 104.21)</td>
-</tr>
-<tr class="odd">
-<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
-<td class="gt_row gt_center" headers="stat_1">617</td>
-<td class="gt_row gt_center" headers="stat_2">563</td>
-</tr>
-<tr class="even">
-<td class="gt_row gt_left" headers="label">c_monocytes_10_9_l_cont</td>
-<td class="gt_row gt_center" headers="stat_1">-0.49 (-0.76, -0.24)</td>
-<td class="gt_row gt_center" headers="stat_2">-0.49 (-0.67, -0.34)</td>
-</tr>
-<tr class="odd">
-<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
-<td class="gt_row gt_center" headers="stat_1">617</td>
-<td class="gt_row gt_center" headers="stat_2">563</td>
-</tr>
-<tr class="even">
-<td class="gt_row gt_left" headers="label">c_eosinophils_leukocytes_ratio_cont</td>
-<td class="gt_row gt_center" headers="stat_1">0.72 (0.50, 0.96)</td>
-<td class="gt_row gt_center" headers="stat_2">0.67 (0.28, 1.07)</td>
-</tr>
-<tr class="odd">
-<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
-<td class="gt_row gt_center" headers="stat_1">617</td>
-<td class="gt_row gt_center" headers="stat_2">563</td>
-</tr>
-<tr class="even">
-<td class="gt_row gt_left" headers="label">c_ldh_u_l_cont</td>
-<td class="gt_row gt_center" headers="stat_1">1.68 (1.65, 1.70)</td>
-<td class="gt_row gt_center" headers="stat_2">1.69 (1.65, 1.72)</td>
-</tr>
-<tr class="odd">
-<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
-<td class="gt_row gt_center" headers="stat_1">617</td>
-<td class="gt_row gt_center" headers="stat_2">563</td>
-</tr>
-<tr class="even">
-<td class="gt_row gt_left" headers="label">c_hr_cont</td>
-<td class="gt_row gt_center" headers="stat_1">4.41 (4.39, 4.43)</td>
-<td class="gt_row gt_center" headers="stat_2">4.43 (4.40, 4.46)</td>
-</tr>
-<tr class="odd">
-<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
-<td class="gt_row gt_center" headers="stat_1">617</td>
-<td class="gt_row gt_center" headers="stat_2">563</td>
-</tr>
-<tr class="even">
-<td class="gt_row gt_left" headers="label">c_sbp_cont</td>
-<td class="gt_row gt_center" headers="stat_1">4.86 (4.78, 4.93)</td>
-<td class="gt_row gt_center" headers="stat_2">4.85 (4.79, 4.91)</td>
-</tr>
-<tr class="odd">
-<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
-<td class="gt_row gt_center" headers="stat_1">617</td>
-<td class="gt_row gt_center" headers="stat_2">563</td>
-</tr>
-<tr class="even">
-<td class="gt_row gt_left" headers="label">c_oxygen_cont</td>
-<td class="gt_row gt_center" headers="stat_1">97.000 (96.985, 97.014)</td>
-<td class="gt_row gt_center" headers="stat_2">96.999 (96.992, 97.006)</td>
-</tr>
-<tr class="odd">
-<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
-<td class="gt_row gt_center" headers="stat_1">617</td>
-<td class="gt_row gt_center" headers="stat_2">563</td>
-</tr>
-<tr class="even">
-<td class="gt_row gt_left" headers="label">c_neutrophil_lymphocyte_ratio_cont</td>
-<td class="gt_row gt_center" headers="stat_1">1.30 (1.05, 1.54)</td>
-<td class="gt_row gt_center" headers="stat_2">1.29 (1.06, 1.52)</td>
-</tr>
-<tr class="odd">
-<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
-<td class="gt_row gt_center" headers="stat_1">617</td>
-<td class="gt_row gt_center" headers="stat_2">563</td>
-</tr>
-<tr class="even">
-<td class="gt_row gt_left" headers="label">c_bmi_cont</td>
-<td class="gt_row gt_center" headers="stat_1">3.23 (3.14, 3.32)</td>
-<td class="gt_row gt_center" headers="stat_2">3.24 (3.15, 3.32)</td>
-</tr>
-<tr class="odd">
-<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
-<td class="gt_row gt_center" headers="stat_1">617</td>
-<td class="gt_row gt_center" headers="stat_2">563</td>
-</tr>
-<tr class="even">
-<td class="gt_row gt_left" headers="label">c_ast_alt_ratio_cont</td>
-<td class="gt_row gt_center" headers="stat_1">0.10 (-0.11, 0.31)</td>
-<td class="gt_row gt_center" headers="stat_2">0.12 (-0.08, 0.32)</td>
-</tr>
-<tr class="odd">
-<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
-<td class="gt_row gt_center" headers="stat_1">617</td>
-<td class="gt_row gt_center" headers="stat_2">563</td>
-</tr>
-<tr class="even">
-<td class="gt_row gt_left" headers="label">c_time_dx_to_index</td>
-<td class="gt_row gt_center" headers="stat_1">73 (43, 102)</td>
-<td class="gt_row gt_center" headers="stat_2">44 (33, 55)</td>
-</tr>
-<tr class="odd">
-<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
-<td class="gt_row gt_center" headers="stat_1">617</td>
-<td class="gt_row gt_center" headers="stat_2">563</td>
-</tr>
-<tr class="even">
-<td class="gt_row gt_left" headers="label">c_de_novo_mets_dx</td>
-<td class="gt_row gt_center" headers="stat_1">772 (67%)</td>
-<td class="gt_row gt_center" headers="stat_2">922 (78%)</td>
-</tr>
-<tr class="odd">
-<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
-<td class="gt_row gt_center" headers="stat_1">617</td>
-<td class="gt_row gt_center" headers="stat_2">563</td>
-</tr>
-<tr class="even">
-<td class="gt_row gt_left" headers="label">c_height_cont</td>
-<td class="gt_row gt_center" headers="stat_1">1.64 (1.60, 1.69)</td>
-<td class="gt_row gt_center" headers="stat_2">1.65 (1.59, 1.70)</td>
-</tr>
-<tr class="odd">
-<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
-<td class="gt_row gt_center" headers="stat_1">617</td>
-<td class="gt_row gt_center" headers="stat_2">563</td>
-</tr>
-<tr class="even">
-<td class="gt_row gt_left" headers="label">c_weight_cont</td>
-<td class="gt_row gt_center" headers="stat_1">68 (60, 76)</td>
-<td class="gt_row gt_center" headers="stat_2">69 (61, 76)</td>
-</tr>
-<tr class="odd">
-<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
-<td class="gt_row gt_center" headers="stat_1">617</td>
-<td class="gt_row gt_center" headers="stat_2">563</td>
-</tr>
-<tr class="even">
-<td class="gt_row gt_left" headers="label">c_dbp_cont</td>
-<td class="gt_row gt_center" headers="stat_1">75 (70, 80)</td>
-<td class="gt_row gt_center" headers="stat_2">76 (72, 80)</td>
-</tr>
-<tr class="odd">
-<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
-<td class="gt_row gt_center" headers="stat_1">617</td>
-<td class="gt_row gt_center" headers="stat_2">563</td>
-</tr>
-<tr class="even">
-<td class="gt_row gt_left" headers="label">c_year_index</td>
-<td class="gt_row gt_center" headers="stat_1"><br>
-</td>
-<td class="gt_row gt_center" headers="stat_2"><br>
-</td>
-</tr>
-<tr class="odd">
-<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;&lt;2018</td>
-<td class="gt_row gt_center" headers="stat_1">91 (5.2%)</td>
-<td class="gt_row gt_center" headers="stat_2">1,639 (94%)</td>
-</tr>
-<tr class="even">
-<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;2018+</td>
-<td class="gt_row gt_center" headers="stat_1">1,670 (95%)</td>
-<td class="gt_row gt_center" headers="stat_2">100 (5.8%)</td>
-</tr>
-<tr class="odd">
-<td class="gt_row gt_left" headers="label">dem_age_index_cont</td>
-<td class="gt_row gt_center" headers="stat_1">70 (64, 76)</td>
-<td class="gt_row gt_center" headers="stat_2">69 (64, 75)</td>
-</tr>
-<tr class="even">
-<td class="gt_row gt_left" headers="label">dem_sex_cont</td>
-<td class="gt_row gt_center" headers="stat_1">605 (34%)</td>
-<td class="gt_row gt_center" headers="stat_2">598 (34%)</td>
-</tr>
-<tr class="odd">
-<td class="gt_row gt_left" headers="label">dem_race</td>
-<td class="gt_row gt_center" headers="stat_1"><br>
-</td>
-<td class="gt_row gt_center" headers="stat_2"><br>
-</td>
-</tr>
-<tr class="even">
-<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Asian</td>
-<td class="gt_row gt_center" headers="stat_1">137 (12%)</td>
-<td class="gt_row gt_center" headers="stat_2">154 (13%)</td>
-</tr>
-<tr class="odd">
-<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Other</td>
-<td class="gt_row gt_center" headers="stat_1">320 (28%)</td>
-<td class="gt_row gt_center" headers="stat_2">355 (30%)</td>
-</tr>
-<tr class="even">
-<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;White</td>
-<td class="gt_row gt_center" headers="stat_1">687 (60%)</td>
-<td class="gt_row gt_center" headers="stat_2">667 (57%)</td>
-</tr>
-<tr class="odd">
-<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
-<td class="gt_row gt_center" headers="stat_1">617</td>
-<td class="gt_row gt_center" headers="stat_2">563</td>
-</tr>
-<tr class="even">
-<td class="gt_row gt_left" headers="label">dem_region</td>
-<td class="gt_row gt_center" headers="stat_1"><br>
-</td>
-<td class="gt_row gt_center" headers="stat_2"><br>
-</td>
-</tr>
-<tr class="odd">
-<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Midwest</td>
-<td class="gt_row gt_center" headers="stat_1">117 (10%)</td>
-<td class="gt_row gt_center" headers="stat_2">160 (14%)</td>
-</tr>
-<tr class="even">
-<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Northeast</td>
-<td class="gt_row gt_center" headers="stat_1">391 (34%)</td>
-<td class="gt_row gt_center" headers="stat_2">340 (29%)</td>
-</tr>
-<tr class="odd">
-<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;South</td>
-<td class="gt_row gt_center" headers="stat_1">424 (37%)</td>
-<td class="gt_row gt_center" headers="stat_2">477 (41%)</td>
-</tr>
-<tr class="even">
-<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;West</td>
-<td class="gt_row gt_center" headers="stat_1">212 (19%)</td>
-<td class="gt_row gt_center" headers="stat_2">199 (17%)</td>
-</tr>
-<tr class="odd">
-<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
-<td class="gt_row gt_center" headers="stat_1">617</td>
-<td class="gt_row gt_center" headers="stat_2">563</td>
-</tr>
-<tr class="even">
-<td class="gt_row gt_left" headers="label">dem_ses</td>
-<td class="gt_row gt_center" headers="stat_1"><br>
-</td>
-<td class="gt_row gt_center" headers="stat_2"><br>
-</td>
-</tr>
-<tr class="odd">
-<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;1</td>
-<td class="gt_row gt_center" headers="stat_1">138 (12%)</td>
-<td class="gt_row gt_center" headers="stat_2">198 (17%)</td>
-</tr>
-<tr class="even">
-<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;2</td>
-<td class="gt_row gt_center" headers="stat_1">156 (14%)</td>
-<td class="gt_row gt_center" headers="stat_2">173 (15%)</td>
-</tr>
-<tr class="odd">
-<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;3</td>
-<td class="gt_row gt_center" headers="stat_1">299 (26%)</td>
-<td class="gt_row gt_center" headers="stat_2">223 (19%)</td>
-</tr>
-<tr class="even">
-<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;4</td>
-<td class="gt_row gt_center" headers="stat_1">245 (21%)</td>
-<td class="gt_row gt_center" headers="stat_2">256 (22%)</td>
-</tr>
-<tr class="odd">
-<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;5</td>
-<td class="gt_row gt_center" headers="stat_1">306 (27%)</td>
-<td class="gt_row gt_center" headers="stat_2">326 (28%)</td>
-</tr>
-<tr class="even">
-<td class="gt_row gt_left" headers="label">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
-<td class="gt_row gt_center" headers="stat_1">617</td>
-<td class="gt_row gt_center" headers="stat_2">563</td>
-</tr>
-</tbody><tfoot class="gt_footnotes">
-<tr class="odd">
-<td colspan="3" class="gt_footnote"><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height: 0;"><sup>1</sup></span>
-<p>n (%); Median (Q1, Q3)</p></td>
-</tr>
-</tfoot>
-
+<table class="gt_table" data-quarto-disable-processing="false" data-quarto-bootstrap="false">
+  <thead>
+    <tr class="gt_col_headings">
+      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1" scope="col" id="<div data-qmd-base64=&quot;KipDaGFyYWN0ZXJpc3RpYyoq&quot;><div class='gt_from_md'><p><strong>Characteristic</strong></p>
+</div></div>"><div data-qmd-base64="KipDaGFyYWN0ZXJpc3RpYyoq"><div class="gt_from_md"><p><strong>Characteristic</strong></p>
+</div></div></th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="<div data-qmd-base64=&quot;KiowKiogIApOID0gMSw3MTI=&quot;><div class='gt_from_md'><p><strong>0</strong><br />
+N = 1,712</p>
+</div></div><span class=&quot;gt_footnote_marks&quot; style=&quot;white-space:nowrap;font-style:italic;font-weight:normal;line-height: 0;&quot;><sup>1</sup></span>"><div data-qmd-base64="KiowKiogIApOID0gMSw3MTI="><div class="gt_from_md"><p><strong>0</strong><br>
+N = 1,712</p>
+</div></div><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height: 0;"><sup>1</sup></span></th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="<div data-qmd-base64=&quot;KioxKiogIApOID0gMSw3ODg=&quot;><div class='gt_from_md'><p><strong>1</strong><br />
+N = 1,788</p>
+</div></div><span class=&quot;gt_footnote_marks&quot; style=&quot;white-space:nowrap;font-style:italic;font-weight:normal;line-height: 0;&quot;><sup>1</sup></span>"><div data-qmd-base64="KioxKiogIApOID0gMSw3ODg="><div class="gt_from_md"><p><strong>1</strong><br>
+N = 1,788</p>
+</div></div><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height: 0;"><sup>1</sup></span></th>
+    </tr>
+  </thead>
+  <tbody class="gt_table_body">
+    <tr><td headers="label" class="gt_row gt_left">c_smoking_history</td>
+<td headers="stat_1" class="gt_row gt_center">579 (51%)</td>
+<td headers="stat_2" class="gt_row gt_center">520 (43%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
+<td headers="stat_1" class="gt_row gt_center">578</td>
+<td headers="stat_2" class="gt_row gt_center">584</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">c_number_met_sites</td>
+<td headers="stat_1" class="gt_row gt_center"><br></td>
+<td headers="stat_2" class="gt_row gt_center"><br></td></tr>
+    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;1</td>
+<td headers="stat_1" class="gt_row gt_center">837 (74%)</td>
+<td headers="stat_2" class="gt_row gt_center">899 (75%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;2</td>
+<td headers="stat_1" class="gt_row gt_center">249 (22%)</td>
+<td headers="stat_2" class="gt_row gt_center">255 (21%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;3</td>
+<td headers="stat_1" class="gt_row gt_center">41 (3.6%)</td>
+<td headers="stat_2" class="gt_row gt_center">42 (3.5%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;4</td>
+<td headers="stat_1" class="gt_row gt_center">7 (0.6%)</td>
+<td headers="stat_2" class="gt_row gt_center">8 (0.7%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
+<td headers="stat_1" class="gt_row gt_center">578</td>
+<td headers="stat_2" class="gt_row gt_center">584</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">c_ecog_cont</td>
+<td headers="stat_1" class="gt_row gt_center">714 (63%)</td>
+<td headers="stat_2" class="gt_row gt_center">637 (53%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
+<td headers="stat_1" class="gt_row gt_center">578</td>
+<td headers="stat_2" class="gt_row gt_center">584</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">c_stage_initial_dx_cont</td>
+<td headers="stat_1" class="gt_row gt_center"><br></td>
+<td headers="stat_2" class="gt_row gt_center"><br></td></tr>
+    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;1</td>
+<td headers="stat_1" class="gt_row gt_center">101 (8.9%)</td>
+<td headers="stat_2" class="gt_row gt_center">0 (0%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;2</td>
+<td headers="stat_1" class="gt_row gt_center">17 (1.5%)</td>
+<td headers="stat_2" class="gt_row gt_center">12 (1.0%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;3</td>
+<td headers="stat_1" class="gt_row gt_center">15 (1.3%)</td>
+<td headers="stat_2" class="gt_row gt_center">38 (3.2%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;4</td>
+<td headers="stat_1" class="gt_row gt_center">1,001 (88%)</td>
+<td headers="stat_2" class="gt_row gt_center">1,154 (96%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
+<td headers="stat_1" class="gt_row gt_center">578</td>
+<td headers="stat_2" class="gt_row gt_center">584</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">c_hemoglobin_g_dl_cont</td>
+<td headers="stat_1" class="gt_row gt_center">12.97 (12.16, 13.72)</td>
+<td headers="stat_2" class="gt_row gt_center">12.89 (11.98, 13.75)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
+<td headers="stat_1" class="gt_row gt_center">578</td>
+<td headers="stat_2" class="gt_row gt_center">584</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">c_urea_nitrogen_mg_dl_cont</td>
+<td headers="stat_1" class="gt_row gt_center">2.76 (2.42, 3.08)</td>
+<td headers="stat_2" class="gt_row gt_center">2.77 (2.58, 2.97)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
+<td headers="stat_1" class="gt_row gt_center">578</td>
+<td headers="stat_2" class="gt_row gt_center">584</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">c_platelets_10_9_l_cont</td>
+<td headers="stat_1" class="gt_row gt_center">255 (218, 290)</td>
+<td headers="stat_2" class="gt_row gt_center">266 (230, 302)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
+<td headers="stat_1" class="gt_row gt_center">578</td>
+<td headers="stat_2" class="gt_row gt_center">584</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">c_calcium_mg_dl_cont</td>
+<td headers="stat_1" class="gt_row gt_center">2.23 (2.21, 2.25)</td>
+<td headers="stat_2" class="gt_row gt_center">2.24 (2.21, 2.27)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
+<td headers="stat_1" class="gt_row gt_center">578</td>
+<td headers="stat_2" class="gt_row gt_center">584</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">c_glucose_mg_dl_cont</td>
+<td headers="stat_1" class="gt_row gt_center">4.64 (4.55, 4.72)</td>
+<td headers="stat_2" class="gt_row gt_center">4.65 (4.58, 4.73)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
+<td headers="stat_1" class="gt_row gt_center">578</td>
+<td headers="stat_2" class="gt_row gt_center">584</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">c_lymphocyte_leukocyte_ratio_cont</td>
+<td headers="stat_1" class="gt_row gt_center">2.94 (2.81, 3.08)</td>
+<td headers="stat_2" class="gt_row gt_center">2.93 (2.82, 3.04)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
+<td headers="stat_1" class="gt_row gt_center">578</td>
+<td headers="stat_2" class="gt_row gt_center">584</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">c_alp_u_l_cont</td>
+<td headers="stat_1" class="gt_row gt_center">4.47 (4.33, 4.61)</td>
+<td headers="stat_2" class="gt_row gt_center">4.51 (4.42, 4.59)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
+<td headers="stat_1" class="gt_row gt_center">578</td>
+<td headers="stat_2" class="gt_row gt_center">584</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">c_protein_g_l_cont</td>
+<td headers="stat_1" class="gt_row gt_center">67.8 (65.1, 70.6)</td>
+<td headers="stat_2" class="gt_row gt_center">69.0 (66.0, 72.1)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
+<td headers="stat_1" class="gt_row gt_center">578</td>
+<td headers="stat_2" class="gt_row gt_center">584</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">c_alt_u_l_cont</td>
+<td headers="stat_1" class="gt_row gt_center">2.93 (2.72, 3.14)</td>
+<td headers="stat_2" class="gt_row gt_center">2.86 (2.64, 3.10)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
+<td headers="stat_1" class="gt_row gt_center">578</td>
+<td headers="stat_2" class="gt_row gt_center">584</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">c_albumin_g_l_cont</td>
+<td headers="stat_1" class="gt_row gt_center">39.01 (36.94, 41.01)</td>
+<td headers="stat_2" class="gt_row gt_center">39.98 (37.76, 42.07)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
+<td headers="stat_1" class="gt_row gt_center">578</td>
+<td headers="stat_2" class="gt_row gt_center">584</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">c_bilirubin_mg_dl_cont</td>
+<td headers="stat_1" class="gt_row gt_center">-0.71 (-1.45, 0.07)</td>
+<td headers="stat_2" class="gt_row gt_center">-0.85 (-1.74, -0.03)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
+<td headers="stat_1" class="gt_row gt_center">578</td>
+<td headers="stat_2" class="gt_row gt_center">584</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">c_chloride_mmol_l_cont</td>
+<td headers="stat_1" class="gt_row gt_center">102.08 (100.08, 104.20)</td>
+<td headers="stat_2" class="gt_row gt_center">102.05 (100.20, 104.12)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
+<td headers="stat_1" class="gt_row gt_center">578</td>
+<td headers="stat_2" class="gt_row gt_center">584</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">c_monocytes_10_9_l_cont</td>
+<td headers="stat_1" class="gt_row gt_center">-0.53 (-0.78, -0.24)</td>
+<td headers="stat_2" class="gt_row gt_center">-0.51 (-0.68, -0.35)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
+<td headers="stat_1" class="gt_row gt_center">578</td>
+<td headers="stat_2" class="gt_row gt_center">584</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">c_eosinophils_leukocytes_ratio_cont</td>
+<td headers="stat_1" class="gt_row gt_center">0.72 (0.50, 0.97)</td>
+<td headers="stat_2" class="gt_row gt_center">0.69 (0.28, 1.07)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
+<td headers="stat_1" class="gt_row gt_center">578</td>
+<td headers="stat_2" class="gt_row gt_center">584</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">c_ldh_u_l_cont</td>
+<td headers="stat_1" class="gt_row gt_center">1.68 (1.65, 1.71)</td>
+<td headers="stat_2" class="gt_row gt_center">1.69 (1.65, 1.72)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
+<td headers="stat_1" class="gt_row gt_center">578</td>
+<td headers="stat_2" class="gt_row gt_center">584</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">c_hr_cont</td>
+<td headers="stat_1" class="gt_row gt_center">4.41 (4.39, 4.43)</td>
+<td headers="stat_2" class="gt_row gt_center">4.43 (4.40, 4.46)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
+<td headers="stat_1" class="gt_row gt_center">578</td>
+<td headers="stat_2" class="gt_row gt_center">584</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">c_sbp_cont</td>
+<td headers="stat_1" class="gt_row gt_center">4.85 (4.77, 4.92)</td>
+<td headers="stat_2" class="gt_row gt_center">4.85 (4.79, 4.92)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
+<td headers="stat_1" class="gt_row gt_center">578</td>
+<td headers="stat_2" class="gt_row gt_center">584</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">c_oxygen_cont</td>
+<td headers="stat_1" class="gt_row gt_center">97.000 (96.986, 97.014)</td>
+<td headers="stat_2" class="gt_row gt_center">97.001 (96.993, 97.007)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
+<td headers="stat_1" class="gt_row gt_center">578</td>
+<td headers="stat_2" class="gt_row gt_center">584</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">c_neutrophil_lymphocyte_ratio_cont</td>
+<td headers="stat_1" class="gt_row gt_center">1.33 (1.11, 1.56)</td>
+<td headers="stat_2" class="gt_row gt_center">1.28 (1.02, 1.52)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
+<td headers="stat_1" class="gt_row gt_center">578</td>
+<td headers="stat_2" class="gt_row gt_center">584</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">c_bmi_cont</td>
+<td headers="stat_1" class="gt_row gt_center">3.23 (3.14, 3.31)</td>
+<td headers="stat_2" class="gt_row gt_center">3.23 (3.14, 3.31)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
+<td headers="stat_1" class="gt_row gt_center">578</td>
+<td headers="stat_2" class="gt_row gt_center">584</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">c_ast_alt_ratio_cont</td>
+<td headers="stat_1" class="gt_row gt_center">0.09 (-0.10, 0.30)</td>
+<td headers="stat_2" class="gt_row gt_center">0.12 (-0.07, 0.32)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
+<td headers="stat_1" class="gt_row gt_center">578</td>
+<td headers="stat_2" class="gt_row gt_center">584</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">c_time_dx_to_index</td>
+<td headers="stat_1" class="gt_row gt_center">73 (43, 103)</td>
+<td headers="stat_2" class="gt_row gt_center">43 (32, 55)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
+<td headers="stat_1" class="gt_row gt_center">578</td>
+<td headers="stat_2" class="gt_row gt_center">584</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">c_de_novo_mets_dx</td>
+<td headers="stat_1" class="gt_row gt_center">774 (68%)</td>
+<td headers="stat_2" class="gt_row gt_center">945 (78%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
+<td headers="stat_1" class="gt_row gt_center">578</td>
+<td headers="stat_2" class="gt_row gt_center">584</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">c_height_cont</td>
+<td headers="stat_1" class="gt_row gt_center">1.64 (1.59, 1.69)</td>
+<td headers="stat_2" class="gt_row gt_center">1.65 (1.59, 1.70)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
+<td headers="stat_1" class="gt_row gt_center">578</td>
+<td headers="stat_2" class="gt_row gt_center">584</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">c_weight_cont</td>
+<td headers="stat_1" class="gt_row gt_center">68 (60, 76)</td>
+<td headers="stat_2" class="gt_row gt_center">69 (61, 76)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
+<td headers="stat_1" class="gt_row gt_center">578</td>
+<td headers="stat_2" class="gt_row gt_center">584</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">c_dbp_cont</td>
+<td headers="stat_1" class="gt_row gt_center">75 (70, 79)</td>
+<td headers="stat_2" class="gt_row gt_center">76 (72, 80)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
+<td headers="stat_1" class="gt_row gt_center">578</td>
+<td headers="stat_2" class="gt_row gt_center">584</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">c_year_index</td>
+<td headers="stat_1" class="gt_row gt_center"><br></td>
+<td headers="stat_2" class="gt_row gt_center"><br></td></tr>
+    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;&lt;2018</td>
+<td headers="stat_1" class="gt_row gt_center">87 (5.1%)</td>
+<td headers="stat_2" class="gt_row gt_center">1,703 (95%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;2018+</td>
+<td headers="stat_1" class="gt_row gt_center">1,625 (95%)</td>
+<td headers="stat_2" class="gt_row gt_center">85 (4.8%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">dem_age_index_cont</td>
+<td headers="stat_1" class="gt_row gt_center">70 (63, 76)</td>
+<td headers="stat_2" class="gt_row gt_center">69 (64, 74)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">dem_sex_cont</td>
+<td headers="stat_1" class="gt_row gt_center">614 (36%)</td>
+<td headers="stat_2" class="gt_row gt_center">569 (32%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">dem_race</td>
+<td headers="stat_1" class="gt_row gt_center">664 (59%)</td>
+<td headers="stat_2" class="gt_row gt_center">753 (63%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
+<td headers="stat_1" class="gt_row gt_center">578</td>
+<td headers="stat_2" class="gt_row gt_center">584</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">dem_region</td>
+<td headers="stat_1" class="gt_row gt_center"><br></td>
+<td headers="stat_2" class="gt_row gt_center"><br></td></tr>
+    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Midwest</td>
+<td headers="stat_1" class="gt_row gt_center">123 (11%)</td>
+<td headers="stat_2" class="gt_row gt_center">137 (11%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Northeast</td>
+<td headers="stat_1" class="gt_row gt_center">382 (34%)</td>
+<td headers="stat_2" class="gt_row gt_center">390 (32%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;South</td>
+<td headers="stat_1" class="gt_row gt_center">409 (36%)</td>
+<td headers="stat_2" class="gt_row gt_center">456 (38%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;West</td>
+<td headers="stat_1" class="gt_row gt_center">220 (19%)</td>
+<td headers="stat_2" class="gt_row gt_center">221 (18%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
+<td headers="stat_1" class="gt_row gt_center">578</td>
+<td headers="stat_2" class="gt_row gt_center">584</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">dem_ses</td>
+<td headers="stat_1" class="gt_row gt_center"><br></td>
+<td headers="stat_2" class="gt_row gt_center"><br></td></tr>
+    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;1</td>
+<td headers="stat_1" class="gt_row gt_center">102 (9.0%)</td>
+<td headers="stat_2" class="gt_row gt_center">217 (18%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;2</td>
+<td headers="stat_1" class="gt_row gt_center">152 (13%)</td>
+<td headers="stat_2" class="gt_row gt_center">157 (13%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;3</td>
+<td headers="stat_1" class="gt_row gt_center">302 (27%)</td>
+<td headers="stat_2" class="gt_row gt_center">210 (17%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;4</td>
+<td headers="stat_1" class="gt_row gt_center">271 (24%)</td>
+<td headers="stat_2" class="gt_row gt_center">291 (24%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;5</td>
+<td headers="stat_1" class="gt_row gt_center">307 (27%)</td>
+<td headers="stat_2" class="gt_row gt_center">329 (27%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">&nbsp;&nbsp;&nbsp;&nbsp;Unknown</td>
+<td headers="stat_1" class="gt_row gt_center">578</td>
+<td headers="stat_2" class="gt_row gt_center">584</td></tr>
+  </tbody>
+  
+  <tfoot class="gt_footnotes">
+    <tr>
+      <td class="gt_footnote" colspan="3"><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height: 0;"><sup>1</sup></span> <div data-qmd-base64="biAoJSk7IE1lZGlhbiAoUTEsIFEzKQ=="><div class="gt_from_md"><p>n (%); Median (Q1, Q3)</p>
+</div></div></td>
+    </tr>
+  </tfoot>
 </table>
-
 </div>
 </div>
 </div>
@@ -1301,9 +1080,9 @@ Important
 <span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>               )</span>
 <span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span> </span>
 <span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pool</span>() <span class="sc">|&gt;</span> </span>
-<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tidy</span>(<span class="at">exponentiate =</span> <span class="cn">TRUE</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tidy</span>(<span class="at">exponentiate =</span> <span class="cn">TRUE</span>, <span class="at">conf.int =</span> <span class="cn">TRUE</span>) <span class="sc">|&gt;</span> </span>
 <span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">package =</span> <span class="st">"survival"</span>) <span class="sc">|&gt;</span> </span>
-<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(package, term, estimate, std.error) </span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(package, term, estimate, std.error, conf.low, conf.high) </span>
 <span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>coxph_results</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
@@ -1319,7 +1098,7 @@ Important
 <span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pool</span>() <span class="sc">|&gt;</span> </span>
 <span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tidy</span>(<span class="at">exponentiate =</span> <span class="cn">TRUE</span>, <span class="at">conf.int =</span> <span class="cn">TRUE</span>) <span class="sc">|&gt;</span> </span>
 <span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">package =</span> <span class="st">"survey"</span>) <span class="sc">|&gt;</span> </span>
-<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(package, term, estimate, std.error)</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(package, term, estimate, std.error, conf.low, conf.high)</span>
 <span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>svycoxph_results</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
@@ -1329,9 +1108,9 @@ Important
 <div class="cell">
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">rbind</span>(coxph_results, svycoxph_results)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>   package  term estimate std.error
-1 survival treat 0.859503 0.1229732
-2   survey treat 0.859503 0.1232363</code></pre>
+<pre><code>   package  term  estimate std.error  conf.low conf.high
+1 survival treat 0.6807406 0.1584256 0.4922441 0.9414186
+2   survey treat 0.6807406 0.1586700 0.4934002 0.9392128</code></pre>
 </div>
 </div>
 </section>
@@ -1349,9 +1128,9 @@ Important
 <span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>               )</span>
 <span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span> </span>
 <span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pool</span>() <span class="sc">|&gt;</span> </span>
-<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tidy</span>(<span class="at">exponentiate =</span> <span class="cn">TRUE</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tidy</span>(<span class="at">exponentiate =</span> <span class="cn">TRUE</span>, <span class="at">conf.int =</span> <span class="cn">TRUE</span>) <span class="sc">|&gt;</span> </span>
 <span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">package =</span> <span class="st">"survival"</span>) <span class="sc">|&gt;</span> </span>
-<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(package, term, estimate, std.error) </span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(package, term, estimate, std.error, conf.low, conf.high) </span>
 <span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>coxph_results</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
@@ -1367,7 +1146,7 @@ Important
 <span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pool</span>() <span class="sc">|&gt;</span> </span>
 <span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tidy</span>(<span class="at">exponentiate =</span> <span class="cn">TRUE</span>, <span class="at">conf.int =</span> <span class="cn">TRUE</span>) <span class="sc">|&gt;</span> </span>
 <span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">package =</span> <span class="st">"survey"</span>) <span class="sc">|&gt;</span> </span>
-<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(package, term, estimate, std.error) </span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(package, term, estimate, std.error, conf.low, conf.high) </span>
 <span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>svycoxph_results</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
@@ -1377,9 +1156,9 @@ Important
 <div class="cell">
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">rbind</span>(coxph_results, svycoxph_results)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>   package  term  estimate  std.error
-1 survival treat 0.7711387 0.08038892
-2   survey treat 0.7711387 0.08039941</code></pre>
+<pre><code>   package  term  estimate  std.error  conf.low conf.high
+1 survival treat 0.7761114 0.07023749 0.6758481 0.8912490
+2   survey treat 0.7761114 0.07024572 0.6758771 0.8912107</code></pre>
 </div>
 </div>
 </section>
@@ -1523,29 +1302,10 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
   if (showAllCode) {
     showAllCode.addEventListener("click", toggleCodeHandler(true));
   }
-    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
-    var mailtoRegex = new RegExp(/^mailto:/);
-      var filterRegex = new RegExp('/' + window.location.host + '/');
-    var isInternal = (href) => {
-        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
-    }
-    // Inspect non-navigation links and adorn them if external
- 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool)');
-    for (var i=0; i<links.length; i++) {
-      const link = links[i];
-      if (!isInternal(link.href)) {
-          // target, if specified
-          link.setAttribute("target", "_blank");
-          if (link.getAttribute("rel") === null) {
-            link.setAttribute("rel", "noopener");
-          }
-          // default icon
-          link.classList.add("external");
-      }
-    }
-  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+  function tippyHover(el, contentFn) {
     const config = {
       allowHTML: true,
+      content: contentFn,
       maxWidth: 500,
       delay: 100,
       arrow: false,
@@ -1555,17 +1315,8 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       interactive: true,
       interactiveBorder: 10,
       theme: 'quarto',
-      placement: 'bottom-start',
+      placement: 'bottom-start'
     };
-    if (contentFn) {
-      config.content = contentFn;
-    }
-    if (onTriggerFn) {
-      config.onTrigger = onTriggerFn;
-    }
-    if (onUntriggerFn) {
-      config.onUntrigger = onUntriggerFn;
-    }
     window.tippy(el, config); 
   }
   const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
@@ -1578,125 +1329,6 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       const id = href.replace(/^#\/?/, "");
       const note = window.document.getElementById(id);
       return note.innerHTML;
-    });
-  }
-  const xrefs = window.document.querySelectorAll('a.quarto-xref');
-  const processXRef = (id, note) => {
-    // Strip column container classes
-    const stripColumnClz = (el) => {
-      el.classList.remove("page-full", "page-columns");
-      if (el.children) {
-        for (const child of el.children) {
-          stripColumnClz(child);
-        }
-      }
-    }
-    stripColumnClz(note)
-    if (id === null || id.startsWith('sec-')) {
-      // Special case sections, only their first couple elements
-      const container = document.createElement("div");
-      if (note.children && note.children.length > 2) {
-        container.appendChild(note.children[0].cloneNode(true));
-        for (let i = 1; i < note.children.length; i++) {
-          const child = note.children[i];
-          if (child.tagName === "P" && child.innerText === "") {
-            continue;
-          } else {
-            container.appendChild(child.cloneNode(true));
-            break;
-          }
-        }
-        if (window.Quarto?.typesetMath) {
-          window.Quarto.typesetMath(container);
-        }
-        return container.innerHTML
-      } else {
-        if (window.Quarto?.typesetMath) {
-          window.Quarto.typesetMath(note);
-        }
-        return note.innerHTML;
-      }
-    } else {
-      // Remove any anchor links if they are present
-      const anchorLink = note.querySelector('a.anchorjs-link');
-      if (anchorLink) {
-        anchorLink.remove();
-      }
-      if (window.Quarto?.typesetMath) {
-        window.Quarto.typesetMath(note);
-      }
-      // TODO in 1.5, we should make sure this works without a callout special case
-      if (note.classList.contains("callout")) {
-        return note.outerHTML;
-      } else {
-        return note.innerHTML;
-      }
-    }
-  }
-  for (var i=0; i<xrefs.length; i++) {
-    const xref = xrefs[i];
-    tippyHover(xref, undefined, function(instance) {
-      instance.disable();
-      let url = xref.getAttribute('href');
-      let hash = undefined; 
-      if (url.startsWith('#')) {
-        hash = url;
-      } else {
-        try { hash = new URL(url).hash; } catch {}
-      }
-      if (hash) {
-        const id = hash.replace(/^#\/?/, "");
-        const note = window.document.getElementById(id);
-        if (note !== null) {
-          try {
-            const html = processXRef(id, note.cloneNode(true));
-            instance.setContent(html);
-          } finally {
-            instance.enable();
-            instance.show();
-          }
-        } else {
-          // See if we can fetch this
-          fetch(url.split('#')[0])
-          .then(res => res.text())
-          .then(html => {
-            const parser = new DOMParser();
-            const htmlDoc = parser.parseFromString(html, "text/html");
-            const note = htmlDoc.getElementById(id);
-            if (note !== null) {
-              const html = processXRef(id, note);
-              instance.setContent(html);
-            } 
-          }).finally(() => {
-            instance.enable();
-            instance.show();
-          });
-        }
-      } else {
-        // See if we can fetch a full url (with no hash to target)
-        // This is a special case and we should probably do some content thinning / targeting
-        fetch(url)
-        .then(res => res.text())
-        .then(html => {
-          const parser = new DOMParser();
-          const htmlDoc = parser.parseFromString(html, "text/html");
-          const note = htmlDoc.querySelector('main.content');
-          if (note !== null) {
-            // This should only happen for chapter cross references
-            // (since there is no id in the URL)
-            // remove the first header
-            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
-              note.children[0].remove();
-            }
-            const html = processXRef(null, note);
-            instance.setContent(html);
-          } 
-        }).finally(() => {
-          instance.enable();
-          instance.show();
-        });
-      }
-    }, function(instance) {
     });
   }
       let selectedAnnoteEl;
@@ -1740,7 +1372,6 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
             }
             div.style.top = top - 2 + "px";
             div.style.height = height + 4 + "px";
-            div.style.left = 0;
             let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
             if (gutterDiv === null) {
               gutterDiv = window.document.createElement("div");
@@ -1766,32 +1397,6 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
         });
         selectedAnnoteEl = undefined;
       };
-        // Handle positioning of the toggle
-    window.addEventListener(
-      "resize",
-      throttle(() => {
-        elRect = undefined;
-        if (selectedAnnoteEl) {
-          selectCodeLines(selectedAnnoteEl);
-        }
-      }, 10)
-    );
-    function throttle(fn, ms) {
-    let throttle = false;
-    let timer;
-      return (...args) => {
-        if(!throttle) { // first call gets through
-            fn.apply(this, args);
-            throttle = true;
-        } else { // all the others get throttled
-            if(timer) clearTimeout(timer); // cancel #2
-            timer = setTimeout(() => {
-              fn.apply(this, args);
-              timer = throttle = false;
-            }, ms);
-        }
-      };
-    }
       // Attach click handler to the DT
       const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
       for (const annoteDlNode of annoteDls) {
@@ -1849,11 +1454,27 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       });
     }
   }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+          // target, if specified
+          link.setAttribute("target", "_blank");
+          // default icon
+          link.classList.add("external");
+      }
+    }
 });
 </script>
 <nav class="page-navigation column-body">
   <div class="nav-page nav-page-previous">
-      <a href="./index.html" class="pagination-link  aria-label=" &lt;span="">
+      <a href="./index.html" class="pagination-link">
         <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">README</span></span>
       </a>          
   </div>
@@ -1862,7 +1483,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 </nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
 <div class="sourceCode" id="cb13" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "`coxph` versus `svycoxph`"</span></span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="an">subtitle:</span><span class="co"> "Comparison of coxph versus svycoxph after multiple imputation and propensity score matching"</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="an">subtitle:</span><span class="co"> "Comparison of `coxph` versus `svycoxph` after multiple imputation and propensity score matching"</span></span>
 <span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="an">author:</span><span class="co"> Janick Weberpals, RPh, PhD</span></span>
 <span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="an">date:</span><span class="co"> last-modified</span></span>
 <span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a><span class="an">format:</span><span class="co"> html</span></span>
@@ -1907,7 +1528,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb13-49"><a href="#cb13-49" aria-hidden="true" tabindex="-1"></a>data_miss <span class="ot">&lt;-</span> <span class="fu">simulate_flaura</span>(</span>
 <span id="cb13-50"><a href="#cb13-50" aria-hidden="true" tabindex="-1"></a>  <span class="at">n_total =</span> <span class="dv">3500</span>, </span>
 <span id="cb13-51"><a href="#cb13-51" aria-hidden="true" tabindex="-1"></a>  <span class="at">treat_prevalence =</span> .<span class="dv">51</span>, </span>
-<span id="cb13-52"><a href="#cb13-52" aria-hidden="true" tabindex="-1"></a>  <span class="at">seed =</span> <span class="dv">41</span>, </span>
+<span id="cb13-52"><a href="#cb13-52" aria-hidden="true" tabindex="-1"></a>  <span class="at">seed =</span> <span class="dv">42</span>, </span>
 <span id="cb13-53"><a href="#cb13-53" aria-hidden="true" tabindex="-1"></a>  <span class="at">include_id =</span> <span class="cn">FALSE</span>, </span>
 <span id="cb13-54"><a href="#cb13-54" aria-hidden="true" tabindex="-1"></a>  <span class="at">imposeNA =</span> <span class="cn">TRUE</span></span>
 <span id="cb13-55"><a href="#cb13-55" aria-hidden="true" tabindex="-1"></a>  )</span>
@@ -1996,7 +1617,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb13-142"><a href="#cb13-142" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>**For Cox models, `coxph()` will produce approximately correct standard errors when used with weighting, but `svycoxph()` will produce more accurate standard errors when matching is used.**</span>
 <span id="cb13-143"><a href="#cb13-143" aria-hidden="true" tabindex="-1"></a>:::</span>
 <span id="cb13-144"><a href="#cb13-144" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-145"><a href="#cb13-145" aria-hidden="true" tabindex="-1"></a>::: {.panel-tabset}</span>
+<span id="cb13-145"><a href="#cb13-145" aria-hidden="true" tabindex="-1"></a>::: panel-tabset</span>
 <span id="cb13-146"><a href="#cb13-146" aria-hidden="true" tabindex="-1"></a><span class="fu">### Matching</span></span>
 <span id="cb13-147"><a href="#cb13-147" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb13-148"><a href="#cb13-148" aria-hidden="true" tabindex="-1"></a>We now want to compare treatment effect estimates for <span class="in">`treat`</span> when computed (a) using <span class="in">`coxph`</span> (survival package) and (b) <span class="in">`svycoxph`</span> (survey package). More information on estimating treatment effects after matching is provided in <span class="ot">&lt;https://kosukeimai.github.io/MatchIt/articles/estimating-effects.html#survival-outcomes&gt;</span></span>
@@ -2017,9 +1638,9 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb13-165"><a href="#cb13-165" aria-hidden="true" tabindex="-1"></a>               )</span>
 <span id="cb13-166"><a href="#cb13-166" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span> </span>
 <span id="cb13-167"><a href="#cb13-167" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pool</span>() <span class="sc">|&gt;</span> </span>
-<span id="cb13-168"><a href="#cb13-168" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tidy</span>(<span class="at">exponentiate =</span> <span class="cn">TRUE</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb13-168"><a href="#cb13-168" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tidy</span>(<span class="at">exponentiate =</span> <span class="cn">TRUE</span>, <span class="at">conf.int =</span> <span class="cn">TRUE</span>) <span class="sc">|&gt;</span> </span>
 <span id="cb13-169"><a href="#cb13-169" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">package =</span> <span class="st">"survival"</span>) <span class="sc">|&gt;</span> </span>
-<span id="cb13-170"><a href="#cb13-170" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(package, term, estimate, std.error) </span>
+<span id="cb13-170"><a href="#cb13-170" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(package, term, estimate, std.error, conf.low, conf.high) </span>
 <span id="cb13-171"><a href="#cb13-171" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb13-172"><a href="#cb13-172" aria-hidden="true" tabindex="-1"></a>coxph_results</span>
 <span id="cb13-173"><a href="#cb13-173" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
@@ -2038,7 +1659,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb13-188"><a href="#cb13-188" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pool</span>() <span class="sc">|&gt;</span> </span>
 <span id="cb13-189"><a href="#cb13-189" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tidy</span>(<span class="at">exponentiate =</span> <span class="cn">TRUE</span>, <span class="at">conf.int =</span> <span class="cn">TRUE</span>) <span class="sc">|&gt;</span> </span>
 <span id="cb13-190"><a href="#cb13-190" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">package =</span> <span class="st">"survey"</span>) <span class="sc">|&gt;</span> </span>
-<span id="cb13-191"><a href="#cb13-191" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(package, term, estimate, std.error)</span>
+<span id="cb13-191"><a href="#cb13-191" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(package, term, estimate, std.error, conf.low, conf.high)</span>
 <span id="cb13-192"><a href="#cb13-192" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb13-193"><a href="#cb13-193" aria-hidden="true" tabindex="-1"></a>svycoxph_results</span>
 <span id="cb13-194"><a href="#cb13-194" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
@@ -2066,9 +1687,9 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb13-220"><a href="#cb13-220" aria-hidden="true" tabindex="-1"></a>               )</span>
 <span id="cb13-221"><a href="#cb13-221" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span> </span>
 <span id="cb13-222"><a href="#cb13-222" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pool</span>() <span class="sc">|&gt;</span> </span>
-<span id="cb13-223"><a href="#cb13-223" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tidy</span>(<span class="at">exponentiate =</span> <span class="cn">TRUE</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb13-223"><a href="#cb13-223" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tidy</span>(<span class="at">exponentiate =</span> <span class="cn">TRUE</span>, <span class="at">conf.int =</span> <span class="cn">TRUE</span>) <span class="sc">|&gt;</span> </span>
 <span id="cb13-224"><a href="#cb13-224" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">package =</span> <span class="st">"survival"</span>) <span class="sc">|&gt;</span> </span>
-<span id="cb13-225"><a href="#cb13-225" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(package, term, estimate, std.error) </span>
+<span id="cb13-225"><a href="#cb13-225" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(package, term, estimate, std.error, conf.low, conf.high) </span>
 <span id="cb13-226"><a href="#cb13-226" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb13-227"><a href="#cb13-227" aria-hidden="true" tabindex="-1"></a>coxph_results</span>
 <span id="cb13-228"><a href="#cb13-228" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
@@ -2087,7 +1708,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb13-243"><a href="#cb13-243" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pool</span>() <span class="sc">|&gt;</span> </span>
 <span id="cb13-244"><a href="#cb13-244" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tidy</span>(<span class="at">exponentiate =</span> <span class="cn">TRUE</span>, <span class="at">conf.int =</span> <span class="cn">TRUE</span>) <span class="sc">|&gt;</span> </span>
 <span id="cb13-245"><a href="#cb13-245" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">package =</span> <span class="st">"survey"</span>) <span class="sc">|&gt;</span> </span>
-<span id="cb13-246"><a href="#cb13-246" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(package, term, estimate, std.error) </span>
+<span id="cb13-246"><a href="#cb13-246" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(package, term, estimate, std.error, conf.low, conf.high) </span>
 <span id="cb13-247"><a href="#cb13-247" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb13-248"><a href="#cb13-248" aria-hidden="true" tabindex="-1"></a>svycoxph_results</span>
 <span id="cb13-249"><a href="#cb13-249" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
@@ -2097,13 +1718,11 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb13-255"><a href="#cb13-255" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
 <span id="cb13-256"><a href="#cb13-256" aria-hidden="true" tabindex="-1"></a><span class="fu">rbind</span>(coxph_results, svycoxph_results)</span>
 <span id="cb13-257"><a href="#cb13-257" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb13-258"><a href="#cb13-258" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-259"><a href="#cb13-259" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb13-258"><a href="#cb13-258" aria-hidden="true" tabindex="-1"></a>:::</span>
 </code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 
 
 
-
-<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/janickweberpals/imputation-ps-workflows/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>
+</body></html>
