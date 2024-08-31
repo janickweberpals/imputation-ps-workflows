@@ -1,4 +1,4 @@
-#' Custom function to perform matching/weighting and re-weight a patient population
+#' Custom function to perform matching/weighting and re-weighting to match a target patient population
 #'
 #' @details This function is a wrapper for \code{\link[MatchIt]{matchit}} 
 #' and \code{\link[WeightIt]{weighit}}in combination with 
@@ -6,7 +6,9 @@
 #' 
 #' The function performs any matching algorithm supplied 
 #' in \code{\link[MatchIt]{matchit}} or any weighting 
-#' algorithm in \code{\link[WeightIt]{weighit}}.
+#' algorithm in \code{\link[WeightIt]{weighit}}. The specific arguments
+#' can be propagated to the respective functions using the
+#' \code{...} argument.
 #' 
 #' If nothing is specified for \code{targets}, the function will simply return 
 #' the \code{\link[MatchIt]{matchit}} or \code{\link[WeightIt]{weighit}} object.
@@ -15,14 +17,14 @@
 #' the function will perform a corresponding re-weighting of matched 
 #' patients or patients with weights greater than 0, respectively.
 #' 
-#' In case of already weighted datasets (e.g., via propensity score-derived weights),
+#' In case of an already weighted datasets (e.g., via propensity score-derived weights),
 #' those weights are accounted for (\code{weightvec} argument) in the
 #' \code{\link[anesrake]{anesrake}} call.
 #' 
 #' @param x data.frame or mild object/list of data.frames if used in combination with lapply
 #' @param targets named list of all target values for the raking procedure (see \code{\link[anesrake]{anesrake}})
 #' @param matching_weighting character, one of "matching" or "weighting"
-#' @param ... other arguments and specifications to pass on to 
+#' @param ... other arguments and specifications to propagate on to 
 #' \code{\link[MatchIt]{matchit}} or \code{\link[WeightIt]{weighit}}, 
 #' depending on chosen method (\code{matching_weighting}).
 #' 
@@ -103,11 +105,11 @@
 #'    )
 #' 
 
-match_re_weight <- function(x,
-                            targets = NULL,
-                            matching_weighting = NULL,
-                            ...
-                            ){
+re_weight <- function(x,
+                      targets = NULL,
+                      matching_weighting = NULL,
+                      ...
+                      ){
   
   # checks
   assertthat::assert_that(inherits(x, c("data.frame", "list")), msg = "<x> needs to be a data frame or a list of data frames")
@@ -118,15 +120,17 @@ match_re_weight <- function(x,
   # perform matching on the imputed dataset -----------------------------
   if(matching_weighting == "matching"){
     
-    # create a matchit object on x
-    # if no re-weighting is desired
+    # create a matchit object on x;
+    # if no re-weighting is desired,
     # this is already it
     object_out <- MatchIt::matchit(
       data = x,
       ...
       )
     
-    # get ALL patients with matching weights
+    # if re-weighting is desired:
+    # get ALL patients with corresponding
+    # matching weights
     data_all <- MatchIt::match.data(
       object = object_out, 
       drop.unmatched = FALSE
@@ -136,20 +140,20 @@ match_re_weight <- function(x,
     data_all <- data_all |> 
       mutate(caseid = seq(1, nrow(data_all), 1)) |> 
       # indicator for patients who re-weighting should be applied to
-      # = matched patients
+      # = matched patients (= 1; unmatched = 0)
       mutate(reweight = weights)
     
   }else if(matching_weighting == "weighting"){
     
-    # create a matchit object on x
-    # if no re-weighting is desired
+    # create a weightit object on x;
+    # if no additional re-weighting is desired,
     # this is already it
     object_out <- WeightIt::weightit(
       data = x,
       ...
       )
     
-    # get ALL patients with weights
+    # get ALL patients with corresonding weights
     data_all <- x |> 
       dplyr::mutate(weights = object_out$weights) |> 
       mutate(caseid = seq(1, nrow(x), 1)) |> 
@@ -175,7 +179,7 @@ match_re_weight <- function(x,
       # other weights that should be accounted for before re-weighting is conducted
       # for matching this is 0 (unmatched) and 1 (matched) and for weighting this is the actual weights
       weightvec = data_all$weights,
-      # we only want to re-weight patients who were matched/ have weights > 0
+      # we only want to re-weight patients who were matched/have weights > 0
       filter = data_all$reweight,
       # no verbosity
       verbose = FALSE
@@ -184,37 +188,37 @@ match_re_weight <- function(x,
     # create a temporary dataframe with id and sampling/re-weighting weights
     caseweights <- data.frame(caseid = anesrake_out$caseid, re_weights = anesrake_out$weightvec)
     
-    # join back to matchit dataframe with ALL subjects
+    # join back to dataframe with ALL subjects
     # this is necessary to add the sampling weights to the final 
-    # matchit object in the next step where all patients are required
+    # matchit/weightit object in the next step where all patients are required
     # unmatched patients get a sampling weight of 0
     data_all <- data_all |> 
       dplyr::left_join(caseweights, by = "caseid") |> 
-      # unmatched patients or patients with weight = 0 get a sampling/re-weighting weight of 0
+      # unmatched patients or patients with weight = 0 get a re-weighting weight of 0
       dplyr::mutate(re_weights = ifelse(is.na(re_weights), 0, re_weights)) |>
-      # make sure we have the same original order of subject
+      # make sure we have the same original order of subjects
       dplyr::arrange(caseid) |> 
       # now we can drop the temporary id
       dplyr::select(-caseid)
     
     if(matching_weighting == "matching"){
       
-      # add sampling weights to the matchit object so that 
+      # add re-weights to the matchit object so that 
       # they are incorporated into balance assessment 
       # and creation of the weights
       object_out <- MatchIt::add_s.weights(
-        m = matchit_out,
+        m = object_out,
         s.weights = data_all$re_weights
         )
       
     }else if(matching_weighting == "weighting"){
       
       object_out <- WeightIt::as.weightit(
-        x = weighit_out$weights,
+        x = object_out$weights,
         covs = data_all,
         treat = data_all$treat,
         s.weights = data_all$re_weights
-        ) 
+        )
       
       warning("<covariates> do not represent those that were used for weighting but all available covariates.")
       

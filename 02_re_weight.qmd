@@ -1,5 +1,5 @@
 ---
-title: "Including sampling weights"
+title: "Re-weighting to a target population"
 author: Janick Weberpals, RPh, PhD
 date: last-modified
 format: html
@@ -7,11 +7,12 @@ code-fold: false
 toc: true
 toc-depth: 3
 code-tools: true
+code-fold: true
 keep-md: true
 editor: visual
 ---
 
-This is a reproducible example on how to incorporate sampling weights in multiple imputation \> matching/weighting \> balance assessment \> outcome analysis workflows.
+This is a reproducible example on how to incorporate population weights to match distributions of a target population in multiple imputation \> matching/weighting \> balance assessment \> outcome analysis workflows.
 
 Load packages:
 
@@ -24,15 +25,17 @@ library(dplyr)
 library(survival)
 library(mice)
 library(MatchThem)
+library(MatchIt)
 library(survey)
-library(anesrake)
+library(gtsummary)
 
-source(here("functions", "source_encore.io_functions.R"))
+# calling functions
+source(here::here("functions", "source_encore.io_functions.R"))
 ```
 
 ## Data generation
 
-We use again the `simulate_flaura()` function to simulate a realistic oncology comparative effectiveness cohort analytic dataset.
+We use the `simulate_flaura()` function to simulate a realistic oncology comparative effectiveness cohort analytic dataset.
 
 ```{r}
 #| label: data_generation
@@ -74,9 +77,11 @@ data_imp <- futuremice(
   )
 ```
 
-Defining target distributions
+## Defining target distributions
 
 Before applying the re-weighting, we need to define the target distributions of patient characteristics that we want to match from the clinical trial using the *raking* procedure. The following distributions are taken from Table 1 of the FLAURA trial.
+
+![FLAURA trial Table 1; in OS analysis race was simplified to Asian vs. non-Asian](nejm_tbl1.png)
 
 ```{r}
 # Define FLAURA distributions for key covariates --------------------------
@@ -84,28 +89,21 @@ Before applying the re-weighting, we need to define the target distributions of 
 
 ## sex ---------------------------------------------------------------------
 
-# male sex by exposure
-avg_prop_male <- .37
-
 # female (0) to male (1) proportion:
-sex_target <- c(1-avg_prop_male, avg_prop_male) 
+sex_target <- c(.63, .37) 
 names(sex_target) <- c("0", "1")
 
 ## race --------------------------------------------------------------------
 # asian, non-asian
 # asian (TRUE) to non-asian (FALSE) proportion
 # note: logical variables in dataframe can be matched to a numeric vector of length 2 and ordered with the TRUE target as the first element and the FALSE target as the second element.
-asian_prop <- .62 # "other" is rounded up to 2% to sum up to 100%
-race_target <- c(asian_prop, 1-asian_prop)
+race_target <- c(.62, .38)
 
 ## smoking -----------------------------------------------------------------
 
-# never smoking by exposure
-avg_prop_never_smoker <- .64
-
 # current/former smoker (TRUE) to never smoker (FALSE) proportion
 # note: logical variables in dataframe can be matched to a numeric vector of length 2 and ordered with the TRUE target as the first element and the FALSE target as the second element.
-smoker_target <- c(1-avg_prop_never_smoker, avg_prop_never_smoker)
+smoker_target <- c(.35, .65)
 
 ## ecog --------------------------------------------------------------------
 
@@ -113,7 +111,7 @@ smoker_target <- c(1-avg_prop_never_smoker, avg_prop_never_smoker)
 avg_prop_ecog0 <- .41
 
 # ecog 0 to ecog 1 proportion
-ecog_target <- c(avg_prop_ecog0, 1-avg_prop_ecog0)
+ecog_target <- c(.41, .59)
 names(ecog_target) <- c("0", "1")
 
 
@@ -125,53 +123,197 @@ names(targets) <- c("dem_sex_cont", "dem_race", "c_smoking_history", "c_ecog_con
 targets
 ```
 
-## Propensity score matching and weighting
+## Propensity score matching and re-weighting
 
-Apply propensity score matching and weighting with replacement within in each imputed dataset:
+In this step, propensity score matching and re-weighting of key patient characteristics to match those of the original RCT is performed across all imputed datasets.
+
+The propensity score model is specified as follows:
 
 ```{r}
-#| label: matching-weighting
-#| warning: false
+#| label: ps-model
 
 # apply propensity score matching on mids object
 ps_form <- as.formula(paste("treat ~", paste(covariates, collapse = " + ")))
+ps_form
+```
+
+The matching and re-weighting is performed using the `re_weight()` function. This function is a wrapper for `matchit()` and `weightit()` in combination with the `anesrake()` function which performs the *raking* (= re-weighting) procedure.
+
+We apply this function to each imputed dataset. Before doing so, the imputed datasets, which are currently stored as a `mids` object, needs to be converted to a list of dataframes:
+
+```{r}
+#| label: mids-to-mild
 
 # create a mild object containing lists of data.frames
 data_mild <- mice::complete(data = data_imp, action = "all", include = FALSE)
-    
+
+summary(data_mild)
+```
+
+The lapply function loops the function through each dataframe and returns a list of `matchit` objects which contain imputed \> matched \> re-weighted datasets. To take advantage of the features that come with the `cobalt` and `matchthem` packages, the function stores the raking weights as sampling weights (`s.weights`).
+
+```{r}
+#| label: matching-re-weighting
+#| warning: false
+
 # call match re-weight
 matchit_out_list <- lapply(
+  # list of dataframes
   X = data_mild, 
-  FUN = match_re_weight,
+  # call function
+  FUN = re_weight,
+  # target distributions
+  targets = targets,
+  # should matching or weighting be performed
+  matching_weighting = "matching",
+  # matching arguments passed on to matchit() function
+  formula = ps_form,
+  ratio = 1,
+  method = "nearest",
+  distance = "glm",
+  link = "linear.logit",
+  caliper = 0.05,
+  replace = F
+  )
+```
+
+We can inspect the output of the first imputed \> matched \> re-weighted dataset.
+
+```{r}
+matchit_out_list[[1]]
+```
+
+## (Un)weighted Table 1
+
+To check if the re-weighting process worked, we can extract the matched patients and compare a Table 1 that does not include the weights vs. a Table that considers the weights. For this example, we look at the first imputed \> matched \> re-weighted dataset.
+
+```{r}
+# extract the matched of
+first_dataset <- get_matches(
+  object = matchit_out_list[[1]]
+  )
+```
+
+> Reminder : The target distributions look like this
+
+```{r}
+targets
+```
+
+::: panel.tabset
+### Unweighted Table 1
+
+```{r}
+#| label: tbl-tbl1-unweighted
+#| warning: false
+
+# print
+first_dataset |>
+  tbl_summary(
+    by = treat,
+    include = names(targets)
+    ) |> 
+  add_difference(test = dplyr::everything() ~ "smd") |>
+  add_overall() |>
+  modify_column_hide(columns = "conf.low") |> 
+  modify_header(
+    label ~ "**Patient characteristic**",
+    stat_0 ~ "**Total** <br> N = {round(N, 2)}",
+    stat_1 ~ "**{level}** <br> N = {round(n, 2)} <br> ({style_percent(p, digits=1)}%)",
+    stat_2 ~ "**{level}** <br> N = {round(n, 2)} <br> ({style_percent(p, digits=1)}%)"
+    ) |>
+  modify_spanning_header(c("stat_1", "stat_2") ~ "**Treatment received**")
+```
+
+### Weighted Table 1
+
+```{r}
+#| label: tbl-tbl1-weighted
+#| warning: false
+
+# create survey object 
+data_svy <- svydesign(ids = ~ 1, weights = ~ weights, data = first_dataset)
+
+# print
+data_svy |>
+  tbl_svysummary(
+    by = treat,
+    include = names(targets)
+    ) |> 
+  add_difference(test = dplyr::everything() ~ "smd") |>
+  add_overall() |>
+  modify_column_hide(columns = "conf.low") |> 
+  modify_header(
+    label ~ "**Patient characteristic**",
+    stat_0 ~ "**Total** <br> N = {round(N, 2)}",
+    stat_1 ~ "**{level}** <br> N = {round(n, 2)} <br> ({style_percent(p, digits=1)}%)",
+    stat_2 ~ "**{level}** <br> N = {round(n, 2)} <br> ({style_percent(p, digits=1)}%)"
+    ) |>
+  modify_spanning_header(c("stat_1", "stat_2") ~ "**Treatment received**")
+```
+:::
+
+### Comparison of custom function vs. `matchthem()`
+
+Lastly, we want to make sure that our custom function results in the same matched datasets as the `matchthem()` function which we use in the main analysis - not considering the re-weighting.
+
+For this demonstration, we use the same matching parameters, but without re-weighting after matching in our custom function.
+
+::: panel.tabset
+### Custom function
+
+We run again our custom function but with `targets = NULL` to not re-weight any of the included covariates. To convert the returned output of a list of matchit objects into an object of type `mimids` we use the `MatchThem::as.mimids()` function.
+
+```{r}
+# call match re-weight
+set.seed(42)
+matchit_out_list <- lapply(
+  X = data_mild, 
+  FUN = re_weight,
   targets = NULL,
   matching_weighting = "matching",
-  # arguments passed on to matchit
   formula = ps_form,
   ratio = 1,
   method = "nearest",
   distance = "glm",
   link = "logit",
-  caliper = 0.01,
+  caliper = 0.05,
   replace = F
   )
 
-# convert the output back into a mimids object
+# convert the output into a mimids object
 data_mimids_from_function <- MatchThem::as.mimids(
   x = matchit_out_list, 
   datasets = data_imp
   )
 
+data_mimids_from_function
+```
+
+### `matchthem()` function
+
+The following code resembles the code we would use in the main analysis by implementing the generic `matchthem()` function.
+
+```{r}
 # matching
+set.seed(42)
 data_mimids <- matchthem(
-  formula = ps_form,
   datasets = data_imp,
-  approach = 'within',
-  method = 'nearest',
-  caliper = 0.01,
+  formula = ps_form,
   ratio = 1,
+  method = "nearest",
+  distance = "glm",
+  link = "logit",
+  caliper = 0.05,
   replace = F
   )
+
+data_mimids
 ```
+
+### Comparison of stacked datasets
+
+We can now stack the datasets (= vertically append them) and compare the resulting 10 x 10 datasets for any differences:
 
 ```{r}
 waldo::compare(
@@ -179,9 +321,4 @@ waldo::compare(
   MatchThem::complete(data_mimids)
   )
 ```
-
-## Define and estimate sampling weights
-
-```{r}
-
-```
+:::

@@ -12,6 +12,7 @@ book:
     # landing page
     - index.qmd
     - 01_syvcox_coxph.qmd
+    - 02_re_weight.qmd
 
   reader-mode: true
   repo-url: https://github.com/janickweberpals/imputation-ps-workflows

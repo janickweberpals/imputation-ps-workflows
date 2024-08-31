@@ -12,16 +12,12 @@ keep-md: true
 editor: visual
 ---
 
-
-
 This is a reproducible example on how to use `coxph` and `svycoxph` in combination with multiple imputation and propensity score matching using a `mimids` object from the MatchThem package.
 
 Load packages:
 
-
-::: {.cell}
-
-```{.r .cell-code}
+::: cell
+``` {.r .cell-code}
 library(dplyr)
 library(survival)
 library(mice)
@@ -37,15 +33,12 @@ source(here("functions", "source_encore.io_functions.R"))
 ```
 :::
 
-
 ## Data generation
 
 We use the `simulate_flaura()` function to simulate a realistic oncology comparative effectiveness cohort analytic dataset.
 
-
-::: {.cell}
-
-```{.r .cell-code}
+::: cell
+``` {.r .cell-code}
 # load example dataset with missing observations
 data_miss <- simulate_flaura(
   n_total = 3500, 
@@ -66,8 +59,7 @@ data_miss |>
     )
 ```
 
-::: {.cell-output-display}
-
+::: cell-output-display
 ```{=html}
 <div id="mhvesddiol" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
 <style>#mhvesddiol table {
@@ -807,19 +799,15 @@ N = 1,788</p>
 </table>
 </div>
 ```
-
 :::
 :::
-
 
 ## Multiple imputation
 
 Multiple imputation using `mice:`
 
-
-::: {.cell}
-
-```{.r .cell-code}
+::: cell
+``` {.r .cell-code}
 # impute data
 data_imp <- futuremice(
   parallelseed = 42,
@@ -832,15 +820,12 @@ data_imp <- futuremice(
 ```
 :::
 
-
 ## Propensity score matching and weighting
 
 Apply propensity score matching and weighting with replacement within in each imputed dataset:
 
-
-::: {.cell}
-
-```{.r .cell-code}
+::: cell
+``` {.r .cell-code}
 # apply propensity score matching on mids object
 ps_form <- as.formula(paste("treat ~", paste(covariates, collapse = " + ")))
 
@@ -873,7 +858,6 @@ data_wimids <- trim(
 ```
 :::
 
-
 ## Outcome model comparisons
 
 Next, we compare the marginal treatment effect estimates coming from a Cox proportional hazards model after propensity score matching and weighting as implemented in the `coxph()` and in the `svycoxph()` functions.
@@ -897,10 +881,8 @@ We now want to compare treatment effect estimates for `treat` when computed (a) 
 
 #### `coxph`
 
-
-::: {.cell}
-
-```{.r .cell-code}
+::: cell
+``` {.r .cell-code}
 # coxph result
 coxph_results <- with(
   data = data_mimids,
@@ -919,13 +901,10 @@ coxph_results
 ```
 :::
 
-
 #### `svycoxph`
 
-
-::: {.cell}
-
-```{.r .cell-code}
+::: cell
+``` {.r .cell-code}
 # svycoxph result
 svycoxph_results <- with(
   data = data_mimids,
@@ -941,18 +920,15 @@ svycoxph_results
 ```
 :::
 
-
 #### Summary
 
-
-::: {.cell}
-
-```{.r .cell-code}
+::: cell
+``` {.r .cell-code}
 rbind(coxph_results, svycoxph_results)
 ```
 
 ::: {.cell-output .cell-output-stdout}
-```
+```         
    package  term  estimate std.error  conf.low conf.high
 1 survival treat 0.6807406 0.1584256 0.4922441 0.9414186
 2   survey treat 0.6807406 0.1586700 0.4934002 0.9392128
@@ -960,15 +936,12 @@ rbind(coxph_results, svycoxph_results)
 :::
 :::
 
-
 ### Weighting
 
 #### `coxph`
 
-
-::: {.cell}
-
-```{.r .cell-code}
+::: cell
+``` {.r .cell-code}
 # coxph result
 coxph_results <- with(
   data = data_wimids,
@@ -986,13 +959,10 @@ coxph_results
 ```
 :::
 
-
 #### `svycoxph`
 
-
-::: {.cell}
-
-```{.r .cell-code}
+::: cell
+``` {.r .cell-code}
 # svycoxph result
 svycoxph_results <- with(
   data = data_wimids,
@@ -1008,23 +978,19 @@ svycoxph_results
 ```
 :::
 
-
 #### Summary
 
-
-::: {.cell}
-
-```{.r .cell-code}
+::: cell
+``` {.r .cell-code}
 rbind(coxph_results, svycoxph_results)
 ```
 
 ::: {.cell-output .cell-output-stdout}
-```
+```         
    package  term  estimate  std.error  conf.low conf.high
 1 survival treat 0.7761114 0.07023749 0.6758481 0.8912490
 2   survey treat 0.7761114 0.07024572 0.6758771 0.8912107
 ```
 :::
 :::
-
 :::
