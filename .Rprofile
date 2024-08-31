@@ -8,4 +8,5 @@ if(Sys.info()['sysname'][[1]]=="Darwin") options(repos = c(REPO_NAME = "https://
 # Linux Ubuntu
 if(Sys.info()['sysname'][[1]]=="Linux")options(repos = c(REPO_NAME = "https://packagemanager.posit.co/cran/__linux__/noble/latest"))
 
-Sys.setenv(RSTUDIO_PANDOC=Sys.getenv("RSTUDIO_PANDOC"))
+# calling functions
+source(here::here("functions", "source_encore.io_functions.R"))
