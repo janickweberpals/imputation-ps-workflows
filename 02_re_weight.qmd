@@ -3,7 +3,6 @@ title: "Re-weighting to a target population"
 author: Janick Weberpals, RPh, PhD
 date: last-modified
 format: html
-code-fold: false
 toc: true
 toc-depth: 3
 code-tools: true
