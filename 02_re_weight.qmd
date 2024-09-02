@@ -182,7 +182,7 @@ We can inspect the output of the first imputed \> matched \> re-weighted dataset
 matchit_out_list[[1]]
 ```
 
-## (Un)weighted Table 1
+## Table 1
 
 To check if the re-weighting process worked, we can extract the matched patients and compare a Table 1 that does not include the weights vs. a Table that considers the weights. For this example, we look at the first imputed \> matched \> re-weighted dataset.
 
@@ -199,12 +199,16 @@ first_dataset <- get_matches(
 targets
 ```
 
-::: panel.tabset
+::: {.panel-tabset}
+
 ### Unweighted Table 1
 
 ```{r}
 #| label: tbl-tbl1-unweighted
 #| warning: false
+
+library(cardx)
+library(smd)
 
 # print
 first_dataset |>
