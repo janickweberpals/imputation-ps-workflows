@@ -81,18 +81,11 @@ Both the imputation and propensity score step Multiple imputation using `mice:`
 ```{r}
 #| label: mice
 
-female_imp <- imputation_workflow(
-  ard_eligible = data_miss |> filter(dem_sex_cont == 0) |> select(-dem_sex_cont),
-  database = "edb1",
-  cancer = "aNSCLC",
-  covars_for_imputation = covariates
-  )
-
 # impute data
 female_imp <- futuremice(
   parallelseed = 42,
   n.core = parallel::detectCores()-1,
-  data = data_miss |> filter(dem_sex_cont == 0) |> select(-dem_sex_cont),
+  data = data_miss |> filter(dem_sex_cont == 0),
   method = "rf",
   m = 10,
   print = FALSE
@@ -101,7 +94,7 @@ female_imp <- futuremice(
 male_imp <- futuremice(
   parallelseed = 42,
   n.core = parallel::detectCores()-1,
-  data = data_miss |> filter(dem_sex_cont == 1) |> select(-dem_sex_cont),
+  data = data_miss |> filter(dem_sex_cont == 1),
   method = "rf",
   m = 10,
   print = FALSE
@@ -112,41 +105,63 @@ male_imp <- futuremice(
 
 Apply propensity score matching and weighting with replacement within in each imputed dataset.
 
+```{r}
+# apply propensity score matching on mids object
+ps_form <- as.formula(paste("treat ~", paste(covariates, collapse = " + ")))
+ps_form
+```
+
 ### Matching
 
 ```{r}
 #| label: matching
 #| warning: false
 
-# apply propensity score matching on mids object
-ps_form <- as.formula(paste("treat ~", paste(covariates, collapse = " + ")))
+match_within_strata <- function(i, imputed_data = NULL, ps_formula = NULL){
+  
+  matched <- MatchIt::matchit(
+    formula = ps_formula, 
+    data = mice::complete(imputed_data, i),
+    method = "nearest",
+    caliper = 0.01,
+    ratio = 1,
+    replace = F
+    ) |> 
+    MatchIt::match.data()
+  
+  return(matched)
+  
+}
 
-# female data matching 
-female_mimids <- matchthem(
-  formula = ps_form,
-  datasets = female_imp,
-  approach = 'within',
-  method = 'nearest',
-  caliper = 0.01,
-  ratio = 1,
-  replace = F
+female_matched <- lapply(
+  X = 1:female_imp$m, 
+  FUN = match_within_strata, 
+  imputed_data = female_imp,
+  ps_formula = ps_form
   )
 
-# male data matching 
-male_mimids <- matchthem(
-  formula = ps_form,
-  datasets = male_imp,
-  approach = 'within',
-  method = 'nearest',
-  caliper = 0.01,
-  ratio = 1,
-  replace = F
+male_matched <- lapply(
+  X = 1:male_imp$m, 
+  FUN = match_within_strata, 
+  imputed_data = male_imp,
+  ps_formula = ps_form
   )
-```
 
-```{r}
-bal.plot(male_mimids, which.imp = .none, which = "both")
-bal.plot(female_mimids, which.imp = .none, which = "both")
+# combine the mth imputed and matched datasets
+combine_list <- function(i, data_0 = NULL, data_1 = NULL){
+  
+  data_combined <- rbind(data_0[[i]], data_1[[i]])
+  
+  return(data_combined)
+  
+}
+
+matched_all <- lapply(
+  X = 1:female_imp$m, 
+  FUN = combine_list, 
+  data_0 = female_matched,
+  data_1 = male_matched
+  )
 ```
 
 ### Weighting
@@ -155,161 +170,96 @@ bal.plot(female_mimids, which.imp = .none, which = "both")
 #| label: weighting
 #| warning: false
 
-# female data weighting 
-female_wimids <- weightthem(
-  formula = ps_form,
-  datasets = female_imp,
-  approach = 'within',
-  method = "glm",
-  estimand = "ATT"
+weight_within_strata <- function(i, imputed_data = NULL, ps_formula = NULL){
+  
+  weighted <- WeightIt::weightit(
+    formula = ps_formula, 
+    data = mice::complete(imputed_data, i),
+    method = "glm",
+    estimand = "ATT"
+    )
+  
+  # trim extreme weights
+  weighted <- trim(
+    x = weighted, 
+    at = .95, 
+    lower = TRUE
+    )
+  
+  weighted_data <- mice::complete(imputed_data, i) |> 
+    mutate(weights = weighted$weights)
+  
+  return(weighted_data)
+  
+}
+
+female_weighted <- lapply(
+  X = 1:female_imp$m, 
+  FUN = weight_within_strata, 
+  imputed_data = female_imp,
+  ps_formula = ps_form
   )
 
-# trim extreme weights
-female_wimids <- trim(
-  x = female_wimids, 
-  at = .95, 
-  lower = TRUE
+male_weighted <- lapply(
+  X = 1:male_imp$m, 
+  FUN = weight_within_strata, 
+  imputed_data = male_imp,
+  ps_formula = ps_form
   )
 
-# male data weighting 
-male_wimids <- weightthem(
-  formula = ps_form,
-  datasets = male_imp,
-  approach = 'within',
-  method = "glm",
-  estimand = "ATT"
+weighted_all <- lapply(
+  X = 1:female_imp$m, 
+  FUN = combine_list, 
+  data_0 = female_weighted,
+  data_1 = male_weighted
   )
-
-# trim extreme weights
-male_wimids <- trim(
-  x = male_wimids, 
-  at = .95, 
-  lower = TRUE
-  )
-```
-
-```{r}
-love.plot(male_wimids, which.imp = .none, which = "both")
-love.plot(female_wimids, which.imp = .none, which = "both")
 ```
 
 ## Outcome model comparisons
 
-Next, we compare the marginal treatment effect estimates coming from a Cox proportional hazards model after propensity score matching and weighting as implemented in the `coxph()` and in the `svycoxph()` functions.
-
-From the `MatchThem` documentation:
-
-::: callout-important
--   `with()` applies the supplied model in `expr` to the (matched or weighted) multiply imputed datasets, automatically incorporating the (matching) weights when possible. The argument to `expr` should be of the form `glm(y ~ z, family = quasibinomial)`, for example, excluding the data or weights argument, which are automatically supplied.
-
--   Functions from the **survey** package, such as `svyglm()`, are treated a bit differently. No `svydesign` object needs to be supplied because `with()` automatically constructs and supplies it with the imputed dataset and estimated weights. When `cluster = TRUE` (or `with()` detects that pairs should be clustered; see the `cluster` argument above), pair membership is supplied to the `ids` argument of `svydesign()`.
-
--   After weighting using `weightthem()`, `glm_weightit()` should be used as the modeling function to fit generalized linear models. It correctly produces robust standard errors that account for estimation of the weights, if possible. See [`WeightIt::glm_weightit()`](http://127.0.0.1:31281/help/library/WeightIt/help/glm_weightit) for details. Otherwise, `svyglm()` should be used rather than `glm()` in order to correctly compute standard errors.
-
--   **For Cox models, `coxph()` will produce approximately correct standard errors when used with weighting, but `svycoxph()` will produce more accurate standard errors when matching is used.**
-:::
-
-::: panel-tabset
 ### Matching
 
-We now want to compare treatment effect estimates for `treat` when computed (a) using `coxph` (survival package) and (b) `svycoxph` (survey package). More information on estimating treatment effects after matching is provided in <https://kosukeimai.github.io/MatchIt/articles/estimating-effects.html#survival-outcomes>
-
-#### `coxph`
-
 ```{r}
-#| label: coxph_mimids
-#| results: hide
-
-# coxph result
-coxph_results <- with(
-  data = data_mimids,
-  expr = coxph(formula = Surv(fu_itt_months, death_itt) ~ treat, 
-               weights = weights, 
-               cluster = subclass,
-               robust = TRUE
-               )
-  ) |> 
-  pool() |> 
-  tidy(exponentiate = TRUE, conf.int = TRUE) |> 
-  mutate(package = "survival") |> 
-  select(package, term, estimate, std.error, conf.low, conf.high) 
-
-coxph_results
+cox_fit_matching <- function(i){
+  
+  survival_fit <- survival::coxph(
+    data = i,
+    formula = Surv(fu_itt_months, death_itt) ~ treat*dem_sex_cont, 
+    weights = weights, 
+    cluster = subclass,
+    robust = TRUE
+    )
+  
+}
 ```
 
-#### `svycoxph`
-
 ```{r}
-#| label: svycoxph_mimids
-#| results: hide
-
-# svycoxph result
-svycoxph_results <- with(
-  data = data_mimids,
-  expr = svycoxph(formula = Surv(fu_itt_months, death_itt) ~ treat),
-  cluster = TRUE
-  ) |> 
-  pool() |> 
-  tidy(exponentiate = TRUE, conf.int = TRUE) |> 
-  mutate(package = "survey") |> 
-  select(package, term, estimate, std.error, conf.low, conf.high)
-
-svycoxph_results
-```
-
-#### Summary
-
-```{r}
-rbind(coxph_results, svycoxph_results)
+matched_all |> 
+  lapply(FUN = cox_fit_matching) |> 
+  mice::pool() |> 
+  broom::tidy(exponentiate = TRUE, conf.int = TRUE) |> 
+  dplyr::select(term, estimate, std.error, conf.low, conf.high)
 ```
 
 ### Weighting
 
-#### `coxph`
-
 ```{r}
-#| label: coxph_wimids
-#| results: hide
-
-# coxph result
-coxph_results <- with(
-  data = data_wimids,
-  expr = coxph(formula = Surv(fu_itt_months, death_itt) ~ treat,
-               weights = weights, 
-               robust = TRUE
-               )
-  ) |> 
-  pool() |> 
-  tidy(exponentiate = TRUE, conf.int = TRUE) |> 
-  mutate(package = "survival") |> 
-  select(package, term, estimate, std.error, conf.low, conf.high) 
-
-coxph_results
+cox_fit_weighting <- function(i){
+  
+  survival_fit <- survival::coxph(
+    data = i,
+    formula = Surv(fu_itt_months, death_itt) ~ treat*dem_sex_cont, 
+    weights = weights, 
+    robust = TRUE
+    )
+  
+}
 ```
 
-#### `svycoxph`
-
 ```{r}
-#| label: svycoxph_wimids
-#| results: hide
-
-# svycoxph result
-svycoxph_results <- with(
-  data = data_wimids,
-  expr = svycoxph(formula = Surv(fu_itt_months, death_itt) ~ treat),
-  cluster = TRUE
-  ) |> 
-  pool() |> 
-  tidy(exponentiate = TRUE, conf.int = TRUE) |> 
-  mutate(package = "survey") |> 
-  select(package, term, estimate, std.error, conf.low, conf.high) 
-
-svycoxph_results
+weighted_all |> 
+  lapply(FUN = cox_fit_weighting) |> 
+  mice::pool() |> 
+  broom::tidy(exponentiate = TRUE, conf.int = TRUE) |> 
+  dplyr::select(term, estimate, std.error, conf.low, conf.high)
 ```
-
-#### Summary
-
-```{r}
-rbind(coxph_results, svycoxph_results)
-```
-:::
