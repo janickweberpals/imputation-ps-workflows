@@ -1,0 +1,303 @@
+---
+title: "Subgroup analysis"
+subtitle: "Workflow to establish a subgroup analysis after multiple imputation and propensity Score matching"
+author: Janick Weberpals, RPh, PhD
+date: last-modified
+format: html
+code-fold: false
+toc: true
+toc-depth: 3
+code-tools: true
+keep-md: true
+editor: visual
+embed-resources: true
+bibliography: references.bib
+---
+
+This is a reproducible example on how to establish a workflow to run a subgroup analysis after multiple imputation and propensity Score matching.
+
+Load packages:
+
+```{r}
+#| label: setup
+#| message: false
+
+library(dplyr)
+library(survival)
+library(mice)
+library(MatchThem)
+library(survey)
+library(here)
+library(gtsummary)
+library(parallelly)
+library(ranger)
+library(furrr)
+
+source(here("functions", "source_encore.io_functions.R"))
+
+# track time
+runtime <- tictoc::tic()
+```
+
+## About
+
+This script is adapted from Noah Greifer's highly recommended blog post on "[Subgroup Analysis After Propensity Score Matching Using R](https://ngreifer.github.io/blog/subgroup-analysis-psm/)".
+
+For a more formal manuscript on subgroup analysis with propensity scores, see Green and Stuart.[@Green2014]
+
+## Data generation
+
+We again use the `simulate_flaura()` function to simulate a realistic oncology comparative effectiveness cohort analytic dataset.
+
+```{r}
+#| label: data_generation
+#| warning: false
+
+# load example dataset with missing observations
+data_miss <- simulate_flaura(
+  n_total = 3500, 
+  treat_prevalence = .51, 
+  seed = 42, 
+  include_id = FALSE, 
+  imposeNA = TRUE
+  )
+
+covariates <- data_miss |> 
+  select(starts_with("c_"), starts_with("dem_")) |> 
+  select(-dem_sex_cont) |> 
+  colnames()
+
+head(data_miss)
+```
+
+## Moderator covariate
+
+In this example, we assume heterogeneous treatment effect by sex and we aim to assess the average treatment effect among the treated for female and male patients separately. The effect size is time to all-cause mortality. In this dataset, sex is encoded with a binary covariate with 0 = female and 1 = male.
+
+```{r}
+table(data_miss$dem_sex_cont)
+```
+
+## Multiple imputation
+
+Both the imputation and propensity score step Multiple imputation using `mice:`
+
+```{r}
+#| label: mice
+
+# impute data
+female_imp <- futuremice(
+  parallelseed = 42,
+  n.core = parallel::detectCores()-1,
+  data = data_miss |> filter(dem_sex_cont == 0),
+  method = "rf",
+  m = 10,
+  print = FALSE
+  )
+
+male_imp <- futuremice(
+  parallelseed = 42,
+  n.core = parallel::detectCores()-1,
+  data = data_miss |> filter(dem_sex_cont == 1),
+  method = "rf",
+  m = 10,
+  print = FALSE
+  )
+```
+
+## Propensity score matching and weighting
+
+Apply propensity score matching and weighting with replacement within in each imputed dataset.
+
+```{r}
+# apply propensity score matching on mids object
+ps_form <- as.formula(paste("treat ~", paste(covariates, collapse = " + ")))
+ps_form
+```
+
+### Matching
+
+```{r}
+#| label: matching
+#| warning: false
+
+match_within_strata <- function(i, imputed_data = NULL, ps_formula = NULL){
+  
+  matched <- MatchIt::matchit(
+    formula = ps_formula, 
+    data = mice::complete(imputed_data, i),
+    method = "nearest",
+    caliper = 0.01,
+    ratio = 1,
+    replace = F
+    ) |> 
+    MatchIt::match.data()
+  
+  return(matched)
+  
+}
+
+female_matched <- lapply(
+  X = 1:female_imp$m, 
+  FUN = match_within_strata, 
+  imputed_data = female_imp,
+  ps_formula = ps_form
+  )
+
+male_matched <- lapply(
+  X = 1:male_imp$m, 
+  FUN = match_within_strata, 
+  imputed_data = male_imp,
+  ps_formula = ps_form
+  )
+
+# combine the mth imputed and matched datasets
+combine_list <- function(i, data_0 = NULL, data_1 = NULL){
+  
+  data_combined <- rbind(data_0[[i]], data_1[[i]])
+  
+  return(data_combined)
+  
+}
+
+matched_all <- lapply(
+  X = 1:female_imp$m, 
+  FUN = combine_list, 
+  data_0 = female_matched,
+  data_1 = male_matched
+  )
+```
+
+### Weighting
+
+```{r}
+#| label: weighting
+#| warning: false
+
+weight_within_strata <- function(i, imputed_data = NULL, ps_formula = NULL){
+  
+  weighted <- WeightIt::weightit(
+    formula = ps_formula, 
+    data = mice::complete(imputed_data, i),
+    method = "glm",
+    estimand = "ATT"
+    )
+  
+  # trim extreme weights
+  weighted <- trim(
+    x = weighted, 
+    at = .95, 
+    lower = TRUE
+    )
+  
+  weighted_data <- mice::complete(imputed_data, i) |> 
+    mutate(weights = weighted$weights)
+  
+  return(weighted_data)
+  
+}
+
+female_weighted <- lapply(
+  X = 1:female_imp$m, 
+  FUN = weight_within_strata, 
+  imputed_data = female_imp,
+  ps_formula = ps_form
+  )
+
+male_weighted <- lapply(
+  X = 1:male_imp$m, 
+  FUN = weight_within_strata, 
+  imputed_data = male_imp,
+  ps_formula = ps_form
+  )
+
+weighted_all <- lapply(
+  X = 1:female_imp$m, 
+  FUN = combine_list, 
+  data_0 = female_weighted,
+  data_1 = male_weighted
+  )
+```
+
+## Outcome model comparisons
+
+### Matching
+
+```{r}
+cox_fit_matching <- function(i){
+  
+  survival_fit <- survival::coxph(
+    data = i,
+    formula = Surv(fu_itt_months, death_itt) ~ treat*dem_sex_cont, 
+    weights = weights, 
+    cluster = subclass,
+    robust = TRUE
+    )
+  
+}
+```
+
+```{r}
+matched_all |> 
+  lapply(FUN = cox_fit_matching) |> 
+  mice::pool() |> 
+  broom::tidy(exponentiate = TRUE, conf.int = TRUE) |> 
+  dplyr::select(term, estimate, std.error, conf.low, conf.high)
+```
+
+### Weighting
+
+```{r}
+cox_fit_weighting <- function(i){
+  
+  survival_fit <- survival::coxph(
+    data = i,
+    formula = Surv(fu_itt_months, death_itt) ~ treat*dem_sex_cont, 
+    weights = weights, 
+    robust = TRUE
+    )
+  
+}
+```
+
+```{r}
+weighted_all |> 
+  lapply(FUN = cox_fit_weighting) |> 
+  mice::pool() |> 
+  broom::tidy(exponentiate = TRUE, conf.int = TRUE) |> 
+  dplyr::select(term, estimate, std.error, conf.low, conf.high)
+```
+
+## References
+
+::: {#refs}
+:::
+
+## Session info
+
+```{r, include=FALSE}
+runtime <- tictoc::toc()
+```
+
+Script runtime: `r formatC((runtime$toc[[1]]-runtime$tic[[1]])/60, format = 'f', digits = 2)` minutes.
+
+::: panel-tabset
+### Loaded packages
+
+```{r}
+pander::pander(subset(data.frame(sessioninfo::package_info()), attached==TRUE, c(package, loadedversion)))
+```
+
+### Session info
+
+```{r}
+pander::pander(sessionInfo())
+```
+
+### Repositories
+
+```{r}
+pander::pander(options('repos'))
+```
+:::
+
