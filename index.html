@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Janick Weberpals">
-<meta name="dcterms.date" content="2024-09-07">
+<meta name="dcterms.date" content="2024-09-10">
 <meta name="description" content="Miscellaneous multiple imputation and propensity score workflows">
 
 <title>Multiple imputation-propensity score workflows</title>
@@ -67,7 +67,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="site_libs/quarto-search/fuse.min.js"></script>
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
-<link href="./01_syvcox_coxph.html" rel="next">
+<link href="./chapters/whole_game.html" rel="next">
 <script src="site_libs/quarto-html/quarto.js"></script>
 <script src="site_libs/quarto-html/popper.min.js"></script>
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
@@ -158,20 +158,26 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./01_syvcox_coxph.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title"><code>coxph</code> versus <code>svycoxph</code></span></span></a>
+  <a href="./chapters/whole_game.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">The whole game</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./02_re_weight.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Re-weighting to a target population</span></span></a>
+  <a href="./chapters/syvcox_coxph.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title"><code>coxph</code> versus <code>svycoxph</code></span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="./03_subgroup_analysis.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Subgroup analysis</span></span></a>
+  <a href="./chapters/re_weight.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Re-weighting to a target population</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./chapters/subgroup_analysis.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Subgroup analysis</span></span></a>
   </div>
 </li>
     </ul>
@@ -223,7 +229,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">September 7, 2024</p>
+      <p class="date">September 10, 2024</p>
     </div>
   </div>
   
@@ -305,37 +311,52 @@ Note
 <div class="cell">
 <div class="cell-output cell-output-stdout">
 <pre><code>.
-├── 01_syvcox_coxph.md
-├── 01_syvcox_coxph.qmd
-├── 02_re_weight.html.md
-├── 02_re_weight.qmd
-├── 03_subgroup_analysis.qmd
 ├── README.md
 ├── RStudio_init.png
 ├── _book
 │   ├── 01_syvcox_coxph.html
 │   ├── 02_re_weight.html
 │   ├── RStudio_init.png
+│   ├── chapters
 │   ├── index.html
 │   ├── nejm_tbl1.png
 │   ├── search.json
 │   └── site_libs
 ├── _quarto.yml
+├── chapters
+│   ├── images
+│   ├── re_weight.md
+│   ├── re_weight.qmd
+│   ├── references.bib
+│   ├── subgroup_analysis.md
+│   ├── subgroup_analysis.qmd
+│   ├── syvcox_coxph.md
+│   ├── syvcox_coxph.qmd
+│   ├── whole_game.md
+│   ├── whole_game.qmd
+│   └── whole_game_files
 ├── functions
-│   ├── imputation_workflow.R
 │   ├── install_on_demand.R
 │   ├── re_weight.R
 │   ├── simulate_flaura.R
 │   ├── source_encore.io_functions.R
 │   └── subgroup.R
+├── images
+│   ├── leyrat_results.png
+│   ├── mi_ps.png
+│   ├── nejm_tbl1.png
+│   └── workflow.png
 ├── index.qmd
 ├── index.rmarkdown
-├── nejm_tbl1.png
+├── literature
+│   ├── MatchThem_vignette.pdf
+│   └── leyrat-et-al-2017-propensity-score-analysis-with-partially-observed-covariates-how-should-multiple-imputation-be-used.pdf
 ├── references.bib
 ├── renv
 │   ├── activate.R
 │   ├── library
-│   └── settings.json
+│   ├── settings.json
+│   └── staging
 ├── renv.lock
 └── site_libs
     ├── bootstrap
@@ -782,8 +803,8 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
   <div class="nav-page nav-page-previous">
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./01_syvcox_coxph.html" class="pagination-link" aria-label="`coxph` versus `svycoxph`">
-        <span class="nav-page-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title"><code>coxph</code> versus <code>svycoxph</code></span></span> <i class="bi bi-arrow-right-short"></i>
+      <a href="./chapters/whole_game.html" class="pagination-link" aria-label="The whole game">
+        <span class="nav-page-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">The whole game</span></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>
