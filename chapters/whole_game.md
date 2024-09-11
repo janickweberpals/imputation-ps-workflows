@@ -49,6 +49,8 @@ bibliography: references.bib
 ## Objective
 
 ::: callout-tip
+## Objective
+
 To establish a computationally reproducible workflow that streamlines multiple imputation \> propensity score matching/weighting \> survival analysis workflows in a transparent fashion
 :::
 
@@ -72,7 +74,7 @@ Additional questions that were also addressed:
 
 ![Illustration of potential approaches that could be considered after multiple imputation (MI) of the partially observed covariates are missing values on the original dataset.](/images/mi_ps.png){#fig-ps fig-align="center"}
 
-### Simulation study results
+### Simulation study results {#sec-simulation-study-results}
 
 -   **MIte** performed best in terms of bias, standardized differences/balancing, coverage rate and variance estimation
 
@@ -86,7 +88,7 @@ Additional questions that were also addressed:
 
 ### Implementation in `MatchThem` R package
 
-[@pishgar2021]
+To streamline the implementation of multiple imputation \> propensity score workflows, Farhad Pishgar, Noah Greifer, Clémence Leyrat and Elizabeth Stuart developed the `MatchThem` package [@pishgar2021] which relies on the functionality provided by the [`mice`](https://cran.r-project.org/package=mice), [`MatchIt`](https://cran.r-project.org/package=MatchIt), and [`WeightIt`](https://cran.r-project.org/package=WeightIt) packages. An exemplary illustration on how to use the package in a survival analysis context is given in @sec-application-in-cox-ph-models ([cheatsheet](https://cran.r-project.org/web/packages/MatchThem/vignettes/cheatsheet.pdf)).
 
 <iframe src="https://cran.r-project.org/web/packages/MatchThem/vignettes/cheatsheet.pdf" frameborder="0" width="725" height="440.6641" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true">
 
@@ -95,82 +97,4 @@ Additional questions that were also addressed:
 ## References
 
 ::: {#refs}
-:::
-
-## Session info
-
-
-
-
-
-Script runtime: 0.00 minutes.
-
-::: panel-tabset
-### Loaded packages
-
-
-::: {.cell}
-
-```{.r .cell-code}
-pander::pander(subset(data.frame(sessioninfo::package_info()), attached==TRUE, c(package, loadedversion)))
-```
-
-::: {.cell-output-display}
-------------- -------------------
- **package**   **loadedversion** 
-
-------------- -------------------
-:::
-:::
-
-
-### Session info
-
-
-::: {.cell}
-
-```{.r .cell-code}
-pander::pander(sessionInfo())
-```
-
-::: {.cell-output-display}
-**R version 4.4.0 (2024-04-24)**
-
-**Platform:** aarch64-apple-darwin20 
-
-**locale:**
-en_US.UTF-8||en_US.UTF-8||en_US.UTF-8||C||en_US.UTF-8||en_US.UTF-8
-
-**attached base packages:** 
-_stats_, _graphics_, _grDevices_, _datasets_, _utils_, _methods_ and _base_
-
-**loaded via a namespace (and not attached):** 
-_digest(v.0.6.37)_, _fastmap(v.1.2.0)_, _xfun(v.0.47)_, _tictoc(v.1.2.1)_, _knitr(v.1.48)_, _htmltools(v.0.5.8.1)_, _rmarkdown(v.2.28)_, _cli(v.3.6.3)_, _pander(v.0.6.5)_, _sessioninfo(v.1.2.2)_, _renv(v.1.0.7)_, _compiler(v.4.4.0)_, _rstudioapi(v.0.16.0)_, _tools(v.4.4.0)_, _evaluate(v.0.24.0)_, _Rcpp(v.1.0.13)_, _yaml(v.2.3.10)_, _rlang(v.1.1.4)_, _jsonlite(v.1.8.8)_ and _htmlwidgets(v.1.6.4)_
-:::
-:::
-
-
-### Repositories
-
-
-::: {.cell}
-
-```{.r .cell-code}
-pander::pander(options('repos'))
-```
-
-::: {.cell-output-display}
-* **repos**:
-
-    ---------------------------------------------
-                      REPO_NAME
-    ---------------------------------------------
-     https://packagemanager.posit.co/cran/latest
-    ---------------------------------------------
-
-
-<!-- end of list -->
-:::
-:::
-
 :::

@@ -22,9 +22,9 @@ book:
 
 format:
   html:
+    theme: journal
     code-fold: true
     code-summary: "Show the code"
-    theme: cosmo
     engine: knitr
     page-layout: full
     link-external-icon: true

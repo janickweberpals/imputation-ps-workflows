@@ -1,6 +1,5 @@
 ---
-title: "Application in Cox PH models"
-subtitle: "Comparison of `coxph` versus `svycoxph` after multiple imputation and propensity score matching"
+subtitle: "Comparison of coxph versus svycoxph after multiple imputation and propensity score matching"
 author: Janick Weberpals, RPh, PhD
 date: last-modified
 format: html
@@ -11,13 +10,16 @@ code-tools: true
 keep-md: true
 embed-resources: true
 editor: visual
+bibliography: references.bib
 ---
 
 
 
-This is a reproducible example on how to use `coxph` and `svycoxph` in combination with multiple imputation and propensity score matching using a `mimids` object from the MatchThem package.
+# Application in Cox PH models {#sec-application-in-cox-ph-models}
 
-Load packages:
+In @sec-application-in-cox-ph-models we illustrate a reproducible example on how to use `coxph` ([survival](https://cran.r-project.org/web/packages/survival/index.html) package [@survival]) and `svycoxph` ([survey](https://cran.r-project.org/web/packages/survey/index.html) package [@survey]) in combination with multiple imputation by chained equations ([mice](https://cran.r-project.org/web/packages/mice/index.html) package [@mice]) and propensity score matching using the `MatchThem` package [@pishgar2021].
+
+First, we load the required R libraries/packages and some custom functions that are part of the `encore.io` R package that is being developed to streamline the analysis of all **ENCORE** trial emulations (non-public package).
 
 
 ::: {.cell}
@@ -44,7 +46,9 @@ runtime <- tictoc::tic()
 
 ## Data generation
 
-We use the `simulate_flaura()` function to simulate a realistic oncology comparative effectiveness cohort analytic dataset.
+We use the `simulate_flaura()` function to simulate a realistic oncology comparative effectiveness analytic cohort dataset with similar distributions to [*FLAURA*](https://www.nejm.org/doi/full/10.1056/NEJMoa1913662), a randomized controlled trial that evaluated the efficacy and safety of osimertinib to standard-of-care (SoC) tyrosine kinase inhibitors (TKIs) in advanced NSCLC patients with a sensitizing EGFR mutation.
+
+The following cohort resembles [distributions observed in the EHR-derived *EDB1*](https://drugepi.gitlab-pages.partners.org/encore/flaura-nct-02296125/00_derive_cohort_edb1.html#table-1-post-eligibility-criteria)dataset used in ENCORE. *Note: the values of some continuous covariates (labs) are displayed after log/log-log transformation.*
 
 
 ::: {.cell}
@@ -59,15 +63,26 @@ data_miss <- simulate_flaura(
   imposeNA = TRUE
   )
 
+# store covariates
 covariates <- data_miss |> 
-  select(starts_with("c_"), starts_with("dem_")) |> 
+  select(starts_with("dem_"), starts_with("c_")) |> 
   colnames()
 
+# crate Table 1
 data_miss |> 
   tbl_summary(
     by = "treat", 
     include = covariates
-    )
+    ) |> 
+  add_overall() |> 
+  modify_header(
+    label ~ "**Patient characteristic**",
+    stat_0 ~ "**Total** <br> N = {N}",
+    stat_1 ~ "**Comparator** <br> N = {n} <br> ({style_percent(p, digits=1)}%)",
+    stat_2 ~ "**Exposure** <br> N = {n} <br> ({style_percent(p, digits=1)}%)"
+    ) |> 
+  modify_spanning_header(c("stat_1", "stat_2") ~ "**Treatment received**") |> 
+  modify_caption("**Table 1. Patient Characteristics**")
 ```
 
 ::: {.cell-output-display}
@@ -523,288 +538,384 @@ data_miss |>
 }
 </style>
 <table class="gt_table" data-quarto-disable-processing="false" data-quarto-bootstrap="false">
+  <caption><div data-qmd-base64="KipUYWJsZSAxLiBQYXRpZW50IENoYXJhY3RlcmlzdGljcyoq"><div class='gt_from_md'><p><strong>Table 1. Patient Characteristics</strong></p>
+</div></div></caption>
   <thead>
-    <tr class="gt_col_headings">
-      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1" scope="col" id="&lt;div data-qmd-base64=&quot;KipDaGFyYWN0ZXJpc3RpYyoq&quot;&gt;&lt;div class='gt_from_md'&gt;&lt;p&gt;&lt;strong&gt;Characteristic&lt;/strong&gt;&lt;/p&gt;&#10;&lt;/div&gt;&lt;/div&gt;"><div data-qmd-base64="KipDaGFyYWN0ZXJpc3RpYyoq"><div class='gt_from_md'><p><strong>Characteristic</strong></p>
+    <tr class="gt_col_headings gt_spanner_row">
+      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="2" colspan="1" scope="col" id="&lt;div data-qmd-base64=&quot;KipQYXRpZW50IGNoYXJhY3RlcmlzdGljKio=&quot;&gt;&lt;div class='gt_from_md'&gt;&lt;p&gt;&lt;strong&gt;Patient characteristic&lt;/strong&gt;&lt;/p&gt;&#10;&lt;/div&gt;&lt;/div&gt;"><div data-qmd-base64="KipQYXRpZW50IGNoYXJhY3RlcmlzdGljKio="><div class='gt_from_md'><p><strong>Patient characteristic</strong></p>
 </div></div></th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="&lt;div data-qmd-base64=&quot;KiowKiogIApOID0gMSw3MTI=&quot;&gt;&lt;div class='gt_from_md'&gt;&lt;p&gt;&lt;strong&gt;0&lt;/strong&gt;&lt;br /&gt;&#10;N = 1,712&lt;/p&gt;&#10;&lt;/div&gt;&lt;/div&gt;&lt;span class=&quot;gt_footnote_marks&quot; style=&quot;white-space:nowrap;font-style:italic;font-weight:normal;line-height: 0;&quot;&gt;&lt;sup&gt;1&lt;/sup&gt;&lt;/span&gt;"><div data-qmd-base64="KiowKiogIApOID0gMSw3MTI="><div class='gt_from_md'><p><strong>0</strong><br />
-N = 1,712</p>
+      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="2" colspan="1" scope="col" id="&lt;div data-qmd-base64=&quot;KipUb3RhbCoqIDxicj4gTiA9IDM1MDA=&quot;&gt;&lt;div class='gt_from_md'&gt;&lt;p&gt;&lt;strong&gt;Total&lt;/strong&gt; &lt;br&gt; N = 3500&lt;/p&gt;&#10;&lt;/div&gt;&lt;/div&gt;&lt;span class=&quot;gt_footnote_marks&quot; style=&quot;white-space:nowrap;font-style:italic;font-weight:normal;line-height: 0;&quot;&gt;&lt;sup&gt;1&lt;/sup&gt;&lt;/span&gt;"><div data-qmd-base64="KipUb3RhbCoqIDxicj4gTiA9IDM1MDA="><div class='gt_from_md'><p><strong>Total</strong> <br> N = 3500</p>
 </div></div><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height: 0;"><sup>1</sup></span></th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="&lt;div data-qmd-base64=&quot;KioxKiogIApOID0gMSw3ODg=&quot;&gt;&lt;div class='gt_from_md'&gt;&lt;p&gt;&lt;strong&gt;1&lt;/strong&gt;&lt;br /&gt;&#10;N = 1,788&lt;/p&gt;&#10;&lt;/div&gt;&lt;/div&gt;&lt;span class=&quot;gt_footnote_marks&quot; style=&quot;white-space:nowrap;font-style:italic;font-weight:normal;line-height: 0;&quot;&gt;&lt;sup&gt;1&lt;/sup&gt;&lt;/span&gt;"><div data-qmd-base64="KioxKiogIApOID0gMSw3ODg="><div class='gt_from_md'><p><strong>1</strong><br />
-N = 1,788</p>
+      <th class="gt_center gt_columns_top_border gt_column_spanner_outer" rowspan="1" colspan="2" scope="colgroup" id="&lt;div data-qmd-base64=&quot;KipUcmVhdG1lbnQgcmVjZWl2ZWQqKg==&quot;&gt;&lt;div class='gt_from_md'&gt;&lt;p&gt;&lt;strong&gt;Treatment received&lt;/strong&gt;&lt;/p&gt;&#10;&lt;/div&gt;&lt;/div&gt;">
+        <span class="gt_column_spanner"><div data-qmd-base64="KipUcmVhdG1lbnQgcmVjZWl2ZWQqKg=="><div class='gt_from_md'><p><strong>Treatment received</strong></p>
+</div></div></span>
+      </th>
+    </tr>
+    <tr class="gt_col_headings">
+      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="&lt;div data-qmd-base64=&quot;KipDb21wYXJhdG9yKiogPGJyPiBOID0gMTcxMiA8YnI+ICg0OC45JSk=&quot;&gt;&lt;div class='gt_from_md'&gt;&lt;p&gt;&lt;strong&gt;Comparator&lt;/strong&gt; &lt;br&gt; N = 1712 &lt;br&gt; (48.9%)&lt;/p&gt;&#10;&lt;/div&gt;&lt;/div&gt;&lt;span class=&quot;gt_footnote_marks&quot; style=&quot;white-space:nowrap;font-style:italic;font-weight:normal;line-height: 0;&quot;&gt;&lt;sup&gt;1&lt;/sup&gt;&lt;/span&gt;"><div data-qmd-base64="KipDb21wYXJhdG9yKiogPGJyPiBOID0gMTcxMiA8YnI+ICg0OC45JSk="><div class='gt_from_md'><p><strong>Comparator</strong> <br> N = 1712 <br> (48.9%)</p>
+</div></div><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height: 0;"><sup>1</sup></span></th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="&lt;div data-qmd-base64=&quot;KipFeHBvc3VyZSoqIDxicj4gTiA9IDE3ODggPGJyPiAoNTEuMSUp&quot;&gt;&lt;div class='gt_from_md'&gt;&lt;p&gt;&lt;strong&gt;Exposure&lt;/strong&gt; &lt;br&gt; N = 1788 &lt;br&gt; (51.1%)&lt;/p&gt;&#10;&lt;/div&gt;&lt;/div&gt;&lt;span class=&quot;gt_footnote_marks&quot; style=&quot;white-space:nowrap;font-style:italic;font-weight:normal;line-height: 0;&quot;&gt;&lt;sup&gt;1&lt;/sup&gt;&lt;/span&gt;"><div data-qmd-base64="KipFeHBvc3VyZSoqIDxicj4gTiA9IDE3ODggPGJyPiAoNTEuMSUp"><div class='gt_from_md'><p><strong>Exposure</strong> <br> N = 1788 <br> (51.1%)</p>
 </div></div><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height: 0;"><sup>1</sup></span></th>
     </tr>
   </thead>
   <tbody class="gt_table_body">
-    <tr><td headers="label" class="gt_row gt_left">c_smoking_history</td>
-<td headers="stat_1" class="gt_row gt_center">579 (51%)</td>
-<td headers="stat_2" class="gt_row gt_center">520 (43%)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
-<td headers="stat_1" class="gt_row gt_center">578</td>
-<td headers="stat_2" class="gt_row gt_center">584</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">c_number_met_sites</td>
-<td headers="stat_1" class="gt_row gt_center"><br /></td>
-<td headers="stat_2" class="gt_row gt_center"><br /></td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    1</td>
-<td headers="stat_1" class="gt_row gt_center">837 (74%)</td>
-<td headers="stat_2" class="gt_row gt_center">899 (75%)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    2</td>
-<td headers="stat_1" class="gt_row gt_center">249 (22%)</td>
-<td headers="stat_2" class="gt_row gt_center">255 (21%)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    3</td>
-<td headers="stat_1" class="gt_row gt_center">41 (3.6%)</td>
-<td headers="stat_2" class="gt_row gt_center">42 (3.5%)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    4</td>
-<td headers="stat_1" class="gt_row gt_center">7 (0.6%)</td>
-<td headers="stat_2" class="gt_row gt_center">8 (0.7%)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
-<td headers="stat_1" class="gt_row gt_center">578</td>
-<td headers="stat_2" class="gt_row gt_center">584</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">c_ecog_cont</td>
-<td headers="stat_1" class="gt_row gt_center">714 (63%)</td>
-<td headers="stat_2" class="gt_row gt_center">637 (53%)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
-<td headers="stat_1" class="gt_row gt_center">578</td>
-<td headers="stat_2" class="gt_row gt_center">584</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">c_stage_initial_dx_cont</td>
-<td headers="stat_1" class="gt_row gt_center"><br /></td>
-<td headers="stat_2" class="gt_row gt_center"><br /></td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    1</td>
-<td headers="stat_1" class="gt_row gt_center">101 (8.9%)</td>
-<td headers="stat_2" class="gt_row gt_center">0 (0%)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    2</td>
-<td headers="stat_1" class="gt_row gt_center">17 (1.5%)</td>
-<td headers="stat_2" class="gt_row gt_center">12 (1.0%)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    3</td>
-<td headers="stat_1" class="gt_row gt_center">15 (1.3%)</td>
-<td headers="stat_2" class="gt_row gt_center">38 (3.2%)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    4</td>
-<td headers="stat_1" class="gt_row gt_center">1,001 (88%)</td>
-<td headers="stat_2" class="gt_row gt_center">1,154 (96%)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
-<td headers="stat_1" class="gt_row gt_center">578</td>
-<td headers="stat_2" class="gt_row gt_center">584</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">c_hemoglobin_g_dl_cont</td>
-<td headers="stat_1" class="gt_row gt_center">12.97 (12.16, 13.72)</td>
-<td headers="stat_2" class="gt_row gt_center">12.89 (11.98, 13.75)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
-<td headers="stat_1" class="gt_row gt_center">578</td>
-<td headers="stat_2" class="gt_row gt_center">584</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">c_urea_nitrogen_mg_dl_cont</td>
-<td headers="stat_1" class="gt_row gt_center">2.76 (2.42, 3.08)</td>
-<td headers="stat_2" class="gt_row gt_center">2.77 (2.58, 2.97)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
-<td headers="stat_1" class="gt_row gt_center">578</td>
-<td headers="stat_2" class="gt_row gt_center">584</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">c_platelets_10_9_l_cont</td>
-<td headers="stat_1" class="gt_row gt_center">255 (218, 290)</td>
-<td headers="stat_2" class="gt_row gt_center">266 (230, 302)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
-<td headers="stat_1" class="gt_row gt_center">578</td>
-<td headers="stat_2" class="gt_row gt_center">584</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">c_calcium_mg_dl_cont</td>
-<td headers="stat_1" class="gt_row gt_center">2.23 (2.21, 2.25)</td>
-<td headers="stat_2" class="gt_row gt_center">2.24 (2.21, 2.27)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
-<td headers="stat_1" class="gt_row gt_center">578</td>
-<td headers="stat_2" class="gt_row gt_center">584</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">c_glucose_mg_dl_cont</td>
-<td headers="stat_1" class="gt_row gt_center">4.64 (4.55, 4.72)</td>
-<td headers="stat_2" class="gt_row gt_center">4.65 (4.58, 4.73)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
-<td headers="stat_1" class="gt_row gt_center">578</td>
-<td headers="stat_2" class="gt_row gt_center">584</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">c_lymphocyte_leukocyte_ratio_cont</td>
-<td headers="stat_1" class="gt_row gt_center">2.94 (2.81, 3.08)</td>
-<td headers="stat_2" class="gt_row gt_center">2.93 (2.82, 3.04)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
-<td headers="stat_1" class="gt_row gt_center">578</td>
-<td headers="stat_2" class="gt_row gt_center">584</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">c_alp_u_l_cont</td>
-<td headers="stat_1" class="gt_row gt_center">4.47 (4.33, 4.61)</td>
-<td headers="stat_2" class="gt_row gt_center">4.51 (4.42, 4.59)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
-<td headers="stat_1" class="gt_row gt_center">578</td>
-<td headers="stat_2" class="gt_row gt_center">584</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">c_protein_g_l_cont</td>
-<td headers="stat_1" class="gt_row gt_center">67.8 (65.1, 70.6)</td>
-<td headers="stat_2" class="gt_row gt_center">69.0 (66.0, 72.1)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
-<td headers="stat_1" class="gt_row gt_center">578</td>
-<td headers="stat_2" class="gt_row gt_center">584</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">c_alt_u_l_cont</td>
-<td headers="stat_1" class="gt_row gt_center">2.93 (2.72, 3.14)</td>
-<td headers="stat_2" class="gt_row gt_center">2.86 (2.64, 3.10)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
-<td headers="stat_1" class="gt_row gt_center">578</td>
-<td headers="stat_2" class="gt_row gt_center">584</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">c_albumin_g_l_cont</td>
-<td headers="stat_1" class="gt_row gt_center">39.01 (36.94, 41.01)</td>
-<td headers="stat_2" class="gt_row gt_center">39.98 (37.76, 42.07)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
-<td headers="stat_1" class="gt_row gt_center">578</td>
-<td headers="stat_2" class="gt_row gt_center">584</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">c_bilirubin_mg_dl_cont</td>
-<td headers="stat_1" class="gt_row gt_center">-0.71 (-1.45, 0.07)</td>
-<td headers="stat_2" class="gt_row gt_center">-0.85 (-1.74, -0.03)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
-<td headers="stat_1" class="gt_row gt_center">578</td>
-<td headers="stat_2" class="gt_row gt_center">584</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">c_chloride_mmol_l_cont</td>
-<td headers="stat_1" class="gt_row gt_center">102.08 (100.08, 104.20)</td>
-<td headers="stat_2" class="gt_row gt_center">102.05 (100.20, 104.12)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
-<td headers="stat_1" class="gt_row gt_center">578</td>
-<td headers="stat_2" class="gt_row gt_center">584</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">c_monocytes_10_9_l_cont</td>
-<td headers="stat_1" class="gt_row gt_center">-0.53 (-0.78, -0.24)</td>
-<td headers="stat_2" class="gt_row gt_center">-0.51 (-0.68, -0.35)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
-<td headers="stat_1" class="gt_row gt_center">578</td>
-<td headers="stat_2" class="gt_row gt_center">584</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">c_eosinophils_leukocytes_ratio_cont</td>
-<td headers="stat_1" class="gt_row gt_center">0.72 (0.50, 0.97)</td>
-<td headers="stat_2" class="gt_row gt_center">0.69 (0.28, 1.07)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
-<td headers="stat_1" class="gt_row gt_center">578</td>
-<td headers="stat_2" class="gt_row gt_center">584</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">c_ldh_u_l_cont</td>
-<td headers="stat_1" class="gt_row gt_center">1.68 (1.65, 1.71)</td>
-<td headers="stat_2" class="gt_row gt_center">1.69 (1.65, 1.72)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
-<td headers="stat_1" class="gt_row gt_center">578</td>
-<td headers="stat_2" class="gt_row gt_center">584</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">c_hr_cont</td>
-<td headers="stat_1" class="gt_row gt_center">4.41 (4.39, 4.43)</td>
-<td headers="stat_2" class="gt_row gt_center">4.43 (4.40, 4.46)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
-<td headers="stat_1" class="gt_row gt_center">578</td>
-<td headers="stat_2" class="gt_row gt_center">584</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">c_sbp_cont</td>
-<td headers="stat_1" class="gt_row gt_center">4.85 (4.77, 4.92)</td>
-<td headers="stat_2" class="gt_row gt_center">4.85 (4.79, 4.92)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
-<td headers="stat_1" class="gt_row gt_center">578</td>
-<td headers="stat_2" class="gt_row gt_center">584</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">c_oxygen_cont</td>
-<td headers="stat_1" class="gt_row gt_center">97.000 (96.986, 97.014)</td>
-<td headers="stat_2" class="gt_row gt_center">97.001 (96.993, 97.007)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
-<td headers="stat_1" class="gt_row gt_center">578</td>
-<td headers="stat_2" class="gt_row gt_center">584</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">c_neutrophil_lymphocyte_ratio_cont</td>
-<td headers="stat_1" class="gt_row gt_center">1.33 (1.11, 1.56)</td>
-<td headers="stat_2" class="gt_row gt_center">1.28 (1.02, 1.52)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
-<td headers="stat_1" class="gt_row gt_center">578</td>
-<td headers="stat_2" class="gt_row gt_center">584</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">c_bmi_cont</td>
-<td headers="stat_1" class="gt_row gt_center">3.23 (3.14, 3.31)</td>
-<td headers="stat_2" class="gt_row gt_center">3.23 (3.14, 3.31)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
-<td headers="stat_1" class="gt_row gt_center">578</td>
-<td headers="stat_2" class="gt_row gt_center">584</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">c_ast_alt_ratio_cont</td>
-<td headers="stat_1" class="gt_row gt_center">0.09 (-0.10, 0.30)</td>
-<td headers="stat_2" class="gt_row gt_center">0.12 (-0.07, 0.32)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
-<td headers="stat_1" class="gt_row gt_center">578</td>
-<td headers="stat_2" class="gt_row gt_center">584</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">c_time_dx_to_index</td>
-<td headers="stat_1" class="gt_row gt_center">73 (43, 103)</td>
-<td headers="stat_2" class="gt_row gt_center">43 (32, 55)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
-<td headers="stat_1" class="gt_row gt_center">578</td>
-<td headers="stat_2" class="gt_row gt_center">584</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">c_de_novo_mets_dx</td>
-<td headers="stat_1" class="gt_row gt_center">774 (68%)</td>
-<td headers="stat_2" class="gt_row gt_center">945 (78%)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
-<td headers="stat_1" class="gt_row gt_center">578</td>
-<td headers="stat_2" class="gt_row gt_center">584</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">c_height_cont</td>
-<td headers="stat_1" class="gt_row gt_center">1.64 (1.59, 1.69)</td>
-<td headers="stat_2" class="gt_row gt_center">1.65 (1.59, 1.70)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
-<td headers="stat_1" class="gt_row gt_center">578</td>
-<td headers="stat_2" class="gt_row gt_center">584</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">c_weight_cont</td>
-<td headers="stat_1" class="gt_row gt_center">68 (60, 76)</td>
-<td headers="stat_2" class="gt_row gt_center">69 (61, 76)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
-<td headers="stat_1" class="gt_row gt_center">578</td>
-<td headers="stat_2" class="gt_row gt_center">584</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">c_dbp_cont</td>
-<td headers="stat_1" class="gt_row gt_center">75 (70, 79)</td>
-<td headers="stat_2" class="gt_row gt_center">76 (72, 80)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
-<td headers="stat_1" class="gt_row gt_center">578</td>
-<td headers="stat_2" class="gt_row gt_center">584</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">c_year_index</td>
-<td headers="stat_1" class="gt_row gt_center"><br /></td>
-<td headers="stat_2" class="gt_row gt_center"><br /></td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    &lt;2018</td>
-<td headers="stat_1" class="gt_row gt_center">87 (5.1%)</td>
-<td headers="stat_2" class="gt_row gt_center">1,703 (95%)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    2018+</td>
-<td headers="stat_1" class="gt_row gt_center">1,625 (95%)</td>
-<td headers="stat_2" class="gt_row gt_center">85 (4.8%)</td></tr>
     <tr><td headers="label" class="gt_row gt_left">dem_age_index_cont</td>
+<td headers="stat_0" class="gt_row gt_center">69 (64, 75)</td>
 <td headers="stat_1" class="gt_row gt_center">70 (63, 76)</td>
 <td headers="stat_2" class="gt_row gt_center">69 (64, 74)</td></tr>
     <tr><td headers="label" class="gt_row gt_left">dem_sex_cont</td>
+<td headers="stat_0" class="gt_row gt_center">1,183 (34%)</td>
 <td headers="stat_1" class="gt_row gt_center">614 (36%)</td>
 <td headers="stat_2" class="gt_row gt_center">569 (32%)</td></tr>
     <tr><td headers="label" class="gt_row gt_left">dem_race</td>
+<td headers="stat_0" class="gt_row gt_center">1,417 (61%)</td>
 <td headers="stat_1" class="gt_row gt_center">664 (59%)</td>
 <td headers="stat_2" class="gt_row gt_center">753 (63%)</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
+<td headers="stat_0" class="gt_row gt_center">1,162</td>
 <td headers="stat_1" class="gt_row gt_center">578</td>
 <td headers="stat_2" class="gt_row gt_center">584</td></tr>
     <tr><td headers="label" class="gt_row gt_left">dem_region</td>
+<td headers="stat_0" class="gt_row gt_center"><br /></td>
 <td headers="stat_1" class="gt_row gt_center"><br /></td>
 <td headers="stat_2" class="gt_row gt_center"><br /></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Midwest</td>
+<td headers="stat_0" class="gt_row gt_center">260 (11%)</td>
 <td headers="stat_1" class="gt_row gt_center">123 (11%)</td>
 <td headers="stat_2" class="gt_row gt_center">137 (11%)</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Northeast</td>
+<td headers="stat_0" class="gt_row gt_center">772 (33%)</td>
 <td headers="stat_1" class="gt_row gt_center">382 (34%)</td>
 <td headers="stat_2" class="gt_row gt_center">390 (32%)</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    South</td>
+<td headers="stat_0" class="gt_row gt_center">865 (37%)</td>
 <td headers="stat_1" class="gt_row gt_center">409 (36%)</td>
 <td headers="stat_2" class="gt_row gt_center">456 (38%)</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    West</td>
+<td headers="stat_0" class="gt_row gt_center">441 (19%)</td>
 <td headers="stat_1" class="gt_row gt_center">220 (19%)</td>
 <td headers="stat_2" class="gt_row gt_center">221 (18%)</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
+<td headers="stat_0" class="gt_row gt_center">1,162</td>
 <td headers="stat_1" class="gt_row gt_center">578</td>
 <td headers="stat_2" class="gt_row gt_center">584</td></tr>
     <tr><td headers="label" class="gt_row gt_left">dem_ses</td>
+<td headers="stat_0" class="gt_row gt_center"><br /></td>
 <td headers="stat_1" class="gt_row gt_center"><br /></td>
 <td headers="stat_2" class="gt_row gt_center"><br /></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    1</td>
+<td headers="stat_0" class="gt_row gt_center">319 (14%)</td>
 <td headers="stat_1" class="gt_row gt_center">102 (9.0%)</td>
 <td headers="stat_2" class="gt_row gt_center">217 (18%)</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    2</td>
+<td headers="stat_0" class="gt_row gt_center">309 (13%)</td>
 <td headers="stat_1" class="gt_row gt_center">152 (13%)</td>
 <td headers="stat_2" class="gt_row gt_center">157 (13%)</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    3</td>
+<td headers="stat_0" class="gt_row gt_center">512 (22%)</td>
 <td headers="stat_1" class="gt_row gt_center">302 (27%)</td>
 <td headers="stat_2" class="gt_row gt_center">210 (17%)</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    4</td>
+<td headers="stat_0" class="gt_row gt_center">562 (24%)</td>
 <td headers="stat_1" class="gt_row gt_center">271 (24%)</td>
 <td headers="stat_2" class="gt_row gt_center">291 (24%)</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    5</td>
+<td headers="stat_0" class="gt_row gt_center">636 (27%)</td>
 <td headers="stat_1" class="gt_row gt_center">307 (27%)</td>
 <td headers="stat_2" class="gt_row gt_center">329 (27%)</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
+<td headers="stat_0" class="gt_row gt_center">1,162</td>
 <td headers="stat_1" class="gt_row gt_center">578</td>
 <td headers="stat_2" class="gt_row gt_center">584</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">c_smoking_history</td>
+<td headers="stat_0" class="gt_row gt_center">1,099 (47%)</td>
+<td headers="stat_1" class="gt_row gt_center">579 (51%)</td>
+<td headers="stat_2" class="gt_row gt_center">520 (43%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
+<td headers="stat_0" class="gt_row gt_center">1,162</td>
+<td headers="stat_1" class="gt_row gt_center">578</td>
+<td headers="stat_2" class="gt_row gt_center">584</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">c_number_met_sites</td>
+<td headers="stat_0" class="gt_row gt_center"><br /></td>
+<td headers="stat_1" class="gt_row gt_center"><br /></td>
+<td headers="stat_2" class="gt_row gt_center"><br /></td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    1</td>
+<td headers="stat_0" class="gt_row gt_center">1,736 (74%)</td>
+<td headers="stat_1" class="gt_row gt_center">837 (74%)</td>
+<td headers="stat_2" class="gt_row gt_center">899 (75%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    2</td>
+<td headers="stat_0" class="gt_row gt_center">504 (22%)</td>
+<td headers="stat_1" class="gt_row gt_center">249 (22%)</td>
+<td headers="stat_2" class="gt_row gt_center">255 (21%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    3</td>
+<td headers="stat_0" class="gt_row gt_center">83 (3.6%)</td>
+<td headers="stat_1" class="gt_row gt_center">41 (3.6%)</td>
+<td headers="stat_2" class="gt_row gt_center">42 (3.5%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    4</td>
+<td headers="stat_0" class="gt_row gt_center">15 (0.6%)</td>
+<td headers="stat_1" class="gt_row gt_center">7 (0.6%)</td>
+<td headers="stat_2" class="gt_row gt_center">8 (0.7%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
+<td headers="stat_0" class="gt_row gt_center">1,162</td>
+<td headers="stat_1" class="gt_row gt_center">578</td>
+<td headers="stat_2" class="gt_row gt_center">584</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">c_ecog_cont</td>
+<td headers="stat_0" class="gt_row gt_center">1,351 (58%)</td>
+<td headers="stat_1" class="gt_row gt_center">714 (63%)</td>
+<td headers="stat_2" class="gt_row gt_center">637 (53%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
+<td headers="stat_0" class="gt_row gt_center">1,162</td>
+<td headers="stat_1" class="gt_row gt_center">578</td>
+<td headers="stat_2" class="gt_row gt_center">584</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">c_stage_initial_dx_cont</td>
+<td headers="stat_0" class="gt_row gt_center"><br /></td>
+<td headers="stat_1" class="gt_row gt_center"><br /></td>
+<td headers="stat_2" class="gt_row gt_center"><br /></td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    1</td>
+<td headers="stat_0" class="gt_row gt_center">101 (4.3%)</td>
+<td headers="stat_1" class="gt_row gt_center">101 (8.9%)</td>
+<td headers="stat_2" class="gt_row gt_center">0 (0%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    2</td>
+<td headers="stat_0" class="gt_row gt_center">29 (1.2%)</td>
+<td headers="stat_1" class="gt_row gt_center">17 (1.5%)</td>
+<td headers="stat_2" class="gt_row gt_center">12 (1.0%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    3</td>
+<td headers="stat_0" class="gt_row gt_center">53 (2.3%)</td>
+<td headers="stat_1" class="gt_row gt_center">15 (1.3%)</td>
+<td headers="stat_2" class="gt_row gt_center">38 (3.2%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    4</td>
+<td headers="stat_0" class="gt_row gt_center">2,155 (92%)</td>
+<td headers="stat_1" class="gt_row gt_center">1,001 (88%)</td>
+<td headers="stat_2" class="gt_row gt_center">1,154 (96%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
+<td headers="stat_0" class="gt_row gt_center">1,162</td>
+<td headers="stat_1" class="gt_row gt_center">578</td>
+<td headers="stat_2" class="gt_row gt_center">584</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">c_hemoglobin_g_dl_cont</td>
+<td headers="stat_0" class="gt_row gt_center">12.92 (12.09, 13.74)</td>
+<td headers="stat_1" class="gt_row gt_center">12.97 (12.16, 13.72)</td>
+<td headers="stat_2" class="gt_row gt_center">12.89 (11.98, 13.75)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
+<td headers="stat_0" class="gt_row gt_center">1,162</td>
+<td headers="stat_1" class="gt_row gt_center">578</td>
+<td headers="stat_2" class="gt_row gt_center">584</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">c_urea_nitrogen_mg_dl_cont</td>
+<td headers="stat_0" class="gt_row gt_center">2.77 (2.53, 3.02)</td>
+<td headers="stat_1" class="gt_row gt_center">2.76 (2.42, 3.08)</td>
+<td headers="stat_2" class="gt_row gt_center">2.77 (2.58, 2.97)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
+<td headers="stat_0" class="gt_row gt_center">1,162</td>
+<td headers="stat_1" class="gt_row gt_center">578</td>
+<td headers="stat_2" class="gt_row gt_center">584</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">c_platelets_10_9_l_cont</td>
+<td headers="stat_0" class="gt_row gt_center">261 (224, 297)</td>
+<td headers="stat_1" class="gt_row gt_center">255 (218, 290)</td>
+<td headers="stat_2" class="gt_row gt_center">266 (230, 302)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
+<td headers="stat_0" class="gt_row gt_center">1,162</td>
+<td headers="stat_1" class="gt_row gt_center">578</td>
+<td headers="stat_2" class="gt_row gt_center">584</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">c_calcium_mg_dl_cont</td>
+<td headers="stat_0" class="gt_row gt_center">2.23 (2.21, 2.26)</td>
+<td headers="stat_1" class="gt_row gt_center">2.23 (2.21, 2.25)</td>
+<td headers="stat_2" class="gt_row gt_center">2.24 (2.21, 2.27)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
+<td headers="stat_0" class="gt_row gt_center">1,162</td>
+<td headers="stat_1" class="gt_row gt_center">578</td>
+<td headers="stat_2" class="gt_row gt_center">584</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">c_glucose_mg_dl_cont</td>
+<td headers="stat_0" class="gt_row gt_center">4.65 (4.57, 4.73)</td>
+<td headers="stat_1" class="gt_row gt_center">4.64 (4.55, 4.72)</td>
+<td headers="stat_2" class="gt_row gt_center">4.65 (4.58, 4.73)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
+<td headers="stat_0" class="gt_row gt_center">1,162</td>
+<td headers="stat_1" class="gt_row gt_center">578</td>
+<td headers="stat_2" class="gt_row gt_center">584</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">c_lymphocyte_leukocyte_ratio_cont</td>
+<td headers="stat_0" class="gt_row gt_center">2.93 (2.81, 3.06)</td>
+<td headers="stat_1" class="gt_row gt_center">2.94 (2.81, 3.08)</td>
+<td headers="stat_2" class="gt_row gt_center">2.93 (2.82, 3.04)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
+<td headers="stat_0" class="gt_row gt_center">1,162</td>
+<td headers="stat_1" class="gt_row gt_center">578</td>
+<td headers="stat_2" class="gt_row gt_center">584</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">c_alp_u_l_cont</td>
+<td headers="stat_0" class="gt_row gt_center">4.49 (4.39, 4.60)</td>
+<td headers="stat_1" class="gt_row gt_center">4.47 (4.33, 4.61)</td>
+<td headers="stat_2" class="gt_row gt_center">4.51 (4.42, 4.59)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
+<td headers="stat_0" class="gt_row gt_center">1,162</td>
+<td headers="stat_1" class="gt_row gt_center">578</td>
+<td headers="stat_2" class="gt_row gt_center">584</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">c_protein_g_l_cont</td>
+<td headers="stat_0" class="gt_row gt_center">68.4 (65.6, 71.4)</td>
+<td headers="stat_1" class="gt_row gt_center">67.8 (65.1, 70.6)</td>
+<td headers="stat_2" class="gt_row gt_center">69.0 (66.0, 72.1)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
+<td headers="stat_0" class="gt_row gt_center">1,162</td>
+<td headers="stat_1" class="gt_row gt_center">578</td>
+<td headers="stat_2" class="gt_row gt_center">584</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">c_alt_u_l_cont</td>
+<td headers="stat_0" class="gt_row gt_center">2.90 (2.69, 3.12)</td>
+<td headers="stat_1" class="gt_row gt_center">2.93 (2.72, 3.14)</td>
+<td headers="stat_2" class="gt_row gt_center">2.86 (2.64, 3.10)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
+<td headers="stat_0" class="gt_row gt_center">1,162</td>
+<td headers="stat_1" class="gt_row gt_center">578</td>
+<td headers="stat_2" class="gt_row gt_center">584</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">c_albumin_g_l_cont</td>
+<td headers="stat_0" class="gt_row gt_center">39.51 (37.33, 41.58)</td>
+<td headers="stat_1" class="gt_row gt_center">39.01 (36.94, 41.01)</td>
+<td headers="stat_2" class="gt_row gt_center">39.98 (37.76, 42.07)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
+<td headers="stat_0" class="gt_row gt_center">1,162</td>
+<td headers="stat_1" class="gt_row gt_center">578</td>
+<td headers="stat_2" class="gt_row gt_center">584</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">c_bilirubin_mg_dl_cont</td>
+<td headers="stat_0" class="gt_row gt_center">-0.79 (-1.58, 0.01)</td>
+<td headers="stat_1" class="gt_row gt_center">-0.71 (-1.45, 0.07)</td>
+<td headers="stat_2" class="gt_row gt_center">-0.85 (-1.74, -0.03)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
+<td headers="stat_0" class="gt_row gt_center">1,162</td>
+<td headers="stat_1" class="gt_row gt_center">578</td>
+<td headers="stat_2" class="gt_row gt_center">584</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">c_chloride_mmol_l_cont</td>
+<td headers="stat_0" class="gt_row gt_center">102.07 (100.11, 104.14)</td>
+<td headers="stat_1" class="gt_row gt_center">102.08 (100.08, 104.20)</td>
+<td headers="stat_2" class="gt_row gt_center">102.05 (100.20, 104.12)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
+<td headers="stat_0" class="gt_row gt_center">1,162</td>
+<td headers="stat_1" class="gt_row gt_center">578</td>
+<td headers="stat_2" class="gt_row gt_center">584</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">c_monocytes_10_9_l_cont</td>
+<td headers="stat_0" class="gt_row gt_center">-0.51 (-0.73, -0.31)</td>
+<td headers="stat_1" class="gt_row gt_center">-0.53 (-0.78, -0.24)</td>
+<td headers="stat_2" class="gt_row gt_center">-0.51 (-0.68, -0.35)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
+<td headers="stat_0" class="gt_row gt_center">1,162</td>
+<td headers="stat_1" class="gt_row gt_center">578</td>
+<td headers="stat_2" class="gt_row gt_center">584</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">c_eosinophils_leukocytes_ratio_cont</td>
+<td headers="stat_0" class="gt_row gt_center">0.71 (0.40, 1.02)</td>
+<td headers="stat_1" class="gt_row gt_center">0.72 (0.50, 0.97)</td>
+<td headers="stat_2" class="gt_row gt_center">0.69 (0.28, 1.07)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
+<td headers="stat_0" class="gt_row gt_center">1,162</td>
+<td headers="stat_1" class="gt_row gt_center">578</td>
+<td headers="stat_2" class="gt_row gt_center">584</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">c_ldh_u_l_cont</td>
+<td headers="stat_0" class="gt_row gt_center">1.68 (1.65, 1.72)</td>
+<td headers="stat_1" class="gt_row gt_center">1.68 (1.65, 1.71)</td>
+<td headers="stat_2" class="gt_row gt_center">1.69 (1.65, 1.72)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
+<td headers="stat_0" class="gt_row gt_center">1,162</td>
+<td headers="stat_1" class="gt_row gt_center">578</td>
+<td headers="stat_2" class="gt_row gt_center">584</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">c_hr_cont</td>
+<td headers="stat_0" class="gt_row gt_center">4.42 (4.40, 4.44)</td>
+<td headers="stat_1" class="gt_row gt_center">4.41 (4.39, 4.43)</td>
+<td headers="stat_2" class="gt_row gt_center">4.43 (4.40, 4.46)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
+<td headers="stat_0" class="gt_row gt_center">1,162</td>
+<td headers="stat_1" class="gt_row gt_center">578</td>
+<td headers="stat_2" class="gt_row gt_center">584</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">c_sbp_cont</td>
+<td headers="stat_0" class="gt_row gt_center">4.85 (4.78, 4.92)</td>
+<td headers="stat_1" class="gt_row gt_center">4.85 (4.77, 4.92)</td>
+<td headers="stat_2" class="gt_row gt_center">4.85 (4.79, 4.92)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
+<td headers="stat_0" class="gt_row gt_center">1,162</td>
+<td headers="stat_1" class="gt_row gt_center">578</td>
+<td headers="stat_2" class="gt_row gt_center">584</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">c_oxygen_cont</td>
+<td headers="stat_0" class="gt_row gt_center">97.001 (96.991, 97.009)</td>
+<td headers="stat_1" class="gt_row gt_center">97.000 (96.986, 97.014)</td>
+<td headers="stat_2" class="gt_row gt_center">97.001 (96.993, 97.007)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
+<td headers="stat_0" class="gt_row gt_center">1,162</td>
+<td headers="stat_1" class="gt_row gt_center">578</td>
+<td headers="stat_2" class="gt_row gt_center">584</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">c_neutrophil_lymphocyte_ratio_cont</td>
+<td headers="stat_0" class="gt_row gt_center">1.31 (1.07, 1.54)</td>
+<td headers="stat_1" class="gt_row gt_center">1.33 (1.11, 1.56)</td>
+<td headers="stat_2" class="gt_row gt_center">1.28 (1.02, 1.52)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
+<td headers="stat_0" class="gt_row gt_center">1,162</td>
+<td headers="stat_1" class="gt_row gt_center">578</td>
+<td headers="stat_2" class="gt_row gt_center">584</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">c_bmi_cont</td>
+<td headers="stat_0" class="gt_row gt_center">3.23 (3.14, 3.31)</td>
+<td headers="stat_1" class="gt_row gt_center">3.23 (3.14, 3.31)</td>
+<td headers="stat_2" class="gt_row gt_center">3.23 (3.14, 3.31)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
+<td headers="stat_0" class="gt_row gt_center">1,162</td>
+<td headers="stat_1" class="gt_row gt_center">578</td>
+<td headers="stat_2" class="gt_row gt_center">584</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">c_ast_alt_ratio_cont</td>
+<td headers="stat_0" class="gt_row gt_center">0.10 (-0.09, 0.31)</td>
+<td headers="stat_1" class="gt_row gt_center">0.09 (-0.10, 0.30)</td>
+<td headers="stat_2" class="gt_row gt_center">0.12 (-0.07, 0.32)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
+<td headers="stat_0" class="gt_row gt_center">1,162</td>
+<td headers="stat_1" class="gt_row gt_center">578</td>
+<td headers="stat_2" class="gt_row gt_center">584</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">c_time_dx_to_index</td>
+<td headers="stat_0" class="gt_row gt_center">52 (35, 75)</td>
+<td headers="stat_1" class="gt_row gt_center">73 (43, 103)</td>
+<td headers="stat_2" class="gt_row gt_center">43 (32, 55)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
+<td headers="stat_0" class="gt_row gt_center">1,162</td>
+<td headers="stat_1" class="gt_row gt_center">578</td>
+<td headers="stat_2" class="gt_row gt_center">584</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">c_de_novo_mets_dx</td>
+<td headers="stat_0" class="gt_row gt_center">1,719 (74%)</td>
+<td headers="stat_1" class="gt_row gt_center">774 (68%)</td>
+<td headers="stat_2" class="gt_row gt_center">945 (78%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
+<td headers="stat_0" class="gt_row gt_center">1,162</td>
+<td headers="stat_1" class="gt_row gt_center">578</td>
+<td headers="stat_2" class="gt_row gt_center">584</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">c_height_cont</td>
+<td headers="stat_0" class="gt_row gt_center">1.65 (1.59, 1.70)</td>
+<td headers="stat_1" class="gt_row gt_center">1.64 (1.59, 1.69)</td>
+<td headers="stat_2" class="gt_row gt_center">1.65 (1.59, 1.70)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
+<td headers="stat_0" class="gt_row gt_center">1,162</td>
+<td headers="stat_1" class="gt_row gt_center">578</td>
+<td headers="stat_2" class="gt_row gt_center">584</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">c_weight_cont</td>
+<td headers="stat_0" class="gt_row gt_center">68 (60, 76)</td>
+<td headers="stat_1" class="gt_row gt_center">68 (60, 76)</td>
+<td headers="stat_2" class="gt_row gt_center">69 (61, 76)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
+<td headers="stat_0" class="gt_row gt_center">1,162</td>
+<td headers="stat_1" class="gt_row gt_center">578</td>
+<td headers="stat_2" class="gt_row gt_center">584</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">c_dbp_cont</td>
+<td headers="stat_0" class="gt_row gt_center">75 (71, 80)</td>
+<td headers="stat_1" class="gt_row gt_center">75 (70, 79)</td>
+<td headers="stat_2" class="gt_row gt_center">76 (72, 80)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
+<td headers="stat_0" class="gt_row gt_center">1,162</td>
+<td headers="stat_1" class="gt_row gt_center">578</td>
+<td headers="stat_2" class="gt_row gt_center">584</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">c_year_index</td>
+<td headers="stat_0" class="gt_row gt_center"><br /></td>
+<td headers="stat_1" class="gt_row gt_center"><br /></td>
+<td headers="stat_2" class="gt_row gt_center"><br /></td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    &lt;2018</td>
+<td headers="stat_0" class="gt_row gt_center">1,790 (51%)</td>
+<td headers="stat_1" class="gt_row gt_center">87 (5.1%)</td>
+<td headers="stat_2" class="gt_row gt_center">1,703 (95%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    2018+</td>
+<td headers="stat_0" class="gt_row gt_center">1,710 (49%)</td>
+<td headers="stat_1" class="gt_row gt_center">1,625 (95%)</td>
+<td headers="stat_2" class="gt_row gt_center">85 (4.8%)</td></tr>
   </tbody>
   
   <tfoot class="gt_footnotes">
     <tr>
-      <td class="gt_footnote" colspan="3"><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height: 0;"><sup>1</sup></span> <div data-qmd-base64="biAoJSk7IE1lZGlhbiAoUTEsIFEzKQ=="><div class='gt_from_md'><p>n (%); Median (Q1, Q3)</p>
+      <td class="gt_footnote" colspan="4"><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height: 0;"><sup>1</sup></span> <div data-qmd-base64="TWVkaWFuIChRMSwgUTMpOyBuICglKQ=="><div class='gt_from_md'><p>Median (Q1, Q3); n (%)</p>
 </div></div></td>
     </tr>
   </tfoot>
@@ -816,9 +927,39 @@ N = 1,788</p>
 :::
 
 
-## Multiple imputation
+## Step 1: Multiple imputation
 
-Multiple imputation using `mice:`
+The first step after deriving the analytic cohort includes the creation of multiple imputed datasets using `mice` R package[@mice].
+
+> The `mice` algorithm is one particular instance of a fully conditionally specified model. The algorithm starts with a random draw from the observed data, and imputes the incomplete data in a variable-by-variable fashion. One iteration consists of one cycle through all $Y_j$.
+
+[![MICE algorithm for imputation of multivariate missing data.](/images/mice.png){fig-align="center"}](https://stefvanbuuren.name/fimd/sec-FCS.html)
+
+The number of iterations $M$ (= number of imputed datasets) in this example is 10, but in ENCORE we follow Stef van Buuren's advice:
+
+> \[...\] if calculation is not prohibitive, we may set $M$ to the average percentage of missing data.
+>
+> ([Flexible imputation of Missing Data, Sub-chapter 2.8](https://stefvanbuuren.name/fimd/sec-howmany.html))
+
+Following the results of various simulation studies [@shah2014; @Weberpals2024], we use a non-parametric (random forest-based) imputation approach as the actual imputation algorithm.
+
+::: callout-tip
+## Advantages of non-parametric imputation approaches
+
+-   Parametric imputation models have to be correctly specified, i.e. also have to explicitly model **nonlinear and non-additive covariate relationships**
+
+-   Many imputation algorithms are not prepared for **mixed type of data**
+
+-   Popular: random forest-based algorithms
+
+    -   for each variable random forest is fit on the observed part and then predicts the missing part
+
+    -   missForest[@stekhoven2012] provides OOB error but **only provides single imputations**
+
+    -   Alternatives: rf, cart in `mice` package [@mice]
+:::
+
+*Note: In this example we utilize the `futuremice()` instead of the legacy `mice()` function to run the `mice` imputation across 7 cores in parallel.*
 
 
 ::: {.cell}
@@ -837,9 +978,30 @@ data_imp <- futuremice(
 :::
 
 
-## Propensity score matching and weighting
+The imputation step creates an object of class...
 
-Apply propensity score matching and weighting with replacement within in each imputed dataset:
+
+::: {.cell}
+
+```{.r .cell-code}
+class(data_imp)
+```
+
+::: {.cell-output .cell-output-stdout}
+```
+[1] "mids"
+```
+:::
+:::
+
+
+...which stands for *multiple imputed datasets*. It contains important information on the imputation procedure and the actual imputed datasets.
+
+## Step 2: Propensity score matching and weighting
+
+Apply propensity score matching and weighting with replacement within in each imputed dataset. As pointed in @sec-simulation-study-results, the **MIte** approach performed best in terms of bias, standardized differences/balancing, coverage rate and variance estimation. In `MatchThem` this approach is referred to a `within` approach (performing matching within each dataset), while the inferior **MIps** approach (estimating propensity scores within each dataset, averaging them across datasets, and performing matching using the averaged propensity scores in each dataset) is referred to as `across` approach. Since **MIte/`within`** has been shown to have superior performance in most cases, we only illustrate this approach here.
+
+Let's assume we fit the following propensity score model within each imputed dataset.
 
 
 ::: {.cell}
@@ -847,18 +1009,80 @@ Apply propensity score matching and weighting with replacement within in each im
 ```{.r .cell-code}
 # apply propensity score matching on mids object
 ps_form <- as.formula(paste("treat ~", paste(covariates, collapse = " + ")))
+ps_form
+```
 
+::: {.cell-output .cell-output-stdout}
+```
+treat ~ dem_age_index_cont + dem_sex_cont + dem_race + dem_region + 
+    dem_ses + c_smoking_history + c_number_met_sites + c_ecog_cont + 
+    c_stage_initial_dx_cont + c_hemoglobin_g_dl_cont + c_urea_nitrogen_mg_dl_cont + 
+    c_platelets_10_9_l_cont + c_calcium_mg_dl_cont + c_glucose_mg_dl_cont + 
+    c_lymphocyte_leukocyte_ratio_cont + c_alp_u_l_cont + c_protein_g_l_cont + 
+    c_alt_u_l_cont + c_albumin_g_l_cont + c_bilirubin_mg_dl_cont + 
+    c_chloride_mmol_l_cont + c_monocytes_10_9_l_cont + c_eosinophils_leukocytes_ratio_cont + 
+    c_ldh_u_l_cont + c_hr_cont + c_sbp_cont + c_oxygen_cont + 
+    c_neutrophil_lymphocyte_ratio_cont + c_bmi_cont + c_ast_alt_ratio_cont + 
+    c_time_dx_to_index + c_de_novo_mets_dx + c_height_cont + 
+    c_weight_cont + c_dbp_cont + c_year_index
+```
+:::
+:::
+
+
+::: panel-tabset
+### Matching
+
+The matching step happens using the `matchthem()` function, which is a wrapper around the `matchit()` function. This function not only provides the functionality to match on the propensity score, but also to perform (coarsened) exact matching, cardinality matching, genetic matching and more. In this example, we use a simple 1:1 nearest neighbor matching on the propensity score (estimated through logistic regression) without replacement with a caliper of 1% of the standard deviation of the propensity score.
+
+
+::: {.cell}
+
+```{.r .cell-code}
 # matching
 data_mimids <- matchthem(
   formula = ps_form,
   datasets = data_imp,
   approach = 'within',
   method = 'nearest',
+  distance = "glm",
+  link = "logit",
   caliper = 0.01,
   ratio = 1,
   replace = F
   )
 
+# print summary for matched dataset #1
+data_mimids
+```
+
+::: {.cell-output .cell-output-stdout}
+```
+A matchit object
+ - method: 1:1 nearest neighbor matching without replacement
+ - distance: Propensity score [caliper]
+             - estimated with logistic regression
+ - caliper: <distance> (0.005)
+ - number of obs.: 3500 (original), 336 (matched)
+ - target estimand: ATT
+ - covariates: dem_age_index_cont, dem_sex_cont, dem_race, dem_region, dem_ses, c_smoking_history, c_number_met_sites, c_ecog_cont, c_stage_initial_dx_cont, c_hemoglobin_g_dl_cont, c_urea_nitrogen_mg_dl_cont, c_platelets_10_9_l_cont, c_calcium_mg_dl_cont, c_glucose_mg_dl_cont, c_lymphocyte_leukocyte_ratio_cont, c_alp_u_l_cont, c_protein_g_l_cont, c_alt_u_l_cont, c_albumin_g_l_cont, c_bilirubin_mg_dl_cont, c_chloride_mmol_l_cont, c_monocytes_10_9_l_cont, c_eosinophils_leukocytes_ratio_cont, c_ldh_u_l_cont, c_hr_cont, c_sbp_cont, c_oxygen_cont, c_neutrophil_lymphocyte_ratio_cont, c_bmi_cont, c_ast_alt_ratio_cont, c_time_dx_to_index, c_de_novo_mets_dx, c_height_cont, c_weight_cont, c_dbp_cont, c_year_index
+```
+:::
+:::
+
+
+The resulting "mimids" object contains the original imputed data and the output of the calls to `matchit()` applied to each imputed dataset.
+
+### Weighting
+
+The weighting step is performed very similarly using the `weightthem()` function. In this example weapply SMR weighting to arrive at the same ATT estimand as matching which is indicated through the `estimand = "ATT"` argument. In case we wanted to weight patients based on overlap weights, `estimand = "AT0"` would need to be specified (which is one of the sensitivity analyses in the FLAURA protocol).
+
+To mitigate the risks of extreme weights, the subsequent `trim()` function truncates large weights by setting all weights higher than that at a given quantile (in this example the 95% quantile) to the weight at the quantile. Since we specify `lower = TRUE`, this is done symmetrically also with the 5% quantile.
+
+
+::: {.cell}
+
+```{.r .cell-code}
 # SMR weighting
 data_wimids <- weightthem(
   formula = ps_form,
@@ -874,11 +1098,31 @@ data_wimids <- trim(
   at = .95, 
   lower = TRUE
   )
+
+data_wimids
 ```
+
+::: {.cell-output .cell-output-stdout}
+```
+A weightit object
+ - method: "glm" (propensity score weighting with GLM)
+ - number of obs.: 3500
+ - sampling weights: none
+ - treatment: 2-category
+ - estimand: ATT (focal: 1)
+ - covariates: dem_age_index_cont, dem_sex_cont, dem_race, dem_region, dem_ses, c_smoking_history, c_number_met_sites, c_ecog_cont, c_stage_initial_dx_cont, c_hemoglobin_g_dl_cont, c_urea_nitrogen_mg_dl_cont, c_platelets_10_9_l_cont, c_calcium_mg_dl_cont, c_glucose_mg_dl_cont, c_lymphocyte_leukocyte_ratio_cont, c_alp_u_l_cont, c_protein_g_l_cont, c_alt_u_l_cont, c_albumin_g_l_cont, c_bilirubin_mg_dl_cont, c_chloride_mmol_l_cont, c_monocytes_10_9_l_cont, c_eosinophils_leukocytes_ratio_cont, c_ldh_u_l_cont, c_hr_cont, c_sbp_cont, c_oxygen_cont, c_neutrophil_lymphocyte_ratio_cont, c_bmi_cont, c_ast_alt_ratio_cont, c_time_dx_to_index, c_de_novo_mets_dx, c_height_cont, c_weight_cont, c_dbp_cont, c_year_index
+ - weights trimmed at 5% and 95%
+```
+:::
 :::
 
 
-## Outcome model comparisons
+The resulting "wimids" object contains the original imputed data and the output of the calls to `weightit()` applied to each imputed dataset.
+:::
+
+## Step 4: Outcome model comparisons
+
+## Step 4: Estimation of marginal treatment effects
 
 Next, we compare the marginal treatment effect estimates coming from a Cox proportional hazards model after propensity score matching and weighting as implemented in the `coxph()` and in the `svycoxph()` functions.
 
@@ -1039,7 +1283,7 @@ rbind(coxph_results, svycoxph_results)
 
 
 
-Script runtime: 0.38 minutes.
+Script runtime: 0.39 minutes.
 
 ::: panel-tabset
 ### Loaded packages

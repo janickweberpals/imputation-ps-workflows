@@ -53,6 +53,8 @@ runtime <- tictoc::tic()
 ## Objective
 
 ::: callout-tip
+## Objective
+
 To establish a computationally reproducible workflow that streamlines multiple imputation \> propensity score matching/weighting \> survival analysis workflows in a transparent fashion
 :::
 
@@ -76,7 +78,7 @@ Additional questions that were also addressed:
 
 ![Illustration of potential approaches that could be considered after multiple imputation (MI) of the partially observed covariates are missing values on the original dataset.](/images/mi_ps.png){#fig-ps fig-align="center"}
 
-### Simulation study results
+### Simulation study results {#sec-simulation-study-results}
 
 -   **MIte** performed best in terms of bias, standardized differences/balancing, coverage rate and variance estimation
 
@@ -90,9 +92,7 @@ Additional questions that were also addressed:
 
 ### Implementation in `MatchThem` R package
 
-[@pishgar2021]
-
-[cheatsheet](https://cran.r-project.org/web/packages/MatchThem/vignettes/cheatsheet.pdf)
+To streamline the implementation of multiple imputation \> propensity score workflows, Farhad Pishgar, Noah Greifer, Clémence Leyrat and Elizabeth Stuart developed the `MatchThem` package [@pishgar2021] which relies on the functionality provided by the [`mice`](https://cran.r-project.org/package=mice), [`MatchIt`](https://cran.r-project.org/package=MatchIt), and [`WeightIt`](https://cran.r-project.org/package=WeightIt) packages. An exemplary illustration on how to use the package in a survival analysis context is given in @sec-application-in-cox-ph-models ([cheatsheet](https://cran.r-project.org/web/packages/MatchThem/vignettes/cheatsheet.pdf)).
 
 <iframe src="https://cran.r-project.org/web/packages/MatchThem/vignettes/cheatsheet.pdf" frameborder="0" width="725" height="440.6641" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true">
 
@@ -101,32 +101,4 @@ Additional questions that were also addressed:
 ## References
 
 ::: {#refs}
-:::
-
-## Session info
-
-```{r, include=FALSE}
-runtime <- tictoc::toc()
-```
-
-Script runtime: `r formatC((runtime$toc[[1]]-runtime$tic[[1]])/60, format = 'f', digits = 2)` minutes.
-
-::: panel-tabset
-### Loaded packages
-
-```{r}
-pander::pander(subset(data.frame(sessioninfo::package_info()), attached==TRUE, c(package, loadedversion)))
-```
-
-### Session info
-
-```{r}
-pander::pander(sessionInfo())
-```
-
-### Repositories
-
-```{r}
-pander::pander(options('repos'))
-```
 :::

@@ -1,6 +1,5 @@
 ---
-title: "Application in Cox PH models"
-subtitle: "Comparison of `coxph` versus `svycoxph` after multiple imputation and propensity score matching"
+subtitle: "Comparison of coxph versus svycoxph after multiple imputation and propensity score matching"
 author: Janick Weberpals, RPh, PhD
 date: last-modified
 format: html
@@ -11,11 +10,14 @@ code-tools: true
 keep-md: true
 embed-resources: true
 editor: visual
+bibliography: references.bib
 ---
 
-This is a reproducible example on how to use `coxph` and `svycoxph` in combination with multiple imputation and propensity score matching using a `mimids` object from the MatchThem package.
+# Application in Cox PH models {#sec-application-in-cox-ph-models}
 
-Load packages:
+In @sec-application-in-cox-ph-models we illustrate a reproducible example on how to use `coxph` ([survival](https://cran.r-project.org/web/packages/survival/index.html) package [@survival]) and `svycoxph` ([survey](https://cran.r-project.org/web/packages/survey/index.html) package [@survey]) in combination with multiple imputation by chained equations ([mice](https://cran.r-project.org/web/packages/mice/index.html) package [@mice]) and propensity score matching using the `MatchThem` package [@pishgar2021].
+
+First, we load the required R libraries/packages and some custom functions that are part of the `encore.io` R package that is being developed to streamline the analysis of all **ENCORE** trial emulations (non-public package).
 
 ```{r}
 #| label: setup
@@ -31,6 +33,7 @@ library(gtsummary)
 library(parallelly)
 library(ranger)
 library(furrr)
+library(cobalt)
 
 source(here("functions", "source_encore.io_functions.R"))
 
@@ -40,7 +43,9 @@ runtime <- tictoc::tic()
 
 ## Data generation
 
-We use the `simulate_flaura()` function to simulate a realistic oncology comparative effectiveness cohort analytic dataset.
+We use the `simulate_flaura()` function to simulate a realistic oncology comparative effectiveness analytic cohort dataset with similar distributions to [*FLAURA*](https://www.nejm.org/doi/full/10.1056/NEJMoa1913662), a randomized controlled trial that evaluated the efficacy and safety of osimertinib to standard-of-care (SoC) tyrosine kinase inhibitors (TKIs) in advanced NSCLC patients with a sensitizing EGFR mutation.
+
+The following cohort resembles [distributions observed in the EHR-derived *EDB1*](https://drugepi.gitlab-pages.partners.org/encore/flaura-nct-02296125/00_derive_cohort_edb1.html#table-1-post-eligibility-criteria)dataset used in ENCORE. *Note: the values of some continuous covariates (labs) are displayed after log/log-log transformation.*
 
 ```{r}
 #| label: data_generation
@@ -55,20 +60,61 @@ data_miss <- simulate_flaura(
   imposeNA = TRUE
   )
 
+# store covariates
 covariates <- data_miss |> 
-  select(starts_with("c_"), starts_with("dem_")) |> 
+  select(starts_with("dem_"), starts_with("c_")) |> 
   colnames()
 
+# crate Table 1
 data_miss |> 
   tbl_summary(
     by = "treat", 
     include = covariates
-    )
+    ) |> 
+  add_overall() |> 
+  modify_header(
+    label ~ "**Patient characteristic**",
+    stat_0 ~ "**Total** <br> N = {N}",
+    stat_1 ~ "**Comparator** <br> N = {n} <br> ({style_percent(p, digits=1)}%)",
+    stat_2 ~ "**Exposure** <br> N = {n} <br> ({style_percent(p, digits=1)}%)"
+    ) |> 
+  modify_spanning_header(c("stat_1", "stat_2") ~ "**Treatment received**") |> 
+  modify_caption("**Table 1. Patient Characteristics**")
 ```
 
-## Multiple imputation
+## Step 1 - Multiple imputation
 
-Multiple imputation using `mice:`
+The first step after deriving the analytic cohort includes the creation of multiple imputed datasets using `mice` R package[@mice].
+
+> The `mice` algorithm is one particular instance of a fully conditionally specified model. The algorithm starts with a random draw from the observed data, and imputes the incomplete data in a variable-by-variable fashion. One iteration consists of one cycle through all $Y_j$.
+
+[![MICE algorithm for imputation of multivariate missing data.](/images/mice.png){fig-align="center"}](https://stefvanbuuren.name/fimd/sec-FCS.html)
+
+The number of iterations $M$ (= number of imputed datasets) in this example is 10, but in ENCORE we follow Stef van Buuren's advice:
+
+> \[...\] if calculation is not prohibitive, we may set $M$ to the average percentage of missing data.
+>
+> ([Flexible imputation of Missing Data, Sub-chapter 2.8](https://stefvanbuuren.name/fimd/sec-howmany.html))
+
+Following the results of various simulation studies [@shah2014; @Weberpals2024], we use a non-parametric (random forest-based) imputation approach as the actual imputation algorithm.
+
+::: callout-tip
+## Advantages of non-parametric imputation approaches
+
+-   Parametric imputation models have to be correctly specified, i.e. also have to explicitly model **nonlinear and non-additive covariate relationships**
+
+-   Many imputation algorithms are not prepared for **mixed type of data**
+
+-   Popular: random forest-based algorithms
+
+    -   for each variable random forest is fit on the observed part and then predicts the missing part
+
+    -   missForest[@stekhoven2012] provides OOB error but **only provides single imputations**
+
+    -   Alternatives: rf, cart in `mice` package [@mice]
+:::
+
+*Note: In this example we utilize the `futuremice()` instead of the legacy `mice()` function to run the `mice` imputation across `r parallel::detectCores()-1` cores in parallel.*
 
 ```{r}
 #| label: mice
@@ -84,16 +130,36 @@ data_imp <- futuremice(
   )
 ```
 
-## Propensity score matching and weighting
-
-Apply propensity score matching and weighting with replacement within in each imputed dataset:
+The imputation step creates an object of class...
 
 ```{r}
-#| label: matching-weighting
-#| warning: false
+class(data_imp)
+```
+
+...which stands for *multiple imputed datasets*. It contains important information on the imputation procedure and the actual imputed datasets.
+
+## Step 2 - Propensity score matching and weighting
+
+Apply propensity score matching and weighting with replacement within in each imputed dataset. As pointed in @sec-simulation-study-results, the **MIte** approach performed best in terms of bias, standardized differences/balancing, coverage rate and variance estimation. In `MatchThem` this approach is referred to a `within` approach (performing matching within each dataset), while the inferior **MIps** approach (estimating propensity scores within each dataset, averaging them across datasets, and performing matching using the averaged propensity scores in each dataset) is referred to as `across` approach. Since **MIte/`within`** has been shown to have superior performance in most cases, we only illustrate this approach here.
+
+Let's assume we fit the following propensity score model within each imputed dataset.
+
+```{r}
+#| label: ps-fit
 
 # apply propensity score matching on mids object
 ps_form <- as.formula(paste("treat ~", paste(covariates, collapse = " + ")))
+ps_form
+```
+
+::: panel-tabset
+### Matching
+
+The matching step happens using the `matchthem()` function, which is a wrapper around the `matchit()` function. This function not only provides the functionality to match on the propensity score, but also to perform (coarsened) exact matching, cardinality matching, genetic matching and more. In this example, we use a simple 1:1 nearest neighbor matching on the propensity score (estimated through logistic regression) without replacement with a caliper of 1% of the standard deviation of the propensity score.
+
+```{r}
+#| label: matching
+#| warning: false
 
 # matching
 data_mimids <- matchthem(
@@ -101,10 +167,28 @@ data_mimids <- matchthem(
   datasets = data_imp,
   approach = 'within',
   method = 'nearest',
+  distance = "glm",
+  link = "logit",
   caliper = 0.01,
   ratio = 1,
   replace = F
   )
+
+# print summary for matched dataset #1
+data_mimids
+```
+
+The resulting "mimids" object contains the original imputed data and the output of the calls to `matchit()` applied to each imputed dataset.
+
+### Weighting
+
+The weighting step is performed very similarly using the `weightthem()` function. In this example weapply SMR weighting to arrive at the same ATT estimand as matching which is indicated through the `estimand = "ATT"` argument. In case we wanted to weight patients based on overlap weights, `estimand = "AT0"` would need to be specified (which is one of the sensitivity analyses in the FLAURA protocol).
+
+To mitigate the risks of extreme weights, the subsequent `trim()` function truncates large weights by setting all weights higher than that at a given quantile (in this example the 95% quantile) to the weight at the quantile. Since we specify `lower = TRUE`, this is done symmetrically also with the 5% quantile.
+
+```{r}
+#| label: weighting
+#| warning: false
 
 # SMR weighting
 data_wimids <- weightthem(
@@ -121,9 +205,73 @@ data_wimids <- trim(
   at = .95, 
   lower = TRUE
   )
+
+data_wimids
 ```
 
-## Outcome model comparisons
+The resulting "wimids" object contains the original imputed data and the output of the calls to `weightit()` applied to each imputed dataset.
+:::
+
+## Step 3 - Balance assessment
+
+The inspection of balance assessment in multiple imputed and matched/weighted data can be done in a similar way as with a single complete dataset. For illustration we just look at the matched datasets, but the exact same principles also apply to the weighted datasets.
+
+::: panel-tabset
+
+### Balance table
+
+```{r}
+#| label: tbl-balance
+#| tbl-cap: "Covariate balance table."
+
+# create balance table
+balance_table <- bal.tab(
+  x = data_mimids, 
+  stats = "m",
+  abs = TRUE
+  )
+
+balance_table
+```
+
+### Covariate balance (conditional exchangeability)
+
+```{r}
+#| label: fig-balance
+#| fig-cap: "Covariate balance plot (love plot)."
+#| fig-height: 7
+
+love.plot(
+  x = data_mimids,
+  abs = TRUE,
+  thresholds = 0.1, 
+  drop.distance = TRUE,
+  var.order = "unadjusted",
+  colors = c("orange", "blue"), 
+  stars = "std",
+  shapes = 17, 
+  size = 4, 
+  grid = TRUE,
+  position = "top"
+  )
+```
+
+### Distributional balance (positivity)
+
+```{r}
+bal.plot(
+  x = data_mimids,
+  var.name = "distance",
+  which = "both",
+  which.imp = .none,
+  colors = c("orange", "blue")
+  )
+```
+
+
+:::
+
+## Step 4 - Estimation of marginal treatment effects
 
 Next, we compare the marginal treatment effect estimates coming from a Cox proportional hazards model after propensity score matching and weighting as implemented in the `coxph()` and in the `svycoxph()` functions.
 

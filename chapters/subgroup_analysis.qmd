@@ -300,4 +300,3 @@ pander::pander(sessionInfo())
 pander::pander(options('repos'))
 ```
 :::
-
