@@ -1,5 +1,5 @@
 ---
-title: "`coxph` versus `svycoxph`"
+title: "Application in Cox PH models"
 subtitle: "Comparison of `coxph` versus `svycoxph` after multiple imputation and propensity score matching"
 author: Janick Weberpals, RPh, PhD
 date: last-modified

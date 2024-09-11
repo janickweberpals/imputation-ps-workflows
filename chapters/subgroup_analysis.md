@@ -10,6 +10,7 @@ toc-depth: 3
 code-tools: true
 keep-md: true
 editor: visual
+embed-resources: true
 bibliography: references.bib
 ---
 
@@ -449,13 +450,18 @@ weighted_all |>
 :::
 
 
+## References
+
+::: {#refs}
+:::
+
 ## Session info
 
 
 
 
 
-Script runtime: 0.44 minutes.
+Script runtime: 0.43 minutes.
 
 ::: panel-tabset
 ### Loaded packages
@@ -553,4 +559,3 @@ pander::pander(options('repos'))
 
 :::
 
-## References

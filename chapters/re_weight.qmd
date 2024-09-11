@@ -58,7 +58,7 @@ data_miss <- simulate_flaura(
   mutate(across(c(dem_sex_cont, c_ecog_cont), function(x) factor(as.character(x))))
 
 covariates <- data_miss |> 
-  select(starts_with("c_"), starts_with("dem_")) |> 
+  select(starts_with("dem_"), starts_with("c_")) |> 
   colnames()
 ```
 
@@ -84,7 +84,7 @@ data_imp <- futuremice(
 
 Before applying the re-weighting, we need to define the target distributions of patient characteristics that we want to match from the clinical trial using the *raking* procedure. The following distributions are taken from Table 1 of the FLAURA trial.
 
-![FLAURA trial Table 1; in OS analysis race was simplified to Asian vs. non-Asian](nejm_tbl1.png)
+![FLAURA trial Table 1; in OS analysis race was simplified to Asian vs. non-Asian](/images/nejm_tbl1.png){#tbl-FLAURAtbl1 fig-align="center"}
 
 ```{r}
 # Define FLAURA distributions for key covariates --------------------------
@@ -208,6 +208,7 @@ targets
 
 ```{r}
 #| label: tbl-tbl1-unweighted
+#| tbl-cap: "Table 1 BEFORE re-weighting"
 #| warning: false
 
 library(cardx)
@@ -235,6 +236,7 @@ first_dataset |>
 
 ```{r}
 #| label: tbl-tbl1-weighted
+#| tbl-cap: "Table 1 AFTER re-weighting"
 #| warning: false
 
 # create survey object 

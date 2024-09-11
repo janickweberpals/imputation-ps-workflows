@@ -52,11 +52,11 @@ bibliography: references.bib
 To establish a computationally reproducible workflow that streamlines multiple imputation \> propensity score matching/weighting \> survival analysis workflows in a transparent fashion
 :::
 
-![Streamlined workflow to approach partially observed covariate data in oncology trial emulations.](/images/workflow.png){fig-align="center"}
+![Streamlined workflow to approach partially observed covariate data in oncology trial emulations.](/images/workflow.png){#fig-workflow fig-align="center"}
 
 ## Leyrat et al. simulation study
 
-One of the most comprehensive and influental simulation studies that addressed the question on how to combine multiple imputation with propensity scores (IPTW weighting) was published in 2019 by Leyrat et al.[@leyrat2019]. In this study, the authors looked at three different potential ways:
+One of the most comprehensive and influental simulation studies that addressed the question on how to combine multiple imputation with propensity scores (IPTW weighting) was published in 2019 by Leyrat et al. [@leyrat2019]. In this study, the authors looked at three different potential ways:
 
 -   **MIte**: MI \> PS estimation \> Outcome model for each PS model \> Pooling of results
 
@@ -70,7 +70,7 @@ Additional questions that were also addressed:
 
 -   How to estimate variance of IPTW estimator in context of MIte or MIps or MIpar?
 
-![Illustration of potential approaches that could be considered after multiple imputation (MI) of the partially observed covariates are missing values on the original dataset.](/images/mi_ps.png){fig-align="center"}
+![Illustration of potential approaches that could be considered after multiple imputation (MI) of the partially observed covariates are missing values on the original dataset.](/images/mi_ps.png){#fig-ps fig-align="center"}
 
 ### Simulation study results
 
@@ -82,7 +82,15 @@ Additional questions that were also addressed:
 
 -   Outcome must be included in imputation model
 
-![Leyrat et al. simulation study results.](/images/leyrat_results.png){fig-align="center"}
+![Leyrat et al. simulation study results.](/images/leyrat_results.png){#fig-results fig-align="center"}
+
+### Implementation in `MatchThem` R package
+
+[@pishgar2021]
+
+<iframe src="https://cran.r-project.org/web/packages/MatchThem/vignettes/cheatsheet.pdf" frameborder="0" width="725" height="440.6641" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true">
+
+</iframe>
 
 ## References
 
@@ -166,4 +174,3 @@ pander::pander(options('repos'))
 :::
 
 :::
-

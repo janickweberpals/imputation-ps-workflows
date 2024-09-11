@@ -1,5 +1,5 @@
 ---
-title: "`coxph` versus `svycoxph`"
+title: "Application in Cox PH models"
 subtitle: "Comparison of `coxph` versus `svycoxph` after multiple imputation and propensity score matching"
 author: Janick Weberpals, RPh, PhD
 date: last-modified
@@ -9,6 +9,7 @@ toc: true
 toc-depth: 3
 code-tools: true
 keep-md: true
+embed-resources: true
 editor: visual
 ---
 
@@ -1038,7 +1039,7 @@ rbind(coxph_results, svycoxph_results)
 
 
 
-Script runtime: 0.37 minutes.
+Script runtime: 0.38 minutes.
 
 ::: panel-tabset
 ### Loaded packages
