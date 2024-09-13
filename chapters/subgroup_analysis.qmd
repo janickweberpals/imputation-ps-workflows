@@ -56,18 +56,12 @@ We again use the `simulate_flaura()` function to simulate a realistic oncology c
 # load example dataset with missing observations
 data_miss <- simulate_flaura(
   n_total = 3500, 
-  treat_prevalence = .51, 
   seed = 42, 
   include_id = FALSE, 
   imposeNA = TRUE
   )
 
-covariates <- data_miss |> 
-  select(starts_with("c_"), starts_with("dem_")) |> 
-  select(-dem_sex_cont) |> 
-  colnames()
-
-head(data_miss)
+covariates_for_ps <- setdiff(covariates_for_ps, "dem_sex_cont")
 ```
 
 ## Moderator covariate
@@ -111,7 +105,7 @@ Apply propensity score matching and weighting with replacement within in each im
 
 ```{r}
 # apply propensity score matching on mids object
-ps_form <- as.formula(paste("treat ~", paste(covariates, collapse = " + ")))
+ps_form <- as.formula(paste("treat ~", paste(covariates_for_ps, collapse = " + ")))
 ps_form
 ```
 

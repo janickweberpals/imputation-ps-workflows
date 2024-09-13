@@ -51,19 +51,21 @@ We use the `simulate_flaura()` function to simulate a realistic oncology compara
 # load example dataset with missing observations
 data_miss <- simulate_flaura(
   n_total = 3500, 
-  treat_prevalence = .51, 
   seed = 41, 
   include_id = FALSE, 
   imposeNA = TRUE
   ) |> 
-  # we have to convert sex and ecog into a factor variable 
-  # since anesrake doesn't accept 0/1 numeric encoding for 
-  # binary variables
-  mutate(across(c(dem_sex_cont, c_ecog_cont), function(x) factor(as.character(x))))
-
-covariates <- data_miss |> 
-  select(starts_with("dem_"), starts_with("c_")) |> 
-  colnames()
+  # anesrake works best with factor variables
+  # create age category with age less than 65
+  mutate(dem_age_lt65 = factor(ifelse(dem_age_index_cont < 65, "<65", "65+"))) |> 
+  # convert dem_race into a binary Asian vs. non-Asian 
+  mutate(dem_race = factor(ifelse(dem_race == "Asian", "Asian", "Non-Asian"))) |>
+  # convert dem_sex_cont into a factor 
+  mutate(dem_sex_cont = factor(ifelse(dem_sex_cont == "1", "Male", "Female"))) |> 
+  # convert dem_sex_cont into a factor 
+  mutate(c_smoking_history = factor(ifelse(c_smoking_history == TRUE, "Current/former", "Never"))) |> 
+  # convert c_ecog_cont into a factor 
+  mutate(across(c(c_ecog_cont), function(x) factor(as.character(x))))
 ```
 :::
 
@@ -102,37 +104,40 @@ Before applying the re-weighting, we need to define the target distributions of 
 # Define FLAURA distributions for key covariates --------------------------
 # order is as in Table 1
 
+## age (taken from https://www.tagrissohcp.com/metastatic/flaura/efficacy.html)
+# less than 65 years (54%, TRUE) to 65+ (46%, FALSE)
+age_target <- c(.54, .46)
+names(age_target) <- c("<65", "65+")
+
 ## sex ---------------------------------------------------------------------
 
 # female (0) to male (1) proportion:
 sex_target <- c(.63, .37) 
-names(sex_target) <- c("0", "1")
+names(sex_target) <- c("Female", "Male")
 
 ## race --------------------------------------------------------------------
 # asian, non-asian
 # asian (TRUE) to non-asian (FALSE) proportion
 # note: logical variables in dataframe can be matched to a numeric vector of length 2 and ordered with the TRUE target as the first element and the FALSE target as the second element.
 race_target <- c(.62, .38)
+names(race_target) <- c("Asian", "Non-Asian")
 
 ## smoking -----------------------------------------------------------------
 
 # current/former smoker (TRUE) to never smoker (FALSE) proportion
 # note: logical variables in dataframe can be matched to a numeric vector of length 2 and ordered with the TRUE target as the first element and the FALSE target as the second element.
 smoker_target <- c(.35, .65)
+names(smoker_target) <- c("Current/former", "Never")
 
 ## ecog --------------------------------------------------------------------
-
-# ecog 0 by exposure 
-avg_prop_ecog0 <- .41
 
 # ecog 0 to ecog 1 proportion
 ecog_target <- c(.41, .59)
 names(ecog_target) <- c("0", "1")
 
-
 # summarize target distributions in a named list vector --------------
-targets <- list(sex_target, race_target, smoker_target, ecog_target)
-names(targets) <- c("dem_sex_cont", "dem_race", "c_smoking_history", "c_ecog_cont")
+targets <- list(age_target, sex_target, race_target, smoker_target, ecog_target)
+names(targets) <- c("dem_age_lt65", "dem_sex_cont", "dem_race", "c_smoking_history", "c_ecog_cont")
 
 # print
 targets
@@ -140,15 +145,21 @@ targets
 
 ::: {.cell-output .cell-output-stdout}
 ```
+$dem_age_lt65
+ <65  65+ 
+0.54 0.46 
+
 $dem_sex_cont
-   0    1 
-0.63 0.37 
+Female   Male 
+  0.63   0.37 
 
 $dem_race
-[1] 0.62 0.38
+    Asian Non-Asian 
+     0.62      0.38 
 
 $c_smoking_history
-[1] 0.35 0.65
+Current/former          Never 
+          0.35           0.65 
 
 $c_ecog_cont
    0    1 
@@ -169,23 +180,22 @@ The propensity score model is specified as follows:
 
 ```{.r .cell-code}
 # apply propensity score matching on mids object
-ps_form <- as.formula(paste("treat ~", paste(covariates, collapse = " + ")))
+ps_form <- as.formula(paste("treat ~", paste(covariates_for_ps, collapse = " + ")))
 ps_form
 ```
 
 ::: {.cell-output .cell-output-stdout}
 ```
-treat ~ dem_age_index_cont + dem_sex_cont + dem_race + dem_region + 
-    dem_ses + c_smoking_history + c_number_met_sites + c_ecog_cont + 
-    c_stage_initial_dx_cont + c_hemoglobin_g_dl_cont + c_urea_nitrogen_mg_dl_cont + 
+treat ~ dem_age_index_cont + dem_sex_cont + c_smoking_history + 
+    c_number_met_sites + c_hemoglobin_g_dl_cont + c_urea_nitrogen_mg_dl_cont + 
     c_platelets_10_9_l_cont + c_calcium_mg_dl_cont + c_glucose_mg_dl_cont + 
     c_lymphocyte_leukocyte_ratio_cont + c_alp_u_l_cont + c_protein_g_l_cont + 
     c_alt_u_l_cont + c_albumin_g_l_cont + c_bilirubin_mg_dl_cont + 
     c_chloride_mmol_l_cont + c_monocytes_10_9_l_cont + c_eosinophils_leukocytes_ratio_cont + 
     c_ldh_u_l_cont + c_hr_cont + c_sbp_cont + c_oxygen_cont + 
-    c_neutrophil_lymphocyte_ratio_cont + c_bmi_cont + c_ast_alt_ratio_cont + 
-    c_time_dx_to_index + c_de_novo_mets_dx + c_height_cont + 
-    c_weight_cont + c_dbp_cont + c_year_index
+    c_ecog_cont + c_neutrophil_lymphocyte_ratio_cont + c_bmi_cont + 
+    c_ast_alt_ratio_cont + c_stage_initial_dx_cont + dem_race + 
+    dem_region + dem_ses + c_time_dx_to_index
 ```
 :::
 :::
@@ -208,16 +218,16 @@ summary(data_mild)
 ::: {.cell-output .cell-output-stdout}
 ```
    Length Class      Mode
-1  39     data.frame list
-2  39     data.frame list
-3  39     data.frame list
-4  39     data.frame list
-5  39     data.frame list
-6  39     data.frame list
-7  39     data.frame list
-8  39     data.frame list
-9  39     data.frame list
-10 39     data.frame list
+1  40     data.frame list
+2  40     data.frame list
+3  40     data.frame list
+4  40     data.frame list
+5  40     data.frame list
+6  40     data.frame list
+7  40     data.frame list
+8  40     data.frame list
+9  40     data.frame list
+10 40     data.frame list
 ```
 :::
 :::
@@ -244,7 +254,7 @@ matchit_out_list <- lapply(
   ratio = 1,
   method = "nearest",
   distance = "glm",
-  link = "linear.logit",
+  link = "logit",
   caliper = 0.05,
   replace = F
   )
@@ -252,18 +262,17 @@ matchit_out_list <- lapply(
 
 ::: {.cell-output .cell-output-stdout}
 ```
-[1] "Raking converged in 15 iterations"
-[1] "Raking converged in 9 iterations"
-[1] "Raking converged in 9 iterations"
 [1] "Raking converged in 9 iterations"
 [1] "Raking converged in 12 iterations"
-[1] "Raking converged in 14 iterations"
-[1] "Raking converged in 11 iterations"
 [1] "Raking converged in 10 iterations"
 [1] "Raking converged in 11 iterations"
-[1] "Raking converged in 8 iterations"
-[1] "Raking converged in 16 iterations"
-[1] "Raking converged in 12 iterations"
+[1] "Raking converged in 10 iterations"
+[1] "Raking converged in 14 iterations"
+[1] "Raking converged in 10 iterations"
+[1] "Raking converged in 13 iterations"
+[1] "Raking converged in 13 iterations"
+[1] "Raking converged in 10 iterations"
+[1] "Raking converged in 10 iterations"
 ```
 :::
 :::
@@ -283,13 +292,13 @@ matchit_out_list[[1]]
 A matchit object
  - method: 1:1 nearest neighbor matching without replacement
  - distance: Propensity score [caliper]
-             - estimated with logistic regression and linearized
+             - estimated with logistic regression
              - sampling weights not included in estimation
- - caliper: <distance> (0.179)
- - number of obs.: 3500 (original), 366 (matched)
+ - caliper: <distance> (0.004)
+ - number of obs.: 3500 (original), 2836 (matched)
  - sampling weights: present
  - target estimand: ATT
- - covariates: dem_age_index_cont, dem_sex_cont, dem_race, dem_region, dem_ses, c_smoking_history, c_number_met_sites, c_ecog_cont, c_stage_initial_dx_cont, c_hemoglobin_g_dl_cont, c_urea_nitrogen_mg_dl_cont, c_platelets_10_9_l_cont, c_calcium_mg_dl_cont, c_glucose_mg_dl_cont, c_lymphocyte_leukocyte_ratio_cont, c_alp_u_l_cont, c_protein_g_l_cont, c_alt_u_l_cont, c_albumin_g_l_cont, c_bilirubin_mg_dl_cont, c_chloride_mmol_l_cont, c_monocytes_10_9_l_cont, c_eosinophils_leukocytes_ratio_cont, c_ldh_u_l_cont, c_hr_cont, c_sbp_cont, c_oxygen_cont, c_neutrophil_lymphocyte_ratio_cont, c_bmi_cont, c_ast_alt_ratio_cont, c_time_dx_to_index, c_de_novo_mets_dx, c_height_cont, c_weight_cont, c_dbp_cont, c_year_index
+ - covariates: dem_age_index_cont, dem_sex_cont, c_smoking_history, c_number_met_sites, c_hemoglobin_g_dl_cont, c_urea_nitrogen_mg_dl_cont, c_platelets_10_9_l_cont, c_calcium_mg_dl_cont, c_glucose_mg_dl_cont, c_lymphocyte_leukocyte_ratio_cont, c_alp_u_l_cont, c_protein_g_l_cont, c_alt_u_l_cont, c_albumin_g_l_cont, c_bilirubin_mg_dl_cont, c_chloride_mmol_l_cont, c_monocytes_10_9_l_cont, c_eosinophils_leukocytes_ratio_cont, c_ldh_u_l_cont, c_hr_cont, c_sbp_cont, c_oxygen_cont, c_ecog_cont, c_neutrophil_lymphocyte_ratio_cont, c_bmi_cont, c_ast_alt_ratio_cont, c_stage_initial_dx_cont, dem_race, dem_region, dem_ses, c_time_dx_to_index
 ```
 :::
 :::
@@ -322,15 +331,21 @@ targets
 
 ::: {.cell-output .cell-output-stdout}
 ```
+$dem_age_lt65
+ <65  65+ 
+0.54 0.46 
+
 $dem_sex_cont
-   0    1 
-0.63 0.37 
+Female   Male 
+  0.63   0.37 
 
 $dem_race
-[1] 0.62 0.38
+    Asian Non-Asian 
+     0.62      0.38 
 
 $c_smoking_history
-[1] 0.35 0.65
+Current/former          Never 
+          0.35           0.65 
 
 $c_ecog_cont
    0    1 
@@ -354,7 +369,7 @@ library(smd)
 first_dataset |>
   tbl_summary(
     by = treat,
-    include = names(targets)
+    include = c(dem_age_index_cont, names(targets))
     ) |> 
   add_difference(test = dplyr::everything() ~ "smd") |>
   add_overall() |>
@@ -825,7 +840,7 @@ first_dataset |>
     <tr class="gt_col_headings gt_spanner_row">
       <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="2" colspan="1" scope="col" id="&lt;div data-qmd-base64=&quot;KipQYXRpZW50IGNoYXJhY3RlcmlzdGljKio=&quot;&gt;&lt;div class='gt_from_md'&gt;&lt;p&gt;&lt;strong&gt;Patient characteristic&lt;/strong&gt;&lt;/p&gt;&#10;&lt;/div&gt;&lt;/div&gt;"><div data-qmd-base64="KipQYXRpZW50IGNoYXJhY3RlcmlzdGljKio="><div class='gt_from_md'><p><strong>Patient characteristic</strong></p>
 </div></div></th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="2" colspan="1" scope="col" id="&lt;div data-qmd-base64=&quot;KipUb3RhbCoqIDxicj4gTiA9IDM2Ng==&quot;&gt;&lt;div class='gt_from_md'&gt;&lt;p&gt;&lt;strong&gt;Total&lt;/strong&gt; &lt;br&gt; N = 366&lt;/p&gt;&#10;&lt;/div&gt;&lt;/div&gt;&lt;span class=&quot;gt_footnote_marks&quot; style=&quot;white-space:nowrap;font-style:italic;font-weight:normal;line-height: 0;&quot;&gt;&lt;sup&gt;1&lt;/sup&gt;&lt;/span&gt;"><div data-qmd-base64="KipUb3RhbCoqIDxicj4gTiA9IDM2Ng=="><div class='gt_from_md'><p><strong>Total</strong> <br> N = 366</p>
+      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="2" colspan="1" scope="col" id="&lt;div data-qmd-base64=&quot;KipUb3RhbCoqIDxicj4gTiA9IDI4MzY=&quot;&gt;&lt;div class='gt_from_md'&gt;&lt;p&gt;&lt;strong&gt;Total&lt;/strong&gt; &lt;br&gt; N = 2836&lt;/p&gt;&#10;&lt;/div&gt;&lt;/div&gt;&lt;span class=&quot;gt_footnote_marks&quot; style=&quot;white-space:nowrap;font-style:italic;font-weight:normal;line-height: 0;&quot;&gt;&lt;sup&gt;1&lt;/sup&gt;&lt;/span&gt;"><div data-qmd-base64="KipUb3RhbCoqIDxicj4gTiA9IDI4MzY="><div class='gt_from_md'><p><strong>Total</strong> <br> N = 2836</p>
 </div></div><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height: 0;"><sup>1</sup></span></th>
       <th class="gt_center gt_columns_top_border gt_column_spanner_outer" rowspan="1" colspan="2" scope="colgroup" id="&lt;div data-qmd-base64=&quot;KipUcmVhdG1lbnQgcmVjZWl2ZWQqKg==&quot;&gt;&lt;div class='gt_from_md'&gt;&lt;p&gt;&lt;strong&gt;Treatment received&lt;/strong&gt;&lt;/p&gt;&#10;&lt;/div&gt;&lt;/div&gt;">
         <span class="gt_column_spanner"><div data-qmd-base64="KipUcmVhdG1lbnQgcmVjZWl2ZWQqKg=="><div class='gt_from_md'><p><strong>Treatment received</strong></p>
@@ -835,58 +850,98 @@ first_dataset |>
 </div></div><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height: 0;"><sup>2</sup></span></th>
     </tr>
     <tr class="gt_col_headings">
-      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="&lt;div data-qmd-base64=&quot;KiowKiogPGJyPiBOID0gMTgzIDxicj4gKDUwLjAlKQ==&quot;&gt;&lt;div class='gt_from_md'&gt;&lt;p&gt;&lt;strong&gt;0&lt;/strong&gt; &lt;br&gt; N = 183 &lt;br&gt; (50.0%)&lt;/p&gt;&#10;&lt;/div&gt;&lt;/div&gt;&lt;span class=&quot;gt_footnote_marks&quot; style=&quot;white-space:nowrap;font-style:italic;font-weight:normal;line-height: 0;&quot;&gt;&lt;sup&gt;1&lt;/sup&gt;&lt;/span&gt;"><div data-qmd-base64="KiowKiogPGJyPiBOID0gMTgzIDxicj4gKDUwLjAlKQ=="><div class='gt_from_md'><p><strong>0</strong> <br> N = 183 <br> (50.0%)</p>
+      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="&lt;div data-qmd-base64=&quot;KiowKiogPGJyPiBOID0gMTQxOCA8YnI+ICg1MC4wJSk=&quot;&gt;&lt;div class='gt_from_md'&gt;&lt;p&gt;&lt;strong&gt;0&lt;/strong&gt; &lt;br&gt; N = 1418 &lt;br&gt; (50.0%)&lt;/p&gt;&#10;&lt;/div&gt;&lt;/div&gt;&lt;span class=&quot;gt_footnote_marks&quot; style=&quot;white-space:nowrap;font-style:italic;font-weight:normal;line-height: 0;&quot;&gt;&lt;sup&gt;1&lt;/sup&gt;&lt;/span&gt;"><div data-qmd-base64="KiowKiogPGJyPiBOID0gMTQxOCA8YnI+ICg1MC4wJSk="><div class='gt_from_md'><p><strong>0</strong> <br> N = 1418 <br> (50.0%)</p>
 </div></div><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height: 0;"><sup>1</sup></span></th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="&lt;div data-qmd-base64=&quot;KioxKiogPGJyPiBOID0gMTgzIDxicj4gKDUwLjAlKQ==&quot;&gt;&lt;div class='gt_from_md'&gt;&lt;p&gt;&lt;strong&gt;1&lt;/strong&gt; &lt;br&gt; N = 183 &lt;br&gt; (50.0%)&lt;/p&gt;&#10;&lt;/div&gt;&lt;/div&gt;&lt;span class=&quot;gt_footnote_marks&quot; style=&quot;white-space:nowrap;font-style:italic;font-weight:normal;line-height: 0;&quot;&gt;&lt;sup&gt;1&lt;/sup&gt;&lt;/span&gt;"><div data-qmd-base64="KioxKiogPGJyPiBOID0gMTgzIDxicj4gKDUwLjAlKQ=="><div class='gt_from_md'><p><strong>1</strong> <br> N = 183 <br> (50.0%)</p>
+      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="&lt;div data-qmd-base64=&quot;KioxKiogPGJyPiBOID0gMTQxOCA8YnI+ICg1MC4wJSk=&quot;&gt;&lt;div class='gt_from_md'&gt;&lt;p&gt;&lt;strong&gt;1&lt;/strong&gt; &lt;br&gt; N = 1418 &lt;br&gt; (50.0%)&lt;/p&gt;&#10;&lt;/div&gt;&lt;/div&gt;&lt;span class=&quot;gt_footnote_marks&quot; style=&quot;white-space:nowrap;font-style:italic;font-weight:normal;line-height: 0;&quot;&gt;&lt;sup&gt;1&lt;/sup&gt;&lt;/span&gt;"><div data-qmd-base64="KioxKiogPGJyPiBOID0gMTQxOCA8YnI+ICg1MC4wJSk="><div class='gt_from_md'><p><strong>1</strong> <br> N = 1418 <br> (50.0%)</p>
 </div></div><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height: 0;"><sup>1</sup></span></th>
     </tr>
   </thead>
   <tbody class="gt_table_body">
+    <tr><td headers="label" class="gt_row gt_left">dem_age_index_cont</td>
+<td headers="stat_0" class="gt_row gt_center">69 (64, 75)</td>
+<td headers="stat_1" class="gt_row gt_center">69 (64, 75)</td>
+<td headers="stat_2" class="gt_row gt_center">69 (64, 75)</td>
+<td headers="estimate" class="gt_row gt_center">0.00</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">dem_age_lt65</td>
+<td headers="stat_0" class="gt_row gt_center"><br /></td>
+<td headers="stat_1" class="gt_row gt_center"><br /></td>
+<td headers="stat_2" class="gt_row gt_center"><br /></td>
+<td headers="estimate" class="gt_row gt_center">0.00</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    &lt;65</td>
+<td headers="stat_0" class="gt_row gt_center">872 (31%)</td>
+<td headers="stat_1" class="gt_row gt_center">435 (31%)</td>
+<td headers="stat_2" class="gt_row gt_center">437 (31%)</td>
+<td headers="estimate" class="gt_row gt_center"><br /></td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    65+</td>
+<td headers="stat_0" class="gt_row gt_center">1,964 (69%)</td>
+<td headers="stat_1" class="gt_row gt_center">983 (69%)</td>
+<td headers="stat_2" class="gt_row gt_center">981 (69%)</td>
+<td headers="estimate" class="gt_row gt_center"><br /></td></tr>
     <tr><td headers="label" class="gt_row gt_left">dem_sex_cont</td>
 <td headers="stat_0" class="gt_row gt_center"><br /></td>
 <td headers="stat_1" class="gt_row gt_center"><br /></td>
 <td headers="stat_2" class="gt_row gt_center"><br /></td>
-<td headers="estimate" class="gt_row gt_center">0.06</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    0</td>
-<td headers="stat_0" class="gt_row gt_center">247 (67%)</td>
-<td headers="stat_1" class="gt_row gt_center">121 (66%)</td>
-<td headers="stat_2" class="gt_row gt_center">126 (69%)</td>
+<td headers="estimate" class="gt_row gt_center">0.00</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    Female</td>
+<td headers="stat_0" class="gt_row gt_center">1,865 (66%)</td>
+<td headers="stat_1" class="gt_row gt_center">933 (66%)</td>
+<td headers="stat_2" class="gt_row gt_center">932 (66%)</td>
 <td headers="estimate" class="gt_row gt_center"><br /></td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    1</td>
-<td headers="stat_0" class="gt_row gt_center">119 (33%)</td>
-<td headers="stat_1" class="gt_row gt_center">62 (34%)</td>
-<td headers="stat_2" class="gt_row gt_center">57 (31%)</td>
+    <tr><td headers="label" class="gt_row gt_left">    Male</td>
+<td headers="stat_0" class="gt_row gt_center">971 (34%)</td>
+<td headers="stat_1" class="gt_row gt_center">485 (34%)</td>
+<td headers="stat_2" class="gt_row gt_center">486 (34%)</td>
 <td headers="estimate" class="gt_row gt_center"><br /></td></tr>
     <tr><td headers="label" class="gt_row gt_left">dem_race</td>
-<td headers="stat_0" class="gt_row gt_center">217 (59%)</td>
-<td headers="stat_1" class="gt_row gt_center">105 (57%)</td>
-<td headers="stat_2" class="gt_row gt_center">112 (61%)</td>
-<td headers="estimate" class="gt_row gt_center">-0.08</td></tr>
+<td headers="stat_0" class="gt_row gt_center"><br /></td>
+<td headers="stat_1" class="gt_row gt_center"><br /></td>
+<td headers="stat_2" class="gt_row gt_center"><br /></td>
+<td headers="estimate" class="gt_row gt_center">0.01</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    Asian</td>
+<td headers="stat_0" class="gt_row gt_center">928 (33%)</td>
+<td headers="stat_1" class="gt_row gt_center">466 (33%)</td>
+<td headers="stat_2" class="gt_row gt_center">462 (33%)</td>
+<td headers="estimate" class="gt_row gt_center"><br /></td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    Non-Asian</td>
+<td headers="stat_0" class="gt_row gt_center">1,908 (67%)</td>
+<td headers="stat_1" class="gt_row gt_center">952 (67%)</td>
+<td headers="stat_2" class="gt_row gt_center">956 (67%)</td>
+<td headers="estimate" class="gt_row gt_center"><br /></td></tr>
     <tr><td headers="label" class="gt_row gt_left">c_smoking_history</td>
-<td headers="stat_0" class="gt_row gt_center">179 (49%)</td>
-<td headers="stat_1" class="gt_row gt_center">91 (50%)</td>
-<td headers="stat_2" class="gt_row gt_center">88 (48%)</td>
-<td headers="estimate" class="gt_row gt_center">0.03</td></tr>
+<td headers="stat_0" class="gt_row gt_center"><br /></td>
+<td headers="stat_1" class="gt_row gt_center"><br /></td>
+<td headers="stat_2" class="gt_row gt_center"><br /></td>
+<td headers="estimate" class="gt_row gt_center">0.01</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    Current/former</td>
+<td headers="stat_0" class="gt_row gt_center">1,226 (43%)</td>
+<td headers="stat_1" class="gt_row gt_center">617 (44%)</td>
+<td headers="stat_2" class="gt_row gt_center">609 (43%)</td>
+<td headers="estimate" class="gt_row gt_center"><br /></td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    Never</td>
+<td headers="stat_0" class="gt_row gt_center">1,610 (57%)</td>
+<td headers="stat_1" class="gt_row gt_center">801 (56%)</td>
+<td headers="stat_2" class="gt_row gt_center">809 (57%)</td>
+<td headers="estimate" class="gt_row gt_center"><br /></td></tr>
     <tr><td headers="label" class="gt_row gt_left">c_ecog_cont</td>
 <td headers="stat_0" class="gt_row gt_center"><br /></td>
 <td headers="stat_1" class="gt_row gt_center"><br /></td>
 <td headers="stat_2" class="gt_row gt_center"><br /></td>
-<td headers="estimate" class="gt_row gt_center">0.15</td></tr>
+<td headers="estimate" class="gt_row gt_center">0.00</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    0</td>
-<td headers="stat_0" class="gt_row gt_center">160 (44%)</td>
-<td headers="stat_1" class="gt_row gt_center">73 (40%)</td>
-<td headers="stat_2" class="gt_row gt_center">87 (48%)</td>
+<td headers="stat_0" class="gt_row gt_center">1,274 (45%)</td>
+<td headers="stat_1" class="gt_row gt_center">638 (45%)</td>
+<td headers="stat_2" class="gt_row gt_center">636 (45%)</td>
 <td headers="estimate" class="gt_row gt_center"><br /></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    1</td>
-<td headers="stat_0" class="gt_row gt_center">206 (56%)</td>
-<td headers="stat_1" class="gt_row gt_center">110 (60%)</td>
-<td headers="stat_2" class="gt_row gt_center">96 (52%)</td>
+<td headers="stat_0" class="gt_row gt_center">1,562 (55%)</td>
+<td headers="stat_1" class="gt_row gt_center">780 (55%)</td>
+<td headers="stat_2" class="gt_row gt_center">782 (55%)</td>
 <td headers="estimate" class="gt_row gt_center"><br /></td></tr>
   </tbody>
   
   <tfoot class="gt_footnotes">
     <tr>
-      <td class="gt_footnote" colspan="5"><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height: 0;"><sup>1</sup></span> <div data-qmd-base64="biAoJSk="><div class='gt_from_md'><p>n (%)</p>
+      <td class="gt_footnote" colspan="5"><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height: 0;"><sup>1</sup></span> <div data-qmd-base64="TWVkaWFuIChRMSwgUTMpOyBuICglKQ=="><div class='gt_from_md'><p>Median (Q1, Q3); n (%)</p>
 </div></div></td>
     </tr>
     <tr>
@@ -915,7 +970,7 @@ data_svy <- svydesign(ids = ~ 1, weights = ~ weights, data = first_dataset)
 data_svy |>
   tbl_svysummary(
     by = treat,
-    include = names(targets)
+    include = c(dem_age_index_cont, names(targets))
     ) |> 
   add_difference(test = dplyr::everything() ~ "smd") |>
   add_overall() |>
@@ -1386,7 +1441,7 @@ data_svy |>
     <tr class="gt_col_headings gt_spanner_row">
       <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="2" colspan="1" scope="col" id="&lt;div data-qmd-base64=&quot;KipQYXRpZW50IGNoYXJhY3RlcmlzdGljKio=&quot;&gt;&lt;div class='gt_from_md'&gt;&lt;p&gt;&lt;strong&gt;Patient characteristic&lt;/strong&gt;&lt;/p&gt;&#10;&lt;/div&gt;&lt;/div&gt;"><div data-qmd-base64="KipQYXRpZW50IGNoYXJhY3RlcmlzdGljKio="><div class='gt_from_md'><p><strong>Patient characteristic</strong></p>
 </div></div></th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="2" colspan="1" scope="col" id="&lt;div data-qmd-base64=&quot;KipUb3RhbCoqIDxicj4gTiA9IDM2Ng==&quot;&gt;&lt;div class='gt_from_md'&gt;&lt;p&gt;&lt;strong&gt;Total&lt;/strong&gt; &lt;br&gt; N = 366&lt;/p&gt;&#10;&lt;/div&gt;&lt;/div&gt;&lt;span class=&quot;gt_footnote_marks&quot; style=&quot;white-space:nowrap;font-style:italic;font-weight:normal;line-height: 0;&quot;&gt;&lt;sup&gt;1&lt;/sup&gt;&lt;/span&gt;"><div data-qmd-base64="KipUb3RhbCoqIDxicj4gTiA9IDM2Ng=="><div class='gt_from_md'><p><strong>Total</strong> <br> N = 366</p>
+      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="2" colspan="1" scope="col" id="&lt;div data-qmd-base64=&quot;KipUb3RhbCoqIDxicj4gTiA9IDI4MzY=&quot;&gt;&lt;div class='gt_from_md'&gt;&lt;p&gt;&lt;strong&gt;Total&lt;/strong&gt; &lt;br&gt; N = 2836&lt;/p&gt;&#10;&lt;/div&gt;&lt;/div&gt;&lt;span class=&quot;gt_footnote_marks&quot; style=&quot;white-space:nowrap;font-style:italic;font-weight:normal;line-height: 0;&quot;&gt;&lt;sup&gt;1&lt;/sup&gt;&lt;/span&gt;"><div data-qmd-base64="KipUb3RhbCoqIDxicj4gTiA9IDI4MzY="><div class='gt_from_md'><p><strong>Total</strong> <br> N = 2836</p>
 </div></div><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height: 0;"><sup>1</sup></span></th>
       <th class="gt_center gt_columns_top_border gt_column_spanner_outer" rowspan="1" colspan="2" scope="colgroup" id="&lt;div data-qmd-base64=&quot;KipUcmVhdG1lbnQgcmVjZWl2ZWQqKg==&quot;&gt;&lt;div class='gt_from_md'&gt;&lt;p&gt;&lt;strong&gt;Treatment received&lt;/strong&gt;&lt;/p&gt;&#10;&lt;/div&gt;&lt;/div&gt;">
         <span class="gt_column_spanner"><div data-qmd-base64="KipUcmVhdG1lbnQgcmVjZWl2ZWQqKg=="><div class='gt_from_md'><p><strong>Treatment received</strong></p>
@@ -1396,58 +1451,98 @@ data_svy |>
 </div></div><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height: 0;"><sup>2</sup></span></th>
     </tr>
     <tr class="gt_col_headings">
-      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="&lt;div data-qmd-base64=&quot;KiowKiogPGJyPiBOID0gMTgyLjE4IDxicj4gKDQ5LjglKQ==&quot;&gt;&lt;div class='gt_from_md'&gt;&lt;p&gt;&lt;strong&gt;0&lt;/strong&gt; &lt;br&gt; N = 182.18 &lt;br&gt; (49.8%)&lt;/p&gt;&#10;&lt;/div&gt;&lt;/div&gt;&lt;span class=&quot;gt_footnote_marks&quot; style=&quot;white-space:nowrap;font-style:italic;font-weight:normal;line-height: 0;&quot;&gt;&lt;sup&gt;1&lt;/sup&gt;&lt;/span&gt;"><div data-qmd-base64="KiowKiogPGJyPiBOID0gMTgyLjE4IDxicj4gKDQ5LjglKQ=="><div class='gt_from_md'><p><strong>0</strong> <br> N = 182.18 <br> (49.8%)</p>
+      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="&lt;div data-qmd-base64=&quot;KiowKiogPGJyPiBOID0gMTQzMS4wNCA8YnI+ICg1MC41JSk=&quot;&gt;&lt;div class='gt_from_md'&gt;&lt;p&gt;&lt;strong&gt;0&lt;/strong&gt; &lt;br&gt; N = 1431.04 &lt;br&gt; (50.5%)&lt;/p&gt;&#10;&lt;/div&gt;&lt;/div&gt;&lt;span class=&quot;gt_footnote_marks&quot; style=&quot;white-space:nowrap;font-style:italic;font-weight:normal;line-height: 0;&quot;&gt;&lt;sup&gt;1&lt;/sup&gt;&lt;/span&gt;"><div data-qmd-base64="KiowKiogPGJyPiBOID0gMTQzMS4wNCA8YnI+ICg1MC41JSk="><div class='gt_from_md'><p><strong>0</strong> <br> N = 1431.04 <br> (50.5%)</p>
 </div></div><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height: 0;"><sup>1</sup></span></th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="&lt;div data-qmd-base64=&quot;KioxKiogPGJyPiBOID0gMTgzLjgyIDxicj4gKDUwLjIlKQ==&quot;&gt;&lt;div class='gt_from_md'&gt;&lt;p&gt;&lt;strong&gt;1&lt;/strong&gt; &lt;br&gt; N = 183.82 &lt;br&gt; (50.2%)&lt;/p&gt;&#10;&lt;/div&gt;&lt;/div&gt;&lt;span class=&quot;gt_footnote_marks&quot; style=&quot;white-space:nowrap;font-style:italic;font-weight:normal;line-height: 0;&quot;&gt;&lt;sup&gt;1&lt;/sup&gt;&lt;/span&gt;"><div data-qmd-base64="KioxKiogPGJyPiBOID0gMTgzLjgyIDxicj4gKDUwLjIlKQ=="><div class='gt_from_md'><p><strong>1</strong> <br> N = 183.82 <br> (50.2%)</p>
+      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="&lt;div data-qmd-base64=&quot;KioxKiogPGJyPiBOID0gMTQwNC45NiA8YnI+ICg0OS41JSk=&quot;&gt;&lt;div class='gt_from_md'&gt;&lt;p&gt;&lt;strong&gt;1&lt;/strong&gt; &lt;br&gt; N = 1404.96 &lt;br&gt; (49.5%)&lt;/p&gt;&#10;&lt;/div&gt;&lt;/div&gt;&lt;span class=&quot;gt_footnote_marks&quot; style=&quot;white-space:nowrap;font-style:italic;font-weight:normal;line-height: 0;&quot;&gt;&lt;sup&gt;1&lt;/sup&gt;&lt;/span&gt;"><div data-qmd-base64="KioxKiogPGJyPiBOID0gMTQwNC45NiA8YnI+ICg0OS41JSk="><div class='gt_from_md'><p><strong>1</strong> <br> N = 1404.96 <br> (49.5%)</p>
 </div></div><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height: 0;"><sup>1</sup></span></th>
     </tr>
   </thead>
   <tbody class="gt_table_body">
+    <tr><td headers="label" class="gt_row gt_left">dem_age_index_cont</td>
+<td headers="stat_0" class="gt_row gt_center">64 (60, 72)</td>
+<td headers="stat_1" class="gt_row gt_center">64 (60, 71)</td>
+<td headers="stat_2" class="gt_row gt_center">65 (61, 72)</td>
+<td headers="estimate" class="gt_row gt_center">-0.05</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">dem_age_lt65</td>
+<td headers="stat_0" class="gt_row gt_center"><br /></td>
+<td headers="stat_1" class="gt_row gt_center"><br /></td>
+<td headers="stat_2" class="gt_row gt_center"><br /></td>
+<td headers="estimate" class="gt_row gt_center">0.03</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    &lt;65</td>
+<td headers="stat_0" class="gt_row gt_center">1,531 (54%)</td>
+<td headers="stat_1" class="gt_row gt_center">783 (55%)</td>
+<td headers="stat_2" class="gt_row gt_center">748 (53%)</td>
+<td headers="estimate" class="gt_row gt_center"><br /></td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    65+</td>
+<td headers="stat_0" class="gt_row gt_center">1,305 (46%)</td>
+<td headers="stat_1" class="gt_row gt_center">648 (45%)</td>
+<td headers="stat_2" class="gt_row gt_center">657 (47%)</td>
+<td headers="estimate" class="gt_row gt_center"><br /></td></tr>
     <tr><td headers="label" class="gt_row gt_left">dem_sex_cont</td>
 <td headers="stat_0" class="gt_row gt_center"><br /></td>
 <td headers="stat_1" class="gt_row gt_center"><br /></td>
 <td headers="stat_2" class="gt_row gt_center"><br /></td>
-<td headers="estimate" class="gt_row gt_center">0.04</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    0</td>
-<td headers="stat_0" class="gt_row gt_center">231 (63%)</td>
-<td headers="stat_1" class="gt_row gt_center">113 (62%)</td>
-<td headers="stat_2" class="gt_row gt_center">117 (64%)</td>
+<td headers="estimate" class="gt_row gt_center">0.02</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    Female</td>
+<td headers="stat_0" class="gt_row gt_center">1,787 (63%)</td>
+<td headers="stat_1" class="gt_row gt_center">894 (62%)</td>
+<td headers="stat_2" class="gt_row gt_center">893 (64%)</td>
 <td headers="estimate" class="gt_row gt_center"><br /></td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    1</td>
-<td headers="stat_0" class="gt_row gt_center">135 (37%)</td>
-<td headers="stat_1" class="gt_row gt_center">69 (38%)</td>
-<td headers="stat_2" class="gt_row gt_center">66 (36%)</td>
+    <tr><td headers="label" class="gt_row gt_left">    Male</td>
+<td headers="stat_0" class="gt_row gt_center">1,049 (37%)</td>
+<td headers="stat_1" class="gt_row gt_center">537 (38%)</td>
+<td headers="stat_2" class="gt_row gt_center">512 (36%)</td>
 <td headers="estimate" class="gt_row gt_center"><br /></td></tr>
     <tr><td headers="label" class="gt_row gt_left">dem_race</td>
-<td headers="stat_0" class="gt_row gt_center">227 (62%)</td>
-<td headers="stat_1" class="gt_row gt_center">110 (61%)</td>
-<td headers="stat_2" class="gt_row gt_center">117 (63%)</td>
-<td headers="estimate" class="gt_row gt_center">-0.06</td></tr>
+<td headers="stat_0" class="gt_row gt_center"><br /></td>
+<td headers="stat_1" class="gt_row gt_center"><br /></td>
+<td headers="stat_2" class="gt_row gt_center"><br /></td>
+<td headers="estimate" class="gt_row gt_center">0.03</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    Asian</td>
+<td headers="stat_0" class="gt_row gt_center">1,758 (62%)</td>
+<td headers="stat_1" class="gt_row gt_center">898 (63%)</td>
+<td headers="stat_2" class="gt_row gt_center">860 (61%)</td>
+<td headers="estimate" class="gt_row gt_center"><br /></td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    Non-Asian</td>
+<td headers="stat_0" class="gt_row gt_center">1,078 (38%)</td>
+<td headers="stat_1" class="gt_row gt_center">533 (37%)</td>
+<td headers="stat_2" class="gt_row gt_center">545 (39%)</td>
+<td headers="estimate" class="gt_row gt_center"><br /></td></tr>
     <tr><td headers="label" class="gt_row gt_left">c_smoking_history</td>
-<td headers="stat_0" class="gt_row gt_center">128 (35%)</td>
-<td headers="stat_1" class="gt_row gt_center">66 (36%)</td>
-<td headers="stat_2" class="gt_row gt_center">62 (34%)</td>
-<td headers="estimate" class="gt_row gt_center">0.05</td></tr>
+<td headers="stat_0" class="gt_row gt_center"><br /></td>
+<td headers="stat_1" class="gt_row gt_center"><br /></td>
+<td headers="stat_2" class="gt_row gt_center"><br /></td>
+<td headers="estimate" class="gt_row gt_center">0.02</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    Current/former</td>
+<td headers="stat_0" class="gt_row gt_center">993 (35%)</td>
+<td headers="stat_1" class="gt_row gt_center">493 (34%)</td>
+<td headers="stat_2" class="gt_row gt_center">499 (36%)</td>
+<td headers="estimate" class="gt_row gt_center"><br /></td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    Never</td>
+<td headers="stat_0" class="gt_row gt_center">1,843 (65%)</td>
+<td headers="stat_1" class="gt_row gt_center">938 (66%)</td>
+<td headers="stat_2" class="gt_row gt_center">906 (64%)</td>
+<td headers="estimate" class="gt_row gt_center"><br /></td></tr>
     <tr><td headers="label" class="gt_row gt_left">c_ecog_cont</td>
 <td headers="stat_0" class="gt_row gt_center"><br /></td>
 <td headers="stat_1" class="gt_row gt_center"><br /></td>
 <td headers="stat_2" class="gt_row gt_center"><br /></td>
-<td headers="estimate" class="gt_row gt_center">0.07</td></tr>
+<td headers="estimate" class="gt_row gt_center">0.02</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    0</td>
-<td headers="stat_0" class="gt_row gt_center">150 (41%)</td>
-<td headers="stat_1" class="gt_row gt_center">72 (39%)</td>
-<td headers="stat_2" class="gt_row gt_center">78 (43%)</td>
+<td headers="stat_0" class="gt_row gt_center">1,163 (41%)</td>
+<td headers="stat_1" class="gt_row gt_center">595 (42%)</td>
+<td headers="stat_2" class="gt_row gt_center">567 (40%)</td>
 <td headers="estimate" class="gt_row gt_center"><br /></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    1</td>
-<td headers="stat_0" class="gt_row gt_center">216 (59%)</td>
-<td headers="stat_1" class="gt_row gt_center">111 (61%)</td>
-<td headers="stat_2" class="gt_row gt_center">105 (57%)</td>
+<td headers="stat_0" class="gt_row gt_center">1,673 (59%)</td>
+<td headers="stat_1" class="gt_row gt_center">836 (58%)</td>
+<td headers="stat_2" class="gt_row gt_center">838 (60%)</td>
 <td headers="estimate" class="gt_row gt_center"><br /></td></tr>
   </tbody>
   
   <tfoot class="gt_footnotes">
     <tr>
-      <td class="gt_footnote" colspan="5"><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height: 0;"><sup>1</sup></span> <div data-qmd-base64="biAoJSk="><div class='gt_from_md'><p>n (%)</p>
+      <td class="gt_footnote" colspan="5"><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height: 0;"><sup>1</sup></span> <div data-qmd-base64="TWVkaWFuIChRMSwgUTMpOyBuICglKQ=="><div class='gt_from_md'><p>Median (Q1, Q3); n (%)</p>
 </div></div></td>
     </tr>
     <tr>
@@ -1533,10 +1628,10 @@ A matchit object
  - method: 1:1 nearest neighbor matching without replacement
  - distance: Propensity score [caliper]
              - estimated with logistic regression
- - caliper: <distance> (0.023)
- - number of obs.: 3500 (original), 364 (matched)
+ - caliper: <distance> (0.004)
+ - number of obs.: 3500 (original), 2836 (matched)
  - target estimand: ATT
- - covariates: dem_age_index_cont, dem_sex_cont, dem_race, dem_region, dem_ses, c_smoking_history, c_number_met_sites, c_ecog_cont, c_stage_initial_dx_cont, c_hemoglobin_g_dl_cont, c_urea_nitrogen_mg_dl_cont, c_platelets_10_9_l_cont, c_calcium_mg_dl_cont, c_glucose_mg_dl_cont, c_lymphocyte_leukocyte_ratio_cont, c_alp_u_l_cont, c_protein_g_l_cont, c_alt_u_l_cont, c_albumin_g_l_cont, c_bilirubin_mg_dl_cont, c_chloride_mmol_l_cont, c_monocytes_10_9_l_cont, c_eosinophils_leukocytes_ratio_cont, c_ldh_u_l_cont, c_hr_cont, c_sbp_cont, c_oxygen_cont, c_neutrophil_lymphocyte_ratio_cont, c_bmi_cont, c_ast_alt_ratio_cont, c_time_dx_to_index, c_de_novo_mets_dx, c_height_cont, c_weight_cont, c_dbp_cont, c_year_index
+ - covariates: dem_age_index_cont, dem_sex_cont, c_smoking_history, c_number_met_sites, c_hemoglobin_g_dl_cont, c_urea_nitrogen_mg_dl_cont, c_platelets_10_9_l_cont, c_calcium_mg_dl_cont, c_glucose_mg_dl_cont, c_lymphocyte_leukocyte_ratio_cont, c_alp_u_l_cont, c_protein_g_l_cont, c_alt_u_l_cont, c_albumin_g_l_cont, c_bilirubin_mg_dl_cont, c_chloride_mmol_l_cont, c_monocytes_10_9_l_cont, c_eosinophils_leukocytes_ratio_cont, c_ldh_u_l_cont, c_hr_cont, c_sbp_cont, c_oxygen_cont, c_ecog_cont, c_neutrophil_lymphocyte_ratio_cont, c_bmi_cont, c_ast_alt_ratio_cont, c_stage_initial_dx_cont, dem_race, dem_region, dem_ses, c_time_dx_to_index
 ```
 :::
 :::
@@ -1587,10 +1682,10 @@ A matchit object
  - method: 1:1 nearest neighbor matching without replacement
  - distance: Propensity score [caliper]
              - estimated with logistic regression
- - caliper: <distance> (0.023)
- - number of obs.: 3500 (original), 364 (matched)
+ - caliper: <distance> (0.004)
+ - number of obs.: 3500 (original), 2836 (matched)
  - target estimand: ATT
- - covariates: dem_age_index_cont, dem_sex_cont, dem_race, dem_region, dem_ses, c_smoking_history, c_number_met_sites, c_ecog_cont, c_stage_initial_dx_cont, c_hemoglobin_g_dl_cont, c_urea_nitrogen_mg_dl_cont, c_platelets_10_9_l_cont, c_calcium_mg_dl_cont, c_glucose_mg_dl_cont, c_lymphocyte_leukocyte_ratio_cont, c_alp_u_l_cont, c_protein_g_l_cont, c_alt_u_l_cont, c_albumin_g_l_cont, c_bilirubin_mg_dl_cont, c_chloride_mmol_l_cont, c_monocytes_10_9_l_cont, c_eosinophils_leukocytes_ratio_cont, c_ldh_u_l_cont, c_hr_cont, c_sbp_cont, c_oxygen_cont, c_neutrophil_lymphocyte_ratio_cont, c_bmi_cont, c_ast_alt_ratio_cont, c_time_dx_to_index, c_de_novo_mets_dx, c_height_cont, c_weight_cont, c_dbp_cont, c_year_index
+ - covariates: dem_age_index_cont, dem_sex_cont, c_smoking_history, c_number_met_sites, c_hemoglobin_g_dl_cont, c_urea_nitrogen_mg_dl_cont, c_platelets_10_9_l_cont, c_calcium_mg_dl_cont, c_glucose_mg_dl_cont, c_lymphocyte_leukocyte_ratio_cont, c_alp_u_l_cont, c_protein_g_l_cont, c_alt_u_l_cont, c_albumin_g_l_cont, c_bilirubin_mg_dl_cont, c_chloride_mmol_l_cont, c_monocytes_10_9_l_cont, c_eosinophils_leukocytes_ratio_cont, c_ldh_u_l_cont, c_hr_cont, c_sbp_cont, c_oxygen_cont, c_ecog_cont, c_neutrophil_lymphocyte_ratio_cont, c_bmi_cont, c_ast_alt_ratio_cont, c_stage_initial_dx_cont, dem_race, dem_region, dem_ses, c_time_dx_to_index
 ```
 :::
 :::
@@ -1625,7 +1720,7 @@ waldo::compare(
 
 
 
-Script runtime: 0.41 minutes.
+Script runtime: 0.42 minutes.
 
 ::: panel-tabset
 ### Loaded packages
@@ -1691,7 +1786,7 @@ _grid_, _stats_, _graphics_, _grDevices_, _datasets_, _utils_, _methods_ and _ba
 _smd(v.0.7.0)_, _cardx(v.0.2.0)_, _gtsummary(v.2.0.1)_, _survey(v.4.4-2)_, _Matrix(v.1.7-0)_, _MatchIt(v.4.5.5)_, _MatchThem(v.1.2.1)_, _mice(v.3.16.0)_, _survival(v.3.5-8)_, _dplyr(v.1.1.4)_ and _here(v.1.0.1)_
 
 **loaded via a namespace (and not attached):** 
-_tidyselect(v.1.2.1)_, _fastmap(v.1.2.0)_, _digest(v.0.6.37)_, _rpart(v.4.1.23)_, _lifecycle(v.1.0.4)_, _cluster(v.2.1.6)_, _waldo(v.0.5.3)_, _gdata(v.3.0.0)_, _magrittr(v.2.0.3)_, _compiler(v.4.4.0)_, _sass(v.0.4.9)_, _rlang(v.1.1.4)_, _Hmisc(v.5.1-3)_, _tools(v.4.4.0)_, _gt(v.0.11.0)_, _utf8(v.1.2.4)_, _yaml(v.2.3.10)_, _data.table(v.1.16.0)_, _knitr(v.1.48)_, _htmlwidgets(v.1.6.4)_, _xml2(v.1.3.6)_, _withr(v.3.0.1)_, _foreign(v.0.8-86)_, _purrr(v.1.0.2)_, _nnet(v.7.3-19)_, _fansi(v.1.0.6)_, _jomo(v.2.7-6)_, _colorspace(v.2.1-1)_, _future(v.1.34.0)_, _ggplot2(v.3.5.1)_, _gtools(v.3.9.5)_, _globals(v.0.16.3)_, _scales(v.1.3.0)_, _iterators(v.1.0.14)_, _MASS(v.7.3-60.2)_, _cli(v.3.6.3)_, _rmarkdown(v.2.28)_, _crayon(v.1.5.3)_, _generics(v.0.1.3)_, _rstudioapi(v.0.16.0)_, _sessioninfo(v.1.2.2)_, _commonmark(v.1.9.1)_, _minqa(v.1.2.8)_, _DBI(v.1.2.3)_, _pander(v.0.6.5)_, _stringr(v.1.5.1)_, _splines(v.4.4.0)_, _assertthat(v.0.2.1)_, _parallel(v.4.4.0)_, _base64enc(v.0.1-3)_, _mitools(v.2.4)_, _vctrs(v.0.6.5)_, _WeightIt(v.1.3.0)_, _boot(v.1.3-30)_, _glmnet(v.4.1-8)_, _jsonlite(v.1.8.8)_, _mitml(v.0.4-5)_, _Formula(v.1.2-5)_, _htmlTable(v.2.4.3)_, _listenv(v.0.9.1)_, _weights(v.1.0.4)_, _foreach(v.1.5.2)_, _tidyr(v.1.3.1)_, _glue(v.1.7.0)_, _parallelly(v.1.38.0)_, _nloptr(v.2.1.1)_, _pan(v.1.9)_, _chk(v.0.9.2)_, _codetools(v.0.2-20)_, _stringi(v.1.8.4)_, _shape(v.1.4.6.1)_, _gtable(v.0.3.5)_, _lme4(v.1.1-35.5)_, _munsell(v.0.5.1)_, _tibble(v.3.2.1)_, _anesrake(v.0.80)_, _pillar(v.1.9.0)_, _furrr(v.0.3.1)_, _htmltools(v.0.5.8.1)_, _R6(v.2.5.1)_, _rprojroot(v.2.0.4)_, _evaluate(v.0.24.0)_, _lattice(v.0.22-6)_, _markdown(v.1.13)_, _cards(v.0.2.1)_, _backports(v.1.5.0)_, _tictoc(v.1.2.1)_, _broom(v.1.0.6)_, _renv(v.1.0.7)_, _simsurv(v.1.0.0)_, _Rcpp(v.1.0.13)_, _gridExtra(v.2.3)_, _nlme(v.3.1-164)_, _checkmate(v.2.3.2)_, _xfun(v.0.47)_ and _pkgconfig(v.2.0.3)_
+_tidyselect(v.1.2.1)_, _fastmap(v.1.2.0)_, _digest(v.0.6.37)_, _rpart(v.4.1.23)_, _lifecycle(v.1.0.4)_, _cluster(v.2.1.6)_, _waldo(v.0.5.3)_, _gdata(v.3.0.0)_, _magrittr(v.2.0.3)_, _compiler(v.4.4.0)_, _sass(v.0.4.9)_, _rlang(v.1.1.4)_, _Hmisc(v.5.1-3)_, _tools(v.4.4.0)_, _gt(v.0.11.0)_, _utf8(v.1.2.4)_, _yaml(v.2.3.10)_, _data.table(v.1.16.0)_, _knitr(v.1.48)_, _htmlwidgets(v.1.6.4)_, _xml2(v.1.3.6)_, _withr(v.3.0.1)_, _foreign(v.0.8-86)_, _purrr(v.1.0.2)_, _nnet(v.7.3-19)_, _fansi(v.1.0.6)_, _jomo(v.2.7-6)_, _colorspace(v.2.1-1)_, _future(v.1.34.0)_, _ggplot2(v.3.5.1)_, _gtools(v.3.9.5)_, _globals(v.0.16.3)_, _scales(v.1.3.0)_, _iterators(v.1.0.14)_, _MASS(v.7.3-60.2)_, _cli(v.3.6.3)_, _rmarkdown(v.2.28)_, _crayon(v.1.5.3)_, _generics(v.0.1.3)_, _rstudioapi(v.0.16.0)_, _sessioninfo(v.1.2.2)_, _commonmark(v.1.9.1)_, _minqa(v.1.2.8)_, _DBI(v.1.2.3)_, _pander(v.0.6.5)_, _stringr(v.1.5.1)_, _splines(v.4.4.0)_, _assertthat(v.0.2.1)_, _parallel(v.4.4.0)_, _base64enc(v.0.1-3)_, _mitools(v.2.4)_, _vctrs(v.0.6.5)_, _WeightIt(v.1.3.0)_, _boot(v.1.3-30)_, _glmnet(v.4.1-8)_, _jsonlite(v.1.8.8)_, _mitml(v.0.4-5)_, _Formula(v.1.2-5)_, _htmlTable(v.2.4.3)_, _listenv(v.0.9.1)_, _weights(v.1.0.4)_, _locfit(v.1.5-9.10)_, _foreach(v.1.5.2)_, _tidyr(v.1.3.1)_, _glue(v.1.7.0)_, _parallelly(v.1.38.0)_, _nloptr(v.2.1.1)_, _pan(v.1.9)_, _chk(v.0.9.2)_, _codetools(v.0.2-20)_, _stringi(v.1.8.4)_, _shape(v.1.4.6.1)_, _gtable(v.0.3.5)_, _lme4(v.1.1-35.5)_, _munsell(v.0.5.1)_, _tibble(v.3.2.1)_, _anesrake(v.0.80)_, _pillar(v.1.9.0)_, _furrr(v.0.3.1)_, _htmltools(v.0.5.8.1)_, _R6(v.2.5.1)_, _rprojroot(v.2.0.4)_, _evaluate(v.0.24.0)_, _lattice(v.0.22-6)_, _markdown(v.1.13)_, _cards(v.0.2.1)_, _backports(v.1.5.0)_, _tictoc(v.1.2.1)_, _broom(v.1.0.6)_, _renv(v.1.0.7)_, _simsurv(v.1.0.0)_, _Rcpp(v.1.0.13)_, _checkmate(v.2.3.2)_, _gridExtra(v.2.3)_, _nlme(v.3.1-164)_, _xfun(v.0.47)_ and _pkgconfig(v.2.0.3)_
 :::
 :::
 
