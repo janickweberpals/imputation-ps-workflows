@@ -54,22 +54,16 @@ The following cohort resembles [distributions observed in the EHR-derived *EDB1*
 # load example dataset with missing observations
 data_miss <- simulate_flaura(
   n_total = 3500, 
-  treat_prevalence = .51, 
   seed = 42, 
   include_id = FALSE, 
   imposeNA = TRUE
   )
 
-# store covariates
-covariates <- data_miss |> 
-  select(starts_with("dem_"), starts_with("c_")) |> 
-  colnames()
-
 # crate Table 1
 data_miss |> 
   tbl_summary(
     by = "treat", 
-    include = covariates
+    include = covariates_for_imputation
     ) |> 
   add_overall() |> 
   modify_header(
@@ -118,6 +112,7 @@ Following the results of various simulation studies [@shah2014; @Weberpals2024],
 
 ```{r}
 #| label: mice
+#| warning: false
 
 # impute data
 data_imp <- futuremice(
@@ -148,7 +143,7 @@ Let's assume we fit the following propensity score model within each imputed dat
 #| label: ps-fit
 
 # apply propensity score matching on mids object
-ps_form <- as.formula(paste("treat ~", paste(covariates, collapse = " + ")))
+ps_form <- as.formula(paste("treat ~", paste(covariates_for_ps, collapse = " + ")))
 ps_form
 ```
 

@@ -47,19 +47,21 @@ We use the `simulate_flaura()` function to simulate a realistic oncology compara
 # load example dataset with missing observations
 data_miss <- simulate_flaura(
   n_total = 3500, 
-  treat_prevalence = .51, 
   seed = 41, 
   include_id = FALSE, 
   imposeNA = TRUE
   ) |> 
-  # we have to convert sex and ecog into a factor variable 
-  # since anesrake doesn't accept 0/1 numeric encoding for 
-  # binary variables
-  mutate(across(c(dem_sex_cont, c_ecog_cont), function(x) factor(as.character(x))))
-
-covariates <- data_miss |> 
-  select(starts_with("dem_"), starts_with("c_")) |> 
-  colnames()
+  # anesrake works best with factor variables
+  # create age category with age less than 65
+  mutate(dem_age_lt65 = factor(ifelse(dem_age_index_cont < 65, "<65", "65+"))) |> 
+  # convert dem_race into a binary Asian vs. non-Asian 
+  mutate(dem_race = factor(ifelse(dem_race == "Asian", "Asian", "Non-Asian"))) |>
+  # convert dem_sex_cont into a factor 
+  mutate(dem_sex_cont = factor(ifelse(dem_sex_cont == "1", "Male", "Female"))) |> 
+  # convert dem_sex_cont into a factor 
+  mutate(c_smoking_history = factor(ifelse(c_smoking_history == TRUE, "Current/former", "Never"))) |> 
+  # convert c_ecog_cont into a factor 
+  mutate(across(c(c_ecog_cont), function(x) factor(as.character(x))))
 ```
 
 ## Multiple imputation
@@ -68,6 +70,7 @@ Multiple imputation using `mice:`
 
 ```{r}
 #| label: mice
+#| warning: false
 
 # impute data
 data_imp <- futuremice(
@@ -90,37 +93,40 @@ Before applying the re-weighting, we need to define the target distributions of 
 # Define FLAURA distributions for key covariates --------------------------
 # order is as in Table 1
 
+## age (taken from https://www.tagrissohcp.com/metastatic/flaura/efficacy.html)
+# less than 65 years (54%, TRUE) to 65+ (46%, FALSE)
+age_target <- c(.54, .46)
+names(age_target) <- c("<65", "65+")
+
 ## sex ---------------------------------------------------------------------
 
 # female (0) to male (1) proportion:
 sex_target <- c(.63, .37) 
-names(sex_target) <- c("0", "1")
+names(sex_target) <- c("Female", "Male")
 
 ## race --------------------------------------------------------------------
 # asian, non-asian
 # asian (TRUE) to non-asian (FALSE) proportion
 # note: logical variables in dataframe can be matched to a numeric vector of length 2 and ordered with the TRUE target as the first element and the FALSE target as the second element.
 race_target <- c(.62, .38)
+names(race_target) <- c("Asian", "Non-Asian")
 
 ## smoking -----------------------------------------------------------------
 
 # current/former smoker (TRUE) to never smoker (FALSE) proportion
 # note: logical variables in dataframe can be matched to a numeric vector of length 2 and ordered with the TRUE target as the first element and the FALSE target as the second element.
 smoker_target <- c(.35, .65)
+names(smoker_target) <- c("Current/former", "Never")
 
 ## ecog --------------------------------------------------------------------
-
-# ecog 0 by exposure 
-avg_prop_ecog0 <- .41
 
 # ecog 0 to ecog 1 proportion
 ecog_target <- c(.41, .59)
 names(ecog_target) <- c("0", "1")
 
-
 # summarize target distributions in a named list vector --------------
-targets <- list(sex_target, race_target, smoker_target, ecog_target)
-names(targets) <- c("dem_sex_cont", "dem_race", "c_smoking_history", "c_ecog_cont")
+targets <- list(age_target, sex_target, race_target, smoker_target, ecog_target)
+names(targets) <- c("dem_age_lt65", "dem_sex_cont", "dem_race", "c_smoking_history", "c_ecog_cont")
 
 # print
 targets
@@ -136,7 +142,7 @@ The propensity score model is specified as follows:
 #| label: ps-model
 
 # apply propensity score matching on mids object
-ps_form <- as.formula(paste("treat ~", paste(covariates, collapse = " + ")))
+ps_form <- as.formula(paste("treat ~", paste(covariates_for_ps, collapse = " + ")))
 ps_form
 ```
 
@@ -174,7 +180,7 @@ matchit_out_list <- lapply(
   ratio = 1,
   method = "nearest",
   distance = "glm",
-  link = "linear.logit",
+  link = "logit",
   caliper = 0.05,
   replace = F
   )
@@ -218,7 +224,7 @@ library(smd)
 first_dataset |>
   tbl_summary(
     by = treat,
-    include = names(targets)
+    include = c(dem_age_index_cont, names(targets))
     ) |> 
   add_difference(test = dplyr::everything() ~ "smd") |>
   add_overall() |>
@@ -246,7 +252,7 @@ data_svy <- svydesign(ids = ~ 1, weights = ~ weights, data = first_dataset)
 data_svy |>
   tbl_svysummary(
     by = treat,
-    include = names(targets)
+    include = c(dem_age_index_cont, names(targets))
     ) |> 
   add_difference(test = dplyr::everything() ~ "smd") |>
   add_overall() |>
@@ -324,6 +330,7 @@ data_mimids
 We can now stack the datasets (= vertically append them) and compare the resulting 10 x 10 datasets for any differences:
 
 ```{r}
+#| echo: true
 waldo::compare(
   MatchThem::complete(data_mimids_from_function), 
   MatchThem::complete(data_mimids)

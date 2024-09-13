@@ -1179,6 +1179,17 @@
       ],
       "Hash": "16a08fc75007da0d08e0c0388c7c33e6"
     },
+    "locfit": {
+      "Package": "locfit",
+      "Version": "1.5-9.10",
+      "Source": "Repository",
+      "Repository": "REPO_NAME",
+      "Requirements": [
+        "R",
+        "lattice"
+      ],
+      "Hash": "7d8e0ac914051ca0254332387d9b5816"
+    },
     "magrittr": {
       "Package": "magrittr",
       "Version": "2.0.3",
