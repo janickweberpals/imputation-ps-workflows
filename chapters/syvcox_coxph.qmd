@@ -217,7 +217,6 @@ The resulting "wimids" object contains the original imputed data and the output 
 The inspection of balance assessment in multiple imputed and matched/weighted data can be done in a similar way as with a single complete dataset. For illustration we just look at the matched datasets, but the exact same principles also apply to the weighted datasets.
 
 ::: panel-tabset
-
 ### Balance table
 
 ```{r}
@@ -267,8 +266,6 @@ bal.plot(
   colors = c("orange", "blue")
   )
 ```
-
-
 :::
 
 ## Step 4 - Estimation of marginal treatment effects
