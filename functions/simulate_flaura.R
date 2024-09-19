@@ -189,7 +189,7 @@ simulate_flaura <- function(n_total = 3500,
   
   # assign betas for hazard model
   betas_os_Asian <- c(
-    treat = log(0.54),
+    treat = log(1),
     dem_sex_cont = log(0.79),
     dem_age_index_cont = log(1.02),
     c_smoking_history = log(.70),
@@ -219,7 +219,7 @@ simulate_flaura <- function(n_total = 3500,
     dplyr::filter(dem_race != "Asian")
   
   betas_os_nonAsian <- c(
-    treat = log(1),
+    treat = log(0.54),
     dem_sex_cont = log(0.79),
     dem_age_index_cont = log(1.02),
     c_smoking_history = log(.70),

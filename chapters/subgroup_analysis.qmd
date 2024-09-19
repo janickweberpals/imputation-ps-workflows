@@ -61,19 +61,19 @@ data_miss <- simulate_flaura(
   imposeNA = TRUE,
   propNA = .13
   ) |> 
-  # we simplify and assume a binary Asian/non-Asian race covariate
-  mutate(dem_race = ifelse(dem_race == "Asian", 1, 0))
-
-covariates_for_ps <- setdiff(covariates_for_ps, "dem_race")
+  # we simplify and assume a binary Asian/non-Asian race covariate where Asian is the reference group
+  mutate(dem_race = ifelse(dem_race == "Asian", 0, 1))
 ```
 
 ## Moderator covariate
 
-In this example, we assume heterogeneous treatment effect by sex and we aim to assess the average treatment effect among the treated for female and male patients separately. The effect size is time to all-cause mortality. In this dataset, sex is encoded with a binary covariate with 0 = female and 1 = male.
+In this example, we assume heterogeneous treatment effect by race and we aim to assess the average treatment effect among the treated for Asian (reference) and non-Asian patients. The effect size is time to all-cause mortality. In this dataset, race is encoded with a binary covariate with 0 = Asian and 1 = non-Asian.
 
 ```{r}
 table(data_miss$dem_race, useNA = "ifany")
 ```
+
+![Investigated subgroup effect in the FLAURA trial.](/images/nejm_subgroup.jpg){fig-align="center"}
 
 ## Multiple imputation
 
@@ -103,6 +103,7 @@ ps_form <- as.formula(paste("treat ~", paste(covariates_for_ps, collapse = " + "
 ps_form
 ```
 
+::: panel-tabset
 ### Matching
 
 ```{r}
@@ -137,7 +138,7 @@ asian_matched <- lapply(
   FUN = match_within_strata, 
   imputed_data = data_imp,
   ps_formula = ps_form,
-  filter_expr = expr(dem_race == 1)
+  filter_expr = expr(dem_race == 0)
   )
 
 non_asian_matched <- lapply(
@@ -145,7 +146,7 @@ non_asian_matched <- lapply(
   FUN = match_within_strata, 
   imputed_data = data_imp,
   ps_formula = ps_form,
-  filter_expr = expr(dem_race == 0)
+  filter_expr = expr(dem_race == 1)
   )
 
 # combine the mth imputed and matched datasets
@@ -207,7 +208,7 @@ asian_weighted <- lapply(
   FUN = weight_within_strata, 
   imputed_data = data_imp,
   ps_formula = ps_form,
-  filter_expr = expr(dem_race == 1)
+  filter_expr = expr(dem_race == 0)
   )
 
 non_asian_weighted <- lapply(
@@ -215,7 +216,7 @@ non_asian_weighted <- lapply(
   FUN = weight_within_strata, 
   imputed_data = data_imp,
   ps_formula = ps_form,
-  filter_expr = expr(dem_race == 0)
+  filter_expr = expr(dem_race == 1)
   )
 
 weighted_all <- lapply(
@@ -225,9 +226,11 @@ weighted_all <- lapply(
   data_1 = non_asian_weighted
   )
 ```
+:::
 
 ## Outcome model comparisons
 
+::: panel-tabset
 ### Matching
 
 ```{r}
@@ -274,6 +277,7 @@ weighted_all |>
   broom::tidy(exponentiate = TRUE, conf.int = TRUE) |> 
   dplyr::select(term, estimate, std.error, conf.low, conf.high)
 ```
+:::
 
 ## References
 
