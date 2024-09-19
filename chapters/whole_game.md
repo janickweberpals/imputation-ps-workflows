@@ -1,0 +1,100 @@
+---
+title: "The whole game"
+subtitle: "Multiple imputation workflows with propensity score and survival analysis"
+author: Janick Weberpals, RPh, PhD
+date: last-modified
+format: html
+code-fold: false
+toc: true
+toc-depth: 3
+code-tools: true
+keep-md: true
+editor: visual
+embed-resources: true
+bibliography: references.bib
+---
+
+
+
+
+
+## Background
+
+-   In 2022, nearly every third drug approval was granted in the field of oncology (tendency ↑)[@mullard2022]
+
+-   Decision-makers increasingly rely on real-world evidence (RWE) generated from routine-care health data such as electronic health records (EHR) to evaluate the comparative safety and effectiveness of novel cancer therapies
+
+**ENCORE**
+
+-   The [ENCORE project](https://www.fda.gov/about-fda/oncology-center-excellence/calibrating-real-world-evidence-studies-oncology-against-randomized-trials-encore) is an [RCT DUPLICATE](https://www.rctduplicate.org/) expansion to oncology which is going to emulate 12 randomized clinical trials using multiple EHR data sources. The process includes an emphasis on transparency with documented assessment of data fitness of the RWD source for each trial and conducting extensive sensitivity analyses to assess robustness of findings and trial eligibility criteria.
+
+-   Partially observed covariates/confounders are a common and pervasive challenge
+
+-   To date, most oncology studies utilizing RWD have relied on complete case analysis although assumptions for a complete case analysis (missing completely at random \[MCAR\]) are even stronger than those (missing at random \[MAR\]) for multiple imputation (MI). Besides this, MI has additional advantages:
+
+    -   All patients are retained
+
+    -   Flexible modeling (parametric, non-parametric)
+
+    -   Can incorporate additional information (auxiliary covariates) to make the MAR assumption more likely
+
+    -   Realistic variance estimation (Rubin's rule)
+
+-   However:
+
+    -   Not much is known about how to use multiple imputation in combination with propensity score-based approaches
+
+    -   Computational implementation can be complex
+
+## Objective
+
+::: callout-tip
+## Objective
+
+To establish a computationally reproducible workflow that streamlines multiple imputation \> propensity score matching/weighting \> survival analysis workflows in a transparent fashion
+:::
+
+![Streamlined workflow to approach partially observed covariate data in oncology trial emulations.](/images/workflow.png){#fig-workflow fig-align="center"}
+
+## Leyrat et al. simulation study
+
+One of the most comprehensive and influental simulation studies that addressed the question on how to combine multiple imputation with propensity scores (IPTW weighting) was published in 2019 by Leyrat et al. [@leyrat2019]. In this study, the authors looked at three different potential ways:
+
+-   **MIte**: MI \> PS estimation \> Outcome model for each PS model \> Pooling of results
+
+-   **MIps**: MI \> PS estimation \> PS pooling across datasets \> single outcome model
+
+-   **MIpar**: MI \> Pooling of covariate parameters \> single PS model \> single outcome model
+
+Additional questions that were also addressed:
+
+-   Should outcome be included in imputation model?
+
+-   How to estimate variance of IPTW estimator in context of MIte or MIps or MIpar?
+
+![Illustration of potential approaches that could be considered after multiple imputation (MI) of the partially observed covariates are missing values on the original dataset.](/images/mi_ps.png){#fig-ps fig-align="center"}
+
+### Simulation study results {#sec-simulation-study-results}
+
+-   **MIte** performed best in terms of bias, standardized differences/balancing, coverage rate and variance estimation
+
+    -   MI \> PS estimation \> Outcome model for each PS model \> Pooling of results
+
+-   Standard IPTW variance estimation is valid for MIte
+
+-   Outcome must be included in imputation model
+
+![Leyrat et al. simulation study results.](/images/leyrat_results.png){#fig-results fig-align="center"}
+
+### Implementation in `MatchThem` R package
+
+To streamline the implementation of multiple imputation \> propensity score workflows, Farhad Pishgar, Noah Greifer, Clémence Leyrat and Elizabeth Stuart developed the `MatchThem` package [@pishgar2021] which relies on the functionality provided by the [`mice`](https://cran.r-project.org/package=mice), [`MatchIt`](https://cran.r-project.org/package=MatchIt), and [`WeightIt`](https://cran.r-project.org/package=WeightIt) packages. An exemplary illustration on how to use the package in a survival analysis context is given in @sec-application-in-cox-ph-models ([cheatsheet](https://cran.r-project.org/web/packages/MatchThem/vignettes/cheatsheet.pdf)).
+
+<iframe src="https://cran.r-project.org/web/packages/MatchThem/vignettes/cheatsheet.pdf" frameborder="0" width="725" height="440.6641" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true">
+
+</iframe>
+
+## References
+
+::: {#refs}
+:::

@@ -11,9 +11,10 @@ book:
   chapters:
     # landing page
     - index.qmd
-    - 01_syvcox_coxph.qmd
-    - 02_re_weight.qmd
-    - 03_subgroup_analysis.qmd
+    - chapters/whole_game.qmd
+    - chapters/syvcox_coxph.qmd
+    - chapters/re_weight.qmd
+    - chapters/subgroup_analysis.qmd
 
   reader-mode: true
   repo-url: https://github.com/janickweberpals/imputation-ps-workflows
@@ -21,9 +22,9 @@ book:
 
 format:
   html:
+    theme: journal
     code-fold: true
     code-summary: "Show the code"
-    theme: cosmo
     engine: knitr
     page-layout: full
     link-external-icon: true
