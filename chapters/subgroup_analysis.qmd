@@ -58,10 +58,13 @@ data_miss <- simulate_flaura(
   n_total = 3500, 
   seed = 42, 
   include_id = FALSE, 
-  imposeNA = TRUE
-  )
+  imposeNA = TRUE,
+  propNA = .13
+  ) |> 
+  # we simplify and assume a binary Asian/non-Asian race covariate
+  mutate(dem_race = ifelse(dem_race == "Asian", 1, 0))
 
-covariates_for_ps <- setdiff(covariates_for_ps, "dem_sex_cont")
+covariates_for_ps <- setdiff(covariates_for_ps, "dem_race")
 ```
 
 ## Moderator covariate
@@ -69,7 +72,7 @@ covariates_for_ps <- setdiff(covariates_for_ps, "dem_sex_cont")
 In this example, we assume heterogeneous treatment effect by sex and we aim to assess the average treatment effect among the treated for female and male patients separately. The effect size is time to all-cause mortality. In this dataset, sex is encoded with a binary covariate with 0 = female and 1 = male.
 
 ```{r}
-table(data_miss$dem_sex_cont)
+table(data_miss$dem_race, useNA = "ifany")
 ```
 
 ## Multiple imputation
@@ -80,19 +83,10 @@ Both the imputation and propensity score step Multiple imputation using `mice:`
 #| label: mice
 
 # impute data
-female_imp <- futuremice(
+data_imp <- futuremice(
   parallelseed = 42,
   n.core = parallel::detectCores()-1,
-  data = data_miss |> filter(dem_sex_cont == 0),
-  method = "rf",
-  m = 10,
-  print = FALSE
-  )
-
-male_imp <- futuremice(
-  parallelseed = 42,
-  n.core = parallel::detectCores()-1,
-  data = data_miss |> filter(dem_sex_cont == 1),
+  data = data_miss,
   method = "rf",
   m = 10,
   print = FALSE
@@ -115,11 +109,18 @@ ps_form
 #| label: matching
 #| warning: false
 
-match_within_strata <- function(i, imputed_data = NULL, ps_formula = NULL){
+match_within_strata <- function(i, 
+                                imputed_data = NULL, 
+                                ps_formula = NULL, 
+                                filter_expr = NULL
+                                ){
   
+  stratum <- mice::complete(imputed_data, i) |> 
+    dplyr::filter(eval(filter_expr))
+    
   matched <- MatchIt::matchit(
     formula = ps_formula, 
-    data = mice::complete(imputed_data, i),
+    data = stratum,
     method = "nearest",
     caliper = 0.01,
     ratio = 1,
@@ -131,18 +132,20 @@ match_within_strata <- function(i, imputed_data = NULL, ps_formula = NULL){
   
 }
 
-female_matched <- lapply(
-  X = 1:female_imp$m, 
+asian_matched <- lapply(
+  X = 1:data_imp$m, 
   FUN = match_within_strata, 
-  imputed_data = female_imp,
-  ps_formula = ps_form
+  imputed_data = data_imp,
+  ps_formula = ps_form,
+  filter_expr = expr(dem_race == 1)
   )
 
-male_matched <- lapply(
-  X = 1:male_imp$m, 
+non_asian_matched <- lapply(
+  X = 1:data_imp$m, 
   FUN = match_within_strata, 
-  imputed_data = male_imp,
-  ps_formula = ps_form
+  imputed_data = data_imp,
+  ps_formula = ps_form,
+  filter_expr = expr(dem_race == 0)
   )
 
 # combine the mth imputed and matched datasets
@@ -155,10 +158,10 @@ combine_list <- function(i, data_0 = NULL, data_1 = NULL){
 }
 
 matched_all <- lapply(
-  X = 1:female_imp$m, 
+  X = 1:data_imp$m, 
   FUN = combine_list, 
-  data_0 = female_matched,
-  data_1 = male_matched
+  data_0 = non_asian_matched,
+  data_1 = asian_matched
   )
 ```
 
@@ -168,11 +171,18 @@ matched_all <- lapply(
 #| label: weighting
 #| warning: false
 
-weight_within_strata <- function(i, imputed_data = NULL, ps_formula = NULL){
+weight_within_strata <- function(i, 
+                                 imputed_data = NULL, 
+                                 ps_formula = NULL,
+                                 filter_expr = NULL
+                                 ){
+  
+  stratum <- mice::complete(imputed_data, i) |> 
+    dplyr::filter(eval(filter_expr))
   
   weighted <- WeightIt::weightit(
     formula = ps_formula, 
-    data = mice::complete(imputed_data, i),
+    data = stratum,
     method = "glm",
     estimand = "ATT"
     )
@@ -185,31 +195,34 @@ weight_within_strata <- function(i, imputed_data = NULL, ps_formula = NULL){
     )
   
   weighted_data <- mice::complete(imputed_data, i) |> 
+    dplyr::filter(eval(filter_expr)) |> 
     mutate(weights = weighted$weights)
   
   return(weighted_data)
   
 }
 
-female_weighted <- lapply(
-  X = 1:female_imp$m, 
+asian_weighted <- lapply(
+  X = 1:data_imp$m, 
   FUN = weight_within_strata, 
-  imputed_data = female_imp,
-  ps_formula = ps_form
+  imputed_data = data_imp,
+  ps_formula = ps_form,
+  filter_expr = expr(dem_race == 1)
   )
 
-male_weighted <- lapply(
-  X = 1:male_imp$m, 
+non_asian_weighted <- lapply(
+  X = 1:data_imp$m, 
   FUN = weight_within_strata, 
-  imputed_data = male_imp,
-  ps_formula = ps_form
+  imputed_data = data_imp,
+  ps_formula = ps_form,
+  filter_expr = expr(dem_race == 0)
   )
 
 weighted_all <- lapply(
-  X = 1:female_imp$m, 
+  X = 1:data_imp$m, 
   FUN = combine_list, 
-  data_0 = female_weighted,
-  data_1 = male_weighted
+  data_0 = asian_weighted,
+  data_1 = non_asian_weighted
   )
 ```
 
@@ -222,7 +235,7 @@ cox_fit_matching <- function(i){
   
   survival_fit <- survival::coxph(
     data = i,
-    formula = Surv(fu_itt_months, death_itt) ~ treat*dem_sex_cont, 
+    formula = Surv(fu_itt_months, death_itt) ~ treat*dem_race, 
     weights = weights, 
     cluster = subclass,
     robust = TRUE
@@ -246,7 +259,7 @@ cox_fit_weighting <- function(i){
   
   survival_fit <- survival::coxph(
     data = i,
-    formula = Surv(fu_itt_months, death_itt) ~ treat*dem_sex_cont, 
+    formula = Surv(fu_itt_months, death_itt) ~ treat*dem_race, 
     weights = weights, 
     robust = TRUE
     )

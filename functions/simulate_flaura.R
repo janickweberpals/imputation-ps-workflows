@@ -11,7 +11,8 @@
 #' @param seed integer, seed for reproducibility
 #' @param include_id logical, include a generated patientid variable
 #' @param imposeNA logical, set covariates to missing
-#'
+#' @param propNA numeric, proportion of missingness, needs to be between 0 and 1
+#' 
 #' @return data frame with simulated analytic cohort
 #'
 #' @importFrom dplyr select rename mutate
@@ -40,7 +41,8 @@
 simulate_flaura <- function(n_total = 3500, 
                             seed = 42,
                             include_id = TRUE,
-                            imposeNA = TRUE 
+                            imposeNA = TRUE,
+                            propNA = NULL
                             ){
   
   # check if packages available
@@ -51,6 +53,9 @@ simulate_flaura <- function(n_total = 3500,
   assertthat::assert_that(inherits(seed, "numeric"), msg = "<seed> needs to be an integer")
   assertthat::assert_that(inherits(include_id, "logical"), msg = "<seed> needs to be a logical")
   assertthat::assert_that(inherits(imposeNA, "logical"), msg = "<imposeNA> needs to be a logical")
+  if(!is.null(propNA)) assertthat::assert_that(inherits(propNA, "numeric"), msg = "<propNA> needs to be numeric")
+  if(!is.null(propNA)) assertthat::assert_that(propNA >= 0 & propNA <= 1, msg = "<propNA> needs to be a numeric between 0 and 1")
+  if(!is.null(propNA)) assertthat::assert_that(imposeNA == TRUE, msg = "<propNA> is specified but imposeNA is FALSE")
   
   # set the seed
   set.seed(seed)
@@ -72,7 +77,7 @@ simulate_flaura <- function(n_total = 3500,
     # c_stage_initial_dx_cont
     c_stage_initial_dx_cont = sample(c(4, 3, 2, 1), size = n_total, replace = TRUE, prob = c(.76, 0.2, 0.028, 0.012)),
     # dem_race
-    dem_race = factor(sample(c("White", "Asian", "Other"), size = n_total, replace = TRUE, prob = c(.57, .29, .14))),
+    dem_race = factor(sample(c("White", "Asian", "Other"), size = n_total, replace = TRUE, prob = c(.36, .62, .02))),
     # dem_region
     dem_region = factor(sample(c("Midwest", "Northeast", "South", "West"), size = n_total, replace = TRUE, prob = c(.14, .20, .39, .27))),
     # dem_ses
@@ -141,7 +146,7 @@ simulate_flaura <- function(n_total = 3500,
         n = n_total, 
         size = 1, 
         prob = locfit::expit(
-          -6.5 +
+          -5.8 +
           dem_age_index_cont * log(1.0071) + 
           dem_sex_cont * log(0.9804) + 
           c_smoking_history * log(0.7065) + 
@@ -174,27 +179,32 @@ simulate_flaura <- function(n_total = 3500,
         )
       )
   
-  summary(cohort$treat)
+  #summary(cohort$treat)
+  
+  # simulate HTE by race
+  
+  ## Asian patients
+  cohort_Asian <- cohort |> 
+    dplyr::filter(dem_race == "Asian")
   
   # assign betas for hazard model
-  betas_os <- c(
-    treat = log(0.8),
+  betas_os_Asian <- c(
+    treat = log(0.54),
     dem_sex_cont = log(0.79),
     dem_age_index_cont = log(1.02),
-    #dem_race = log(.54),
     c_smoking_history = log(.70),
     c_ecog_cont = log(.7)
     )
   
   set.seed(seed)
-  cohort_outcome <- cohort |> 
+  cohort_outcome_Asian <- cohort_Asian |> 
     dplyr::bind_cols(
       simsurv::simsurv(
         dist = "weibull",
         gammas = 1.2,
         lambdas = 0.01,
-        betas = betas_os,
-        x = cohort,
+        betas = betas_os_Asian,
+        x = cohort_Asian,
         maxt = 120
         )
       ) |> 
@@ -203,6 +213,39 @@ simulate_flaura <- function(n_total = 3500,
       fu_itt_months = eventtime,
       death_itt = status
       )
+  
+  ## Non-Asian patients
+  cohort_nonAsian <- cohort |> 
+    dplyr::filter(dem_race != "Asian")
+  
+  betas_os_nonAsian <- c(
+    treat = log(1),
+    dem_sex_cont = log(0.79),
+    dem_age_index_cont = log(1.02),
+    c_smoking_history = log(.70),
+    c_ecog_cont = log(.7)
+    )
+  
+  set.seed(seed)
+  cohort_outcome_nonAsian <- cohort_nonAsian |> 
+    dplyr::bind_cols(
+      simsurv::simsurv(
+        dist = "weibull",
+        gammas = 1.2,
+        lambdas = 0.01,
+        betas = betas_os_nonAsian,
+        x = cohort_nonAsian,
+        maxt = 120
+      )
+    ) |> 
+    dplyr::select(-id) |> 
+    dplyr::rename(
+      fu_itt_months = eventtime,
+      death_itt = status
+      )
+  
+  # combine Asian and non-Asian
+  cohort_outcome <- rbind(cohort_outcome_Asian, cohort_outcome_nonAsian)
   
   # summary(cohort_outcome$death_itt)
   # summary(cohort_outcome$fu_itt_months)
@@ -225,7 +268,7 @@ simulate_flaura <- function(n_total = 3500,
     set.seed(seed)
     cohort_outcome <- mice::ampute(
       data = cohort_outcome, 
-      prop = .33,
+      prop = propNA,
       patterns = pattern,
       mech = "MCAR"
       )$amp

@@ -49,7 +49,8 @@ data_miss <- simulate_flaura(
   n_total = 3500, 
   seed = 41, 
   include_id = FALSE, 
-  imposeNA = TRUE
+  imposeNA = TRUE,
+  propNA = .33
   ) |> 
   # anesrake works best with factor variables
   # create age category with age less than 65
