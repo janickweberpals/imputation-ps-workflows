@@ -231,28 +231,6 @@
       ],
       "Hash": "74e1ef476ad0a9ed4ddd7d4a2c728c2f"
     },
-    "arrow": {
-      "Package": "arrow",
-      "Version": "17.0.0.1",
-      "Source": "Repository",
-      "Repository": "RSPM",
-      "Requirements": [
-        "R",
-        "R6",
-        "assertthat",
-        "bit64",
-        "cpp11",
-        "glue",
-        "methods",
-        "purrr",
-        "rlang",
-        "stats",
-        "tidyselect",
-        "utils",
-        "vctrs"
-      ],
-      "Hash": "14af96cb2973f6a6c220ce9c3e5b02cd"
-    },
     "assertthat": {
       "Package": "assertthat",
       "Version": "0.2.1",
@@ -625,40 +603,6 @@
         "vctrs"
       ],
       "Hash": "fedd9d00c2944ff00a0e2696ccf048ec"
-    },
-    "encore.io": {
-      "Package": "encore.io",
-      "Version": "0.2.0",
-      "Source": "GitHub",
-      "RemoteType": "github",
-      "RemoteHost": "api.github.com",
-      "RemoteRepo": "encore.io",
-      "RemoteUsername": "janickweberpals",
-      "RemoteRef": "HEAD",
-      "RemoteSha": "dc636f82ae2331cd4c8a405e698a48f2f16457f5",
-      "Requirements": [
-        "R",
-        "arrow",
-        "assertthat",
-        "data.table",
-        "dplyr",
-        "forcats",
-        "ggplot2",
-        "glue",
-        "gt",
-        "gtsummary",
-        "lifecycle",
-        "lubridate",
-        "magrittr",
-        "mice",
-        "pROC",
-        "parallel",
-        "stringr",
-        "survival",
-        "tibble",
-        "tidyr"
-      ],
-      "Hash": "55e94071093e3aa020ed4135ed95d395"
     },
     "evaluate": {
       "Package": "evaluate",
@@ -1268,19 +1212,6 @@
       ],
       "Hash": "7d8e0ac914051ca0254332387d9b5816"
     },
-    "lubridate": {
-      "Package": "lubridate",
-      "Version": "1.9.3",
-      "Source": "Repository",
-      "Repository": "RSPM",
-      "Requirements": [
-        "R",
-        "generics",
-        "methods",
-        "timechange"
-      ],
-      "Hash": "680ad542fbcf801442c83a6ac5a2126c"
-    },
     "magrittr": {
       "Package": "magrittr",
       "Version": "2.0.3",
@@ -1479,19 +1410,6 @@
       ],
       "Hash": "c54136f6b269d1e006d62f7dd8ff4c94"
     },
-    "pROC": {
-      "Package": "pROC",
-      "Version": "1.18.5",
-      "Source": "Repository",
-      "Repository": "RSPM",
-      "Requirements": [
-        "R",
-        "Rcpp",
-        "methods",
-        "plyr"
-      ],
-      "Hash": "82d32ebd548c6a4e7de73bab96411b3b"
-    },
     "pan": {
       "Package": "pan",
       "Version": "1.9",
@@ -1558,17 +1476,6 @@
         "utils"
       ],
       "Hash": "01f28d4278f15c76cddbea05899c5d6f"
-    },
-    "plyr": {
-      "Package": "plyr",
-      "Version": "1.8.9",
-      "Source": "Repository",
-      "Repository": "RSPM",
-      "Requirements": [
-        "R",
-        "Rcpp"
-      ],
-      "Hash": "6b8177fd19982f0020743fadbfdbd933"
     },
     "prettyunits": {
       "Package": "prettyunits",
@@ -1996,17 +1903,6 @@
         "withr"
       ],
       "Hash": "829f27b9c4919c16b593794a6344d6c0"
-    },
-    "timechange": {
-      "Package": "timechange",
-      "Version": "0.3.0",
-      "Source": "Repository",
-      "Repository": "RSPM",
-      "Requirements": [
-        "R",
-        "cpp11"
-      ],
-      "Hash": "c5f3c201b931cd6474d17d8700ccb1c8"
     },
     "tinytex": {
       "Package": "tinytex",
