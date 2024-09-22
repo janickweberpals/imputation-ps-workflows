@@ -67,15 +67,13 @@ data_miss <- simulate_flaura(
   ) |> 
   # we simplify and assume a binary Asian/non-Asian race covariate where Asian is the reference group
   mutate(dem_race = ifelse(dem_race == "Asian", 0, 1))
-
-covariates_for_ps <- setdiff(covariates_for_ps, "dem_race")
 ```
 :::
 
 
 ## Moderator covariate
 
-In this example, we assume heterogeneous treatment effect by sex and we aim to assess the average treatment effect among the treated for female and male patients separately. The effect size is time to all-cause mortality. In this dataset, sex is encoded with a binary covariate with 0 = female and 1 = male.
+In this example, we assume heterogeneous treatment effect by race and we aim to assess the average treatment effect among the treated for Asian (reference) and non-Asian patients. The effect size is time to all-cause mortality. In this dataset, race is encoded with a binary covariate with 0 = Asian and 1 = non-Asian.
 
 
 ::: {.cell}
@@ -96,6 +94,8 @@ table(data_miss$dem_race, useNA = "ifany")
 :::
 :::
 
+
+![Investigated subgroup effect in the FLAURA trial.](/images/nejm_subgroup.jpg){fig-align="center"}
 
 ## Multiple imputation
 
@@ -142,8 +142,8 @@ treat ~ dem_age_index_cont + dem_sex_cont + c_smoking_history +
     c_chloride_mmol_l_cont + c_monocytes_10_9_l_cont + c_eosinophils_leukocytes_ratio_cont + 
     c_ldh_u_l_cont + c_hr_cont + c_sbp_cont + c_oxygen_cont + 
     c_ecog_cont + c_neutrophil_lymphocyte_ratio_cont + c_bmi_cont + 
-    c_ast_alt_ratio_cont + c_stage_initial_dx_cont + dem_region + 
-    dem_ses + c_time_dx_to_index
+    c_ast_alt_ratio_cont + c_stage_initial_dx_cont + dem_race + 
+    dem_region + dem_ses + c_time_dx_to_index
 ```
 
 
@@ -151,6 +151,7 @@ treat ~ dem_age_index_cont + dem_sex_cont + c_smoking_history +
 :::
 
 
+::: panel-tabset
 ### Matching
 
 
@@ -277,9 +278,11 @@ weighted_all <- lapply(
 ```
 :::
 
+:::
 
 ## Outcome model comparisons
 
+::: panel-tabset
 ### Matching
 
 
@@ -366,6 +369,7 @@ weighted_all |>
 :::
 :::
 
+:::
 
 ## References
 
@@ -378,7 +382,7 @@ weighted_all |>
 
 
 
-Script runtime: 0.29 minutes.
+Script runtime: 0.66 minutes.
 
 ::: panel-tabset
 ### Loaded packages

@@ -60,9 +60,7 @@ data_miss <- simulate_flaura(
   include_id = FALSE, 
   imposeNA = TRUE,
   propNA = .13
-  ) |> 
-  # we simplify and assume a binary Asian/non-Asian race covariate where Asian is the reference group
-  mutate(dem_race = ifelse(dem_race == "Asian", 0, 1))
+  )
 ```
 
 ## Moderator covariate
@@ -99,6 +97,7 @@ Apply propensity score matching and weighting with replacement within in each im
 
 ```{r}
 # apply propensity score matching on mids object
+covariates_for_ps <- setdiff(covariates_for_ps, "dem_race")
 ps_form <- as.formula(paste("treat ~", paste(covariates_for_ps, collapse = " + ")))
 ps_form
 ```
@@ -138,7 +137,7 @@ asian_matched <- lapply(
   FUN = match_within_strata, 
   imputed_data = data_imp,
   ps_formula = ps_form,
-  filter_expr = expr(dem_race == 0)
+  filter_expr = expr(dem_race == "Asian")
   )
 
 non_asian_matched <- lapply(
@@ -146,7 +145,7 @@ non_asian_matched <- lapply(
   FUN = match_within_strata, 
   imputed_data = data_imp,
   ps_formula = ps_form,
-  filter_expr = expr(dem_race == 1)
+  filter_expr = expr(dem_race == "Non-Asian")
   )
 
 # combine the mth imputed and matched datasets
@@ -208,7 +207,7 @@ asian_weighted <- lapply(
   FUN = weight_within_strata, 
   imputed_data = data_imp,
   ps_formula = ps_form,
-  filter_expr = expr(dem_race == 0)
+  filter_expr = expr(dem_race == "Asian")
   )
 
 non_asian_weighted <- lapply(
@@ -216,7 +215,7 @@ non_asian_weighted <- lapply(
   FUN = weight_within_strata, 
   imputed_data = data_imp,
   ps_formula = ps_form,
-  filter_expr = expr(dem_race == 1)
+  filter_expr = expr(dem_race == "Non-Asian")
   )
 
 weighted_all <- lapply(
@@ -242,7 +241,13 @@ cox_fit_matching <- function(i){
     weights = weights, 
     cluster = subclass,
     robust = TRUE
-    )
+    ) |> 
+    avg_comparisons(
+      variables = "treat",
+      newdata = subset(i, treat == 1),
+      vcov = ~subclass, 
+      wts = "weights",
+      by = "dem_race")
   
 }
 ```
