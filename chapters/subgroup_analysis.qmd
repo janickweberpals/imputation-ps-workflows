@@ -241,13 +241,7 @@ cox_fit_matching <- function(i){
     weights = weights, 
     cluster = subclass,
     robust = TRUE
-    ) |> 
-    avg_comparisons(
-      variables = "treat",
-      newdata = subset(i, treat == 1),
-      vcov = ~subclass, 
-      wts = "weights",
-      by = "dem_race")
+    )
   
 }
 ```
