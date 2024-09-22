@@ -629,9 +629,12 @@
     "encore.io": {
       "Package": "encore.io",
       "Version": "0.2.0",
-      "Source": "Git",
-      "RemoteType": "xgit",
-      "RemoteUrl": "https://github.com/janickweberpals/encore.io.git",
+      "Source": "GitHub",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteRepo": "encore.io",
+      "RemoteUsername": "janickweberpals",
+      "RemoteRef": "HEAD",
       "RemoteSha": "dc636f82ae2331cd4c8a405e698a48f2f16457f5",
       "Requirements": [
         "R",
@@ -655,7 +658,7 @@
         "tibble",
         "tidyr"
       ],
-      "Hash": "9f2e6b06e9933a1287cc8eb7fefef49d"
+      "Hash": "55e94071093e3aa020ed4135ed95d395"
     },
     "evaluate": {
       "Package": "evaluate",
