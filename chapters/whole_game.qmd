@@ -18,6 +18,8 @@ bibliography: references.bib
 #| label: setup
 #| include: false
 
+library(encore.io)
+
 # track time
 runtime <- tictoc::tic()
 ```
