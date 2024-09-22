@@ -34,6 +34,7 @@ library(parallelly)
 library(ranger)
 library(furrr)
 library(cobalt)
+library(gsDesign)
 
 source(here("functions", "source_encore.io_functions.R"))
 
@@ -64,7 +65,8 @@ data_miss <- simulate_flaura(
 data_miss |> 
   tbl_summary(
     by = "treat", 
-    include = covariates_for_imputation
+    include = table1_covariates$covariate,
+    label = table1_labels
     ) |> 
   add_overall() |> 
   modify_header(
@@ -158,7 +160,7 @@ The matching step happens using the `matchthem()` function, which is a wrapper a
 #| warning: false
 
 # matching
-data_mimids <- matchthem(
+mimids_data <- matchthem(
   formula = ps_form,
   datasets = data_imp,
   approach = 'within',
@@ -171,7 +173,7 @@ data_mimids <- matchthem(
   )
 
 # print summary for matched dataset #1
-data_mimids
+mimids_data
 ```
 
 The resulting "mimids" object contains the original imputed data and the output of the calls to `matchit()` applied to each imputed dataset.
@@ -187,7 +189,7 @@ To mitigate the risks of extreme weights, the subsequent `trim()` function trunc
 #| warning: false
 
 # SMR weighting
-data_wimids <- weightthem(
+wimids_data <- weightthem(
   formula = ps_form,
   datasets = data_imp,
   approach = 'within',
@@ -196,13 +198,13 @@ data_wimids <- weightthem(
   )
 
 # trim extreme weights
-data_wimids <- trim(
-  x = data_wimids, 
+wimids_data <- trim(
+  x = wimids_data, 
   at = .95, 
   lower = TRUE
   )
 
-data_wimids
+wimids_data
 ```
 
 The resulting "wimids" object contains the original imputed data and the output of the calls to `weightit()` applied to each imputed dataset.
@@ -221,7 +223,7 @@ The inspection of balance assessment in multiple imputed and matched/weighted da
 
 # create balance table
 balance_table <- bal.tab(
-  x = data_mimids, 
+  x = mimids_data, 
   stats = "m",
   abs = TRUE
   )
@@ -237,7 +239,7 @@ balance_table
 #| fig-height: 7
 
 love.plot(
-  x = data_mimids,
+  x = mimids_data,
   abs = TRUE,
   thresholds = 0.1, 
   drop.distance = TRUE,
@@ -255,12 +257,63 @@ love.plot(
 
 ```{r}
 bal.plot(
-  x = data_mimids,
+  x = mimids_data,
   var.name = "distance",
   which = "both",
   which.imp = .none,
   colors = c("orange", "blue")
   )
+```
+
+### Power calculations
+
+For power calculations, we use the method proposed by Schoenfeld [@schoenfeld1983sample] to compute 1 - type II error rate $\beta$ . For this, we assume the following:
+
+-   $\alpha$ = 0.05 (two-sided)
+
+-   \% exposed (1:1 matching in main analysis) = 50%
+
+-   HR (desired) = 0.8
+
+-   Events = as observed in data
+
+Since we have multiple imputed and matched datasets, we need to average the number of events before before computing $\beta$.
+
+```{r}
+
+# make long dataset
+data_long <- MatchThem::complete(
+  # datasets
+  data = mimids_data, 
+  # produces a dataset with multiply imputed datasets stacked vertically
+  action = "long", 
+  # do NOT include observations with a zero estimated weight (non-matched)
+  all = FALSE, 
+  # do NOT include original dataset with missing values
+  include = FALSE
+  )
+
+# compute average number of events
+# by summing up all events
+# and dividing by number of imputed datasets
+avg_events <- sum(data_long$death_itt)/mimids_data$object$m
+
+# compute beta
+beta_gsDesign <- nEvents(
+  alpha = 0.05, 
+  sided = 2,
+  n = avg_events,
+  hr = .8,
+  ratio = 1,
+  tbl = TRUE
+  )
+
+# print results
+cat("beta is", beta_gsDesign$beta, "\n")
+cat("power is", (1-beta_gsDesign$beta)*100, "% \n")
+
+# gsDesign table
+beta_gsDesign
 ```
 :::
 
@@ -293,7 +346,7 @@ We now want to compare treatment effect estimates for `treat` when computed (a) 
 
 # coxph result
 coxph_results <- with(
-  data = data_mimids,
+  data = mimids_data,
   expr = coxph(formula = Surv(fu_itt_months, death_itt) ~ treat, 
                weights = weights, 
                cluster = subclass,
@@ -316,7 +369,7 @@ coxph_results
 
 # svycoxph result
 svycoxph_results <- with(
-  data = data_mimids,
+  data = mimids_data,
   expr = svycoxph(formula = Surv(fu_itt_months, death_itt) ~ treat),
   cluster = TRUE
   ) |> 
@@ -344,7 +397,7 @@ rbind(coxph_results, svycoxph_results)
 
 # coxph result
 coxph_results <- with(
-  data = data_wimids,
+  data = wimids_data,
   expr = coxph(formula = Surv(fu_itt_months, death_itt) ~ treat,
                weights = weights, 
                robust = TRUE
@@ -366,7 +419,7 @@ coxph_results
 
 # svycoxph result
 svycoxph_results <- with(
-  data = data_wimids,
+  data = wimids_data,
   expr = svycoxph(formula = Surv(fu_itt_months, death_itt) ~ treat),
   cluster = TRUE
   ) |> 

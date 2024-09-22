@@ -77,7 +77,7 @@ simulate_flaura <- function(n_total = 3500,
     # c_stage_initial_dx_cont
     c_stage_initial_dx_cont = sample(c(4, 3, 2, 1), size = n_total, replace = TRUE, prob = c(.76, 0.2, 0.028, 0.012)),
     # dem_race
-    dem_race = factor(sample(c("Non-Asian", "Asian"), size = n_total, replace = TRUE, prob = c(.38, .62))),
+    dem_race = factor(sample(c("Asian", "White", "Other"), size = n_total, replace = TRUE, prob = c(.36, .62, .02))),
     # dem_region
     dem_region = factor(sample(c("Midwest", "Northeast", "South", "West"), size = n_total, replace = TRUE, prob = c(.14, .20, .39, .27))),
     # dem_ses

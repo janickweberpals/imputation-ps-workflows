@@ -65,8 +65,8 @@ data_miss <- simulate_flaura(
   imposeNA = TRUE,
   propNA = .13
   ) |> 
-  # we simplify and assume a binary Asian/non-Asian race covariate where Asian is the reference group
-  mutate(dem_race = ifelse(dem_race == "Asian", 0, 1))
+  # convert dem_race into a binary Asian vs. non-Asian 
+  mutate(dem_race = factor(ifelse(dem_race == "Asian", "Asian", "Non-Asian")))
 ```
 :::
 
@@ -86,8 +86,8 @@ table(data_miss$dem_race, useNA = "ifany")
 
 ```
 
-   0    1 <NA> 
-1854 1166  480 
+    Asian Non-Asian      <NA> 
+     1091      1929       480 
 ```
 
 
@@ -127,6 +127,7 @@ Apply propensity score matching and weighting with replacement within in each im
 
 ```{.r .cell-code}
 # apply propensity score matching on mids object
+covariates_for_ps <- setdiff(covariates_for_ps, "dem_race")
 ps_form <- as.formula(paste("treat ~", paste(covariates_for_ps, collapse = " + ")))
 ps_form
 ```
@@ -142,8 +143,8 @@ treat ~ dem_age_index_cont + dem_sex_cont + c_smoking_history +
     c_chloride_mmol_l_cont + c_monocytes_10_9_l_cont + c_eosinophils_leukocytes_ratio_cont + 
     c_ldh_u_l_cont + c_hr_cont + c_sbp_cont + c_oxygen_cont + 
     c_ecog_cont + c_neutrophil_lymphocyte_ratio_cont + c_bmi_cont + 
-    c_ast_alt_ratio_cont + c_stage_initial_dx_cont + dem_race + 
-    dem_region + dem_ses + c_time_dx_to_index
+    c_ast_alt_ratio_cont + c_stage_initial_dx_cont + dem_region + 
+    dem_ses + c_time_dx_to_index
 ```
 
 
@@ -186,7 +187,7 @@ asian_matched <- lapply(
   FUN = match_within_strata, 
   imputed_data = data_imp,
   ps_formula = ps_form,
-  filter_expr = expr(dem_race == 0)
+  filter_expr = expr(dem_race == "Asian")
   )
 
 non_asian_matched <- lapply(
@@ -194,7 +195,7 @@ non_asian_matched <- lapply(
   FUN = match_within_strata, 
   imputed_data = data_imp,
   ps_formula = ps_form,
-  filter_expr = expr(dem_race == 1)
+  filter_expr = expr(dem_race == "Non-Asian")
   )
 
 # combine the mth imputed and matched datasets
@@ -258,7 +259,7 @@ asian_weighted <- lapply(
   FUN = weight_within_strata, 
   imputed_data = data_imp,
   ps_formula = ps_form,
-  filter_expr = expr(dem_race == 0)
+  filter_expr = expr(dem_race == "Asian")
   )
 
 non_asian_weighted <- lapply(
@@ -266,7 +267,7 @@ non_asian_weighted <- lapply(
   FUN = weight_within_strata, 
   imputed_data = data_imp,
   ps_formula = ps_form,
-  filter_expr = expr(dem_race == 1)
+  filter_expr = expr(dem_race == "Non-Asian")
   )
 
 weighted_all <- lapply(
@@ -316,10 +317,10 @@ matched_all |>
 ::: {.cell-output .cell-output-stdout}
 
 ```
-            term  estimate  std.error  conf.low conf.high
-1          treat 1.0164611 0.06285385 0.8964279 1.1525669
-2       dem_race 1.0168610 0.06594461 0.8929551 1.1579600
-3 treat:dem_race 0.5838534 0.10944305 0.4687215 0.7272652
+                     term  estimate  std.error  conf.low conf.high
+1                   treat 0.9576968 0.07559136 0.8250123 1.1117205
+2       dem_raceNon-Asian 0.9889503 0.07236700 0.8567030 1.1416124
+3 treat:dem_raceNon-Asian 0.6036740 0.09859211 0.4966413 0.7337737
 ```
 
 
@@ -359,10 +360,10 @@ weighted_all |>
 ::: {.cell-output .cell-output-stdout}
 
 ```
-            term  estimate  std.error  conf.low conf.high
-1          treat 1.0129437 0.04540748 0.9265436  1.107401
-2       dem_race 1.0140269 0.05675557 0.9070347  1.133640
-3 treat:dem_race 0.5930234 0.07725232 0.5094262  0.690339
+                     term  estimate  std.error  conf.low conf.high
+1                   treat 0.9540362 0.05859467 0.8504103 1.0702893
+2       dem_raceNon-Asian 0.9938111 0.06086045 0.8815299 1.1203936
+3 treat:dem_raceNon-Asian 0.6184604 0.07508937 0.5337307 0.7166409
 ```
 
 
@@ -382,7 +383,7 @@ weighted_all |>
 
 
 
-Script runtime: 0.66 minutes.
+Script runtime: 0.30 minutes.
 
 ::: panel-tabset
 ### Loaded packages

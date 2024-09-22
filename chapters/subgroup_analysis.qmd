@@ -60,7 +60,9 @@ data_miss <- simulate_flaura(
   include_id = FALSE, 
   imposeNA = TRUE,
   propNA = .13
-  )
+  ) |> 
+  # convert dem_race into a binary Asian vs. non-Asian 
+  mutate(dem_race = factor(ifelse(dem_race == "Asian", "Asian", "Non-Asian")))
 ```
 
 ## Moderator covariate

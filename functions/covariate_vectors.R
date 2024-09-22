@@ -6,30 +6,22 @@
 # covariates and corresponding labels for table 1
 table1_covariates <- tibble::tribble(
   ~covariate, ~label,
-  "dem_age_index", "Age at index date",
-  "dem_sex", "Sex",
+  "dem_age_index_cont", "Age at index date",
+  "dem_sex_cont", "Sex",
   "dem_race", "Race",
   "c_smoking_history", "Smoking history",
-  "c_ecog", "ECOG",
-  "c_de_novo_mets_dx", "De novo metastases",
-  "c_met_pre_index", "Any metastases before T0",
-  "c_time_dx_to_index", "Time initial diagnosis to T0 [days]",
-  "c_egfr_status", "EGFR status",
-  "c_year_index_binary", "Index year"
+  "c_ecog_cont", "ECOG",
+  "c_year_index", "Index year"
   )
 
 # covariates and corresponding labels for table 1
 table1_labels <- list(
-  "dem_age_index" ~ "Age at index date",
-  "dem_sex" ~ "Sex",
+  "dem_age_index_cont" ~ "Age at index date",
+  "dem_sex_cont" ~ "Sex",
   "dem_race" ~ "Race",
   "c_smoking_history" ~ "Smoking history",
-  "c_ecog" ~ "ECOG",
-  "c_de_novo_mets_dx" ~ "De novo metastases",
-  "c_met_pre_index" ~ "Any metastases before T0",
-  "c_time_dx_to_index" ~ "Time initial diagnosis to T0 [days]",
-  "c_egfr_status" ~ "EGFR status",
-  "c_year_index_binary" ~ "Index year"
+  "c_ecog_cont" ~ "ECOG",
+  "c_year_index" ~ "Index year"
   )
 
 

@@ -840,6 +840,29 @@
       ],
       "Hash": "7d7f283939f563670a697165b2cf5560"
     },
+    "gsDesign": {
+      "Package": "gsDesign",
+      "Version": "3.6.4",
+      "Source": "Repository",
+      "Repository": "REPO_NAME",
+      "Requirements": [
+        "R",
+        "dplyr",
+        "ggplot2",
+        "graphics",
+        "gt",
+        "magrittr",
+        "methods",
+        "r2rtf",
+        "rlang",
+        "stats",
+        "tibble",
+        "tidyr",
+        "tools",
+        "xtable"
+      ],
+      "Hash": "0a3639c9b3a529a6ca0fad4b8f20743b"
+    },
     "gt": {
       "Package": "gt",
       "Version": "0.11.0",
@@ -1494,6 +1517,18 @@
       ],
       "Hash": "1cba04a4e9414bdefc9dcaa99649a8dc"
     },
+    "r2rtf": {
+      "Package": "r2rtf",
+      "Version": "1.1.1",
+      "Source": "Repository",
+      "Repository": "REPO_NAME",
+      "Requirements": [
+        "R",
+        "grDevices",
+        "tools"
+      ],
+      "Hash": "807989b4dccfab6440841a5e8aaa95f1"
+    },
     "ranger": {
       "Package": "ranger",
       "Version": "0.16.0",
@@ -2041,6 +2076,18 @@
         "rlang"
       ],
       "Hash": "1d0336142f4cd25d8d23cd3ba7a8fb61"
+    },
+    "xtable": {
+      "Package": "xtable",
+      "Version": "1.8-4",
+      "Source": "Repository",
+      "Repository": "REPO_NAME",
+      "Requirements": [
+        "R",
+        "stats",
+        "utils"
+      ],
+      "Hash": "b8acdf8af494d9ec19ccb2481a9b11c2"
     },
     "yaml": {
       "Package": "yaml",

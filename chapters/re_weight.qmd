@@ -297,12 +297,12 @@ matchit_out_list <- lapply(
   )
 
 # convert the output into a mimids object
-data_mimids_from_function <- MatchThem::as.mimids(
+mimids_data_from_function <- MatchThem::as.mimids(
   x = matchit_out_list, 
   datasets = data_imp
   )
 
-data_mimids_from_function
+mimids_data_from_function
 ```
 
 ### `matchthem()` function
@@ -312,7 +312,7 @@ The following code resembles the code we would use in the main analysis by imple
 ```{r}
 # matching
 set.seed(42)
-data_mimids <- matchthem(
+mimids_data <- matchthem(
   datasets = data_imp,
   formula = ps_form,
   ratio = 1,
@@ -323,7 +323,7 @@ data_mimids <- matchthem(
   replace = F
   )
 
-data_mimids
+mimids_data
 ```
 
 ### Comparison of stacked datasets
@@ -333,8 +333,8 @@ We can now stack the datasets (= vertically append them) and compare the resulti
 ```{r}
 #| echo: true
 waldo::compare(
-  MatchThem::complete(data_mimids_from_function), 
-  MatchThem::complete(data_mimids)
+  MatchThem::complete(mimids_data_from_function), 
+  MatchThem::complete(mimids_data)
   )
 ```
 :::
