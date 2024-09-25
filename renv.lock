@@ -231,6 +231,28 @@
       ],
       "Hash": "74e1ef476ad0a9ed4ddd7d4a2c728c2f"
     },
+    "arrow": {
+      "Package": "arrow",
+      "Version": "17.0.0.1",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Requirements": [
+        "R",
+        "R6",
+        "assertthat",
+        "bit64",
+        "cpp11",
+        "glue",
+        "methods",
+        "purrr",
+        "rlang",
+        "stats",
+        "tidyselect",
+        "utils",
+        "vctrs"
+      ],
+      "Hash": "14af96cb2973f6a6c220ce9c3e5b02cd"
+    },
     "assertthat": {
       "Package": "assertthat",
       "Version": "0.2.1",
@@ -283,9 +305,9 @@
     },
     "bit64": {
       "Package": "bit64",
-      "Version": "4.0.5",
+      "Version": "4.5.2",
       "Source": "Repository",
-      "Repository": "REPO_NAME",
+      "Repository": "RSPM",
       "Requirements": [
         "R",
         "bit",
@@ -293,7 +315,7 @@
         "stats",
         "utils"
       ],
-      "Hash": "9fe98599ca456d6552421db0d6772d8f"
+      "Hash": "e84984bf5f12a18628d9a02322128dfd"
     },
     "bitops": {
       "Package": "bitops",
@@ -385,19 +407,20 @@
     },
     "cardx": {
       "Package": "cardx",
-      "Version": "0.2.0",
+      "Version": "0.2.1",
       "Source": "Repository",
-      "Repository": "REPO_NAME",
+      "Repository": "RSPM",
       "Requirements": [
         "R",
         "cards",
         "cli",
         "dplyr",
         "glue",
+        "lifecycle",
         "rlang",
         "tidyr"
       ],
-      "Hash": "7a00cecf9a296183d5d8df532f3daa75"
+      "Hash": "e5458dd65b0602136b16aed802d3bd50"
     },
     "checkmate": {
       "Package": "checkmate",
@@ -603,6 +626,40 @@
         "vctrs"
       ],
       "Hash": "fedd9d00c2944ff00a0e2696ccf048ec"
+    },
+    "encore.io": {
+      "Package": "encore.io",
+      "Version": "0.2.0",
+      "Source": "Git",
+      "RemoteType": "xgit",
+      "RemoteUrl": "https://gitlab-scm.partners.org/drugepi/encore/encore.io",
+      "RemoteRef": "dev",
+      "RemoteSha": "131e54feff7477ef01f9e007a932652b3e2b72c0",
+      "Requirements": [
+        "MatchIt",
+        "R",
+        "WeightIt",
+        "arrow",
+        "assertthat",
+        "data.table",
+        "dplyr",
+        "forcats",
+        "ggplot2",
+        "glue",
+        "gt",
+        "gtsummary",
+        "lifecycle",
+        "lubridate",
+        "magrittr",
+        "mice",
+        "pROC",
+        "parallel",
+        "stringr",
+        "survival",
+        "tibble",
+        "tidyr"
+      ],
+      "Hash": "4df6b78f1425e359085a82457cb427f4"
     },
     "evaluate": {
       "Package": "evaluate",
@@ -1201,16 +1258,18 @@
       ],
       "Hash": "16a08fc75007da0d08e0c0388c7c33e6"
     },
-    "locfit": {
-      "Package": "locfit",
-      "Version": "1.5-9.10",
+    "lubridate": {
+      "Package": "lubridate",
+      "Version": "1.9.3",
       "Source": "Repository",
-      "Repository": "REPO_NAME",
+      "Repository": "RSPM",
       "Requirements": [
         "R",
-        "lattice"
+        "generics",
+        "methods",
+        "timechange"
       ],
-      "Hash": "7d8e0ac914051ca0254332387d9b5816"
+      "Hash": "680ad542fbcf801442c83a6ac5a2126c"
     },
     "magrittr": {
       "Package": "magrittr",
@@ -1410,6 +1469,19 @@
       ],
       "Hash": "c54136f6b269d1e006d62f7dd8ff4c94"
     },
+    "pROC": {
+      "Package": "pROC",
+      "Version": "1.18.5",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Requirements": [
+        "R",
+        "Rcpp",
+        "methods",
+        "plyr"
+      ],
+      "Hash": "82d32ebd548c6a4e7de73bab96411b3b"
+    },
     "pan": {
       "Package": "pan",
       "Version": "1.9",
@@ -1476,6 +1548,17 @@
         "utils"
       ],
       "Hash": "01f28d4278f15c76cddbea05899c5d6f"
+    },
+    "plyr": {
+      "Package": "plyr",
+      "Version": "1.8.9",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Requirements": [
+        "R",
+        "Rcpp"
+      ],
+      "Hash": "6b8177fd19982f0020743fadbfdbd933"
     },
     "prettyunits": {
       "Package": "prettyunits",
@@ -1743,18 +1826,6 @@
       ],
       "Hash": "5c47e84dc0a3ca761ae1d307889e796d"
     },
-    "simsurv": {
-      "Package": "simsurv",
-      "Version": "1.0.0",
-      "Source": "Repository",
-      "Repository": "REPO_NAME",
-      "Requirements": [
-        "R",
-        "methods",
-        "stats"
-      ],
-      "Hash": "9ea850bdb2184bdaf7eeb71041b95bb9"
-    },
     "smd": {
       "Package": "smd",
       "Version": "0.7.0",
@@ -1903,6 +1974,17 @@
         "withr"
       ],
       "Hash": "829f27b9c4919c16b593794a6344d6c0"
+    },
+    "timechange": {
+      "Package": "timechange",
+      "Version": "0.3.0",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Requirements": [
+        "R",
+        "cpp11"
+      ],
+      "Hash": "c5f3c201b931cd6474d17d8700ccb1c8"
     },
     "tinytex": {
       "Package": "tinytex",

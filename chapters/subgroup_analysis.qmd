@@ -32,6 +32,7 @@ library(gtsummary)
 library(parallelly)
 library(ranger)
 library(furrr)
+library(encore.io)
 
 source(here("functions", "source_encore.io_functions.R"))
 

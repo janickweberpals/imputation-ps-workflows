@@ -1,5 +1,6 @@
 project:
   type: book
+  output-dir: doc  
     
 book:
   title: "Multiple imputation-propensity score workflows"

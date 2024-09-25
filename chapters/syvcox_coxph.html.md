@@ -37,6 +37,7 @@ library(ranger)
 library(furrr)
 library(cobalt)
 library(gsDesign)
+library(encore.io)
 
 source(here("functions", "source_encore.io_functions.R"))
 
@@ -787,7 +788,7 @@ The resulting "mimids" object contains the original imputed data and the output 
 
 ### Weighting
 
-The weighting step is performed very similarly using the `weightthem()` function. In this example weapply SMR weighting to arrive at the same ATT estimand as matching which is indicated through the `estimand = "ATT"` argument. In case we wanted to weight patients based on overlap weights, `estimand = "AT0"` would need to be specified (which is one of the sensitivity analyses in the FLAURA protocol).
+The weighting step is performed very similarly using the `weightthem()` function. In this example we apply SMR weighting to arrive at the same ATT estimand as matching which is indicated through the `estimand = "ATT"` argument. In case we wanted to weight patients based on overlap weights, `estimand = "AT0"` would need to be specified (which is one of the sensitivity analyses in the FLAURA protocol).
 
 To mitigate the risks of extreme weights, the subsequent `trim()` function truncates large weights by setting all weights higher than that at a given quantile (in this example the 95% quantile) to the weight at the quantile. Since we specify `lower = TRUE`, this is done symmetrically also with the 5% quantile.
 
@@ -1236,13 +1237,15 @@ pander::pander(subset(data.frame(sessioninfo::package_info()), attached==TRUE, c
 
    **dplyr**        dplyr          1.1.4     
 
+ **encore.io**    encore.io        0.2.0     
+
    **furrr**        furrr          0.3.1     
 
    **future**       future        1.34.0     
 
   **gsDesign**     gsDesign        3.6.4     
 
- **gtsummary**    gtsummary        2.0.1     
+ **gtsummary**    gtsummary        2.0.2     
 
     **here**         here          1.0.1     
 
@@ -1287,10 +1290,10 @@ en_US.UTF-8||en_US.UTF-8||en_US.UTF-8||C||en_US.UTF-8||en_US.UTF-8
 _grid_, _stats_, _graphics_, _grDevices_, _datasets_, _utils_, _methods_ and _base_
 
 **other attached packages:** 
-_gsDesign(v.3.6.4)_, _cobalt(v.4.5.5)_, _furrr(v.0.3.1)_, _future(v.1.34.0)_, _ranger(v.0.16.0)_, _parallelly(v.1.38.0)_, _gtsummary(v.2.0.1)_, _here(v.1.0.1)_, _survey(v.4.4-2)_, _Matrix(v.1.7-0)_, _MatchThem(v.1.2.1)_, _mice(v.3.16.0)_, _survival(v.3.5-8)_ and _dplyr(v.1.1.4)_
+_encore.io(v.0.2.0)_, _gsDesign(v.3.6.4)_, _cobalt(v.4.5.5)_, _furrr(v.0.3.1)_, _future(v.1.34.0)_, _ranger(v.0.16.0)_, _parallelly(v.1.38.0)_, _gtsummary(v.2.0.2)_, _here(v.1.0.1)_, _survey(v.4.4-2)_, _Matrix(v.1.7-0)_, _MatchThem(v.1.2.1)_, _mice(v.3.16.0)_, _survival(v.3.5-8)_ and _dplyr(v.1.1.4)_
 
 **loaded via a namespace (and not attached):** 
-_tidyselect(v.1.2.1)_, _farver(v.2.1.2)_, _fastmap(v.1.2.0)_, _digest(v.0.6.37)_, _rpart(v.4.1.23)_, _lifecycle(v.1.0.4)_, _magrittr(v.2.0.3)_, _compiler(v.4.4.0)_, _rlang(v.1.1.4)_, _sass(v.0.4.9)_, _tools(v.4.4.0)_, _utf8(v.1.2.4)_, _yaml(v.2.3.10)_, _gt(v.0.11.0)_, _knitr(v.1.48)_, _labeling(v.0.4.3)_, _htmlwidgets(v.1.6.4)_, _xml2(v.1.3.6)_, _r2rtf(v.1.1.1)_, _withr(v.3.0.1)_, _purrr(v.1.0.2)_, _nnet(v.7.3-19)_, _fansi(v.1.0.6)_, _jomo(v.2.7-6)_, _xtable(v.1.8-4)_, _colorspace(v.2.1-1)_, _ggplot2(v.3.5.1)_, _globals(v.0.16.3)_, _scales(v.1.3.0)_, _iterators(v.1.0.14)_, _MASS(v.7.3-60.2)_, _cli(v.3.6.3)_, _rmarkdown(v.2.28)_, _crayon(v.1.5.3)_, _generics(v.0.1.3)_, _rstudioapi(v.0.16.0)_, _sessioninfo(v.1.2.2)_, _commonmark(v.1.9.1)_, _minqa(v.1.2.8)_, _DBI(v.1.2.3)_, _pander(v.0.6.5)_, _stringr(v.1.5.1)_, _splines(v.4.4.0)_, _assertthat(v.0.2.1)_, _parallel(v.4.4.0)_, _base64enc(v.0.1-3)_, _mitools(v.2.4)_, _vctrs(v.0.6.5)_, _WeightIt(v.1.3.0)_, _boot(v.1.3-30)_, _glmnet(v.4.1-8)_, _jsonlite(v.1.8.8)_, _mitml(v.0.4-5)_, _listenv(v.0.9.1)_, _locfit(v.1.5-9.10)_, _foreach(v.1.5.2)_, _tidyr(v.1.3.1)_, _glue(v.1.7.0)_, _nloptr(v.2.1.1)_, _pan(v.1.9)_, _chk(v.0.9.2)_, _codetools(v.0.2-20)_, _stringi(v.1.8.4)_, _shape(v.1.4.6.1)_, _gtable(v.0.3.5)_, _lme4(v.1.1-35.5)_, _munsell(v.0.5.1)_, _tibble(v.3.2.1)_, _pillar(v.1.9.0)_, _htmltools(v.0.5.8.1)_, _R6(v.2.5.1)_, _rprojroot(v.2.0.4)_, _evaluate(v.0.24.0)_, _lattice(v.0.22-6)_, _markdown(v.1.13)_, _backports(v.1.5.0)_, _cards(v.0.2.1)_, _tictoc(v.1.2.1)_, _MatchIt(v.4.5.5)_, _broom(v.1.0.6)_, _renv(v.1.0.7)_, _simsurv(v.1.0.0)_, _Rcpp(v.1.0.13)_, _nlme(v.3.1-164)_, _xfun(v.0.47)_ and _pkgconfig(v.2.0.3)_
+_DBI(v.1.2.3)_, _pROC(v.1.18.5)_, _rlang(v.1.1.4)_, _magrittr(v.2.0.3)_, _compiler(v.4.4.0)_, _vctrs(v.0.6.5)_, _stringr(v.1.5.1)_, _pkgconfig(v.2.0.3)_, _shape(v.1.4.6.1)_, _crayon(v.1.5.3)_, _fastmap(v.1.2.0)_, _backports(v.1.5.0)_, _labeling(v.0.4.3)_, _pander(v.0.6.5)_, _utf8(v.1.2.4)_, _rmarkdown(v.2.28)_, _markdown(v.1.13)_, _sessioninfo(v.1.2.2)_, _nloptr(v.2.1.1)_, _purrr(v.1.0.2)_, _bit(v.4.5.0)_, _xfun(v.0.47)_, _glmnet(v.4.1-8)_, _jomo(v.2.7-6)_, _jsonlite(v.1.8.9)_, _tictoc(v.1.2.1)_, _chk(v.0.9.2)_, _pan(v.1.9)_, _broom(v.1.0.6)_, _parallel(v.4.4.0)_, _MatchIt(v.4.5.5)_, _R6(v.2.5.1)_, _simsurv(v.1.0.0)_, _stringi(v.1.8.4)_, _boot(v.1.3-30)_, _rpart(v.4.1.23)_, _lubridate(v.1.9.3)_, _Rcpp(v.1.0.13)_, _assertthat(v.0.2.1)_, _iterators(v.1.0.14)_, _knitr(v.1.48)_, _base64enc(v.0.1-3)_, _splines(v.4.4.0)_, _nnet(v.7.3-19)_, _timechange(v.0.3.0)_, _tidyselect(v.1.2.1)_, _rstudioapi(v.0.16.0)_, _yaml(v.2.3.10)_, _codetools(v.0.2-20)_, _listenv(v.0.9.1)_, _lattice(v.0.22-6)_, _tibble(v.3.2.1)_, _plyr(v.1.8.9)_, _withr(v.3.0.1)_, _evaluate(v.1.0.0)_, _xml2(v.1.3.6)_, _pillar(v.1.9.0)_, _WeightIt(v.1.3.0)_, _renv(v.1.0.7)_, _foreach(v.1.5.2)_, _generics(v.0.1.3)_, _rprojroot(v.2.0.4)_, _ggplot2(v.3.5.1)_, _munsell(v.0.5.1)_, _commonmark(v.1.9.1)_, _scales(v.1.3.0)_, _minqa(v.1.2.8)_, _globals(v.0.16.3)_, _xtable(v.1.8-4)_, _glue(v.1.7.0)_, _tools(v.4.4.0)_, _data.table(v.1.16.0)_, _lme4(v.1.1-35.5)_, _locfit(v.1.5-9.10)_, _forcats(v.1.0.0)_, _tidyr(v.1.3.1)_, _mitools(v.2.4)_, _cards(v.0.2.2)_, _colorspace(v.2.1-1)_, _nlme(v.3.1-164)_, _cli(v.3.6.3)_, _r2rtf(v.1.1.1)_, _fansi(v.1.0.6)_, _gt(v.0.11.0)_, _arrow(v.17.0.0.1)_, _gtable(v.0.3.5)_, _sass(v.0.4.9)_, _digest(v.0.6.37)_, _htmlwidgets(v.1.6.4)_, _farver(v.2.1.2)_, _htmltools(v.0.5.8.1)_, _lifecycle(v.1.0.4)_, _mitml(v.0.4-5)_, _bit64(v.4.5.2)_ and _MASS(v.7.3-60.2)_
 :::
 :::
 

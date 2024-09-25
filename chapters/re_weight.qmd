@@ -28,6 +28,7 @@ library(MatchThem)
 library(MatchIt)
 library(survey)
 library(gtsummary)
+library(encore.io)
 
 # calling functions
 source(here::here("functions", "source_encore.io_functions.R"))
@@ -280,6 +281,8 @@ For this demonstration, we use the same matching parameters, but without re-weig
 We run again our custom function but with `targets = NULL` to not re-weight any of the included covariates. To convert the returned output of a list of matchit objects into an object of type `mimids` we use the `MatchThem::as.mimids()` function.
 
 ```{r}
+#| label: mimids-from-function
+
 # call match re-weight
 set.seed(42)
 matchit_out_list <- lapply(
@@ -310,6 +313,8 @@ mimids_data_from_function
 The following code resembles the code we would use in the main analysis by implementing the generic `matchthem()` function.
 
 ```{r}
+#| label: mimids-from-package
+
 # matching
 set.seed(42)
 mimids_data <- matchthem(
@@ -331,6 +336,8 @@ mimids_data
 We can now stack the datasets (= vertically append them) and compare the resulting 10 x 10 datasets for any differences:
 
 ```{r}
+#| label: compare
+
 #| echo: true
 waldo::compare(
   MatchThem::complete(mimids_data_from_function), 

@@ -35,6 +35,7 @@ library(ranger)
 library(furrr)
 library(cobalt)
 library(gsDesign)
+library(encore.io)
 
 source(here("functions", "source_encore.io_functions.R"))
 

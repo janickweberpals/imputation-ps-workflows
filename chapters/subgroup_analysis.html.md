@@ -34,6 +34,7 @@ library(gtsummary)
 library(parallelly)
 library(ranger)
 library(furrr)
+library(encore.io)
 
 source(here("functions", "source_encore.io_functions.R"))
 
@@ -402,11 +403,13 @@ pander::pander(subset(data.frame(sessioninfo::package_info()), attached==TRUE, c
 ---------------- ------------ ---------------
    **dplyr**        dplyr          1.1.4     
 
+ **encore.io**    encore.io        0.2.0     
+
    **furrr**        furrr          0.3.1     
 
    **future**       future        1.34.0     
 
- **gtsummary**    gtsummary        2.0.1     
+ **gtsummary**    gtsummary        2.0.2     
 
     **here**         here          1.0.1     
 
@@ -451,10 +454,10 @@ en_US.UTF-8||en_US.UTF-8||en_US.UTF-8||C||en_US.UTF-8||en_US.UTF-8
 _grid_, _stats_, _graphics_, _grDevices_, _datasets_, _utils_, _methods_ and _base_
 
 **other attached packages:** 
-_furrr(v.0.3.1)_, _future(v.1.34.0)_, _ranger(v.0.16.0)_, _parallelly(v.1.38.0)_, _gtsummary(v.2.0.1)_, _here(v.1.0.1)_, _survey(v.4.4-2)_, _Matrix(v.1.7-0)_, _MatchThem(v.1.2.1)_, _mice(v.3.16.0)_, _survival(v.3.5-8)_ and _dplyr(v.1.1.4)_
+_encore.io(v.0.2.0)_, _furrr(v.0.3.1)_, _future(v.1.34.0)_, _ranger(v.0.16.0)_, _parallelly(v.1.38.0)_, _gtsummary(v.2.0.2)_, _here(v.1.0.1)_, _survey(v.4.4-2)_, _Matrix(v.1.7-0)_, _MatchThem(v.1.2.1)_, _mice(v.3.16.0)_, _survival(v.3.5-8)_ and _dplyr(v.1.1.4)_
 
 **loaded via a namespace (and not attached):** 
-_gtable(v.0.3.5)_, _shape(v.1.4.6.1)_, _xfun(v.0.47)_, _ggplot2(v.3.5.1)_, _htmlwidgets(v.1.6.4)_, _MatchIt(v.4.5.5)_, _lattice(v.0.22-6)_, _simsurv(v.1.0.0)_, _vctrs(v.0.6.5)_, _tools(v.4.4.0)_, _generics(v.0.1.3)_, _parallel(v.4.4.0)_, _tibble(v.3.2.1)_, _fansi(v.1.0.6)_, _pan(v.1.9)_, _pkgconfig(v.2.0.3)_, _jomo(v.2.7-6)_, _assertthat(v.0.2.1)_, _lifecycle(v.1.0.4)_, _stringr(v.1.5.1)_, _compiler(v.4.4.0)_, _tictoc(v.1.2.1)_, _munsell(v.0.5.1)_, _mitools(v.2.4)_, _codetools(v.0.2-20)_, _htmltools(v.0.5.8.1)_, _yaml(v.2.3.10)_, _glmnet(v.4.1-8)_, _pillar(v.1.9.0)_, _nloptr(v.2.1.1)_, _crayon(v.1.5.3)_, _tidyr(v.1.3.1)_, _MASS(v.7.3-60.2)_, _sessioninfo(v.1.2.2)_, _iterators(v.1.0.14)_, _rpart(v.4.1.23)_, _boot(v.1.3-30)_, _foreach(v.1.5.2)_, _mitml(v.0.4-5)_, _nlme(v.3.1-164)_, _locfit(v.1.5-9.10)_, _WeightIt(v.1.3.0)_, _tidyselect(v.1.2.1)_, _digest(v.0.6.37)_, _stringi(v.1.8.4)_, _pander(v.0.6.5)_, _listenv(v.0.9.1)_, _purrr(v.1.0.2)_, _splines(v.4.4.0)_, _rprojroot(v.2.0.4)_, _fastmap(v.1.2.0)_, _colorspace(v.2.1-1)_, _cli(v.3.6.3)_, _magrittr(v.2.0.3)_, _utf8(v.1.2.4)_, _broom(v.1.0.6)_, _withr(v.3.0.1)_, _scales(v.1.3.0)_, _backports(v.1.5.0)_, _rmarkdown(v.2.28)_, _globals(v.0.16.3)_, _nnet(v.7.3-19)_, _lme4(v.1.1-35.5)_, _chk(v.0.9.2)_, _evaluate(v.0.24.0)_, _knitr(v.1.48)_, _rlang(v.1.1.4)_, _Rcpp(v.1.0.13)_, _glue(v.1.7.0)_, _DBI(v.1.2.3)_, _renv(v.1.0.7)_, _rstudioapi(v.0.16.0)_, _minqa(v.1.2.8)_, _jsonlite(v.1.8.8)_ and _R6(v.2.5.1)_
+_tidyselect(v.1.2.1)_, _arrow(v.17.0.0.1)_, _fastmap(v.1.2.0)_, _pROC(v.1.18.5)_, _digest(v.0.6.37)_, _rpart(v.4.1.23)_, _timechange(v.0.3.0)_, _lifecycle(v.1.0.4)_, _magrittr(v.2.0.3)_, _compiler(v.4.4.0)_, _rlang(v.1.1.4)_, _tools(v.4.4.0)_, _utf8(v.1.2.4)_, _yaml(v.2.3.10)_, _gt(v.0.11.0)_, _data.table(v.1.16.0)_, _knitr(v.1.48)_, _htmlwidgets(v.1.6.4)_, _bit(v.4.5.0)_, _plyr(v.1.8.9)_, _xml2(v.1.3.6)_, _withr(v.3.0.1)_, _purrr(v.1.0.2)_, _nnet(v.7.3-19)_, _fansi(v.1.0.6)_, _jomo(v.2.7-6)_, _colorspace(v.2.1-1)_, _ggplot2(v.3.5.1)_, _globals(v.0.16.3)_, _scales(v.1.3.0)_, _iterators(v.1.0.14)_, _MASS(v.7.3-60.2)_, _cli(v.3.6.3)_, _rmarkdown(v.2.28)_, _crayon(v.1.5.3)_, _generics(v.0.1.3)_, _rstudioapi(v.0.16.0)_, _sessioninfo(v.1.2.2)_, _minqa(v.1.2.8)_, _DBI(v.1.2.3)_, _pander(v.0.6.5)_, _stringr(v.1.5.1)_, _splines(v.4.4.0)_, _assertthat(v.0.2.1)_, _parallel(v.4.4.0)_, _mitools(v.2.4)_, _vctrs(v.0.6.5)_, _WeightIt(v.1.3.0)_, _boot(v.1.3-30)_, _glmnet(v.4.1-8)_, _jsonlite(v.1.8.9)_, _bit64(v.4.5.2)_, _mitml(v.0.4-5)_, _listenv(v.0.9.1)_, _locfit(v.1.5-9.10)_, _foreach(v.1.5.2)_, _tidyr(v.1.3.1)_, _glue(v.1.7.0)_, _nloptr(v.2.1.1)_, _pan(v.1.9)_, _chk(v.0.9.2)_, _codetools(v.0.2-20)_, _stringi(v.1.8.4)_, _lubridate(v.1.9.3)_, _shape(v.1.4.6.1)_, _gtable(v.0.3.5)_, _lme4(v.1.1-35.5)_, _munsell(v.0.5.1)_, _tibble(v.3.2.1)_, _pillar(v.1.9.0)_, _htmltools(v.0.5.8.1)_, _R6(v.2.5.1)_, _rprojroot(v.2.0.4)_, _evaluate(v.1.0.0)_, _lattice(v.0.22-6)_, _tictoc(v.1.2.1)_, _backports(v.1.5.0)_, _MatchIt(v.4.5.5)_, _broom(v.1.0.6)_, _simsurv(v.1.0.0)_, _renv(v.1.0.7)_, _Rcpp(v.1.0.13)_, _nlme(v.3.1-164)_, _xfun(v.0.47)_, _forcats(v.1.0.0)_ and _pkgconfig(v.2.0.3)_
 :::
 :::
 
