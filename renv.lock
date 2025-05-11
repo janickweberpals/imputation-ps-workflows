@@ -1100,6 +1100,19 @@
       ],
       "Hash": "04291cc45198225444a397606810ac37"
     },
+    "insight": {
+      "Package": "insight",
+      "Version": "0.20.4",
+      "Source": "Repository",
+      "Repository": "REPO_NAME",
+      "Requirements": [
+        "R",
+        "methods",
+        "stats",
+        "utils"
+      ],
+      "Hash": "8457d6e682a49f2c87b698a830527b09"
+    },
     "isoband": {
       "Package": "isoband",
       "Version": "0.2.7",
@@ -1280,6 +1293,24 @@
         "R"
       ],
       "Hash": "7ce2733a9826b3aeb1775d56fd305472"
+    },
+    "marginaleffects": {
+      "Package": "marginaleffects",
+      "Version": "0.22.0",
+      "Source": "Repository",
+      "Repository": "REPO_NAME",
+      "Requirements": [
+        "R",
+        "Rcpp",
+        "RcppEigen",
+        "checkmate",
+        "data.table",
+        "generics",
+        "insight",
+        "methods",
+        "rlang"
+      ],
+      "Hash": "aca54f5e84764a47cb7aea2484a5e52b"
     },
     "markdown": {
       "Package": "markdown",

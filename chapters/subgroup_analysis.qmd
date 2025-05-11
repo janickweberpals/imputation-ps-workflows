@@ -246,15 +246,59 @@ cox_fit_matching <- function(i){
     robust = TRUE
     )
   
+  return(survival_fit)
+  
+}
+
+cox_marginal <- function(i){
+  
+  survival_fit <- survival::coxph(
+    data = i,
+    formula = Surv(fu_itt_months, death_itt) ~ treat*dem_race, 
+    weights = weights, 
+    cluster = subclass,
+    robust = TRUE
+    )
+  
+  # Estimate the overall ATT
+  estimate <- avg_comparisons(
+    model = survival_fit, 
+    comparison = "lnratio",
+    variables = "treat",
+    newdata = subset(i, treat == 1),
+    vcov = ~subclass, 
+    wts = "weights",
+    by = "dem_race"
+    )
+  
+  return(estimate)
+  
 }
 ```
 
 ```{r}
+library(marginaleffects)
+
+# cox_marginal
 matched_all |> 
   lapply(FUN = cox_fit_matching) |> 
   mice::pool() |> 
   broom::tidy(exponentiate = TRUE, conf.int = TRUE) |> 
   dplyr::select(term, estimate, std.error, conf.low, conf.high)
+```
+
+```{r}
+library(marginaleffects)
+
+mod_mice <- with(
+  data = matched_all, 
+  expr = survival::coxph(
+    formula = Surv(fu_itt_months, death_itt) ~ treat*dem_race, 
+    weights = weights, 
+    cluster = subclass,
+    robust = TRUE
+    )
+  )
 ```
 
 ### Weighting
