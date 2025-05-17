@@ -20,7 +20,6 @@ book:
   reader-mode: true
   repo-url: https://github.com/janickweberpals/imputation-ps-workflows
   repo-actions: [issue]
-  downloads: [pdf]
 
 format:
   html:
@@ -32,9 +31,4 @@ format:
     page-layout: full
     link-external-icon: true
     link-external-newwindow: true
-  pdf:
-    documentclass: article
-    toc: true
-    toc-depth: 2
-    number-sections: true
 
