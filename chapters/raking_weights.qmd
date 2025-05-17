@@ -5,16 +5,22 @@ date: last-modified
 format: html
 toc: true
 toc-depth: 3
-code-tools: true
-code-fold: true
 keep-md: true
 embed-resources: true
 editor: visual
 ---
 
-This is a reproducible example on how to incorporate raking weights to match distributions of a target population in multiple imputation \> matching/weighting \> balance assessment \> outcome analysis workflows.
+## About raking weights
 
-Load packages:
+This chapter is a reproducible example on how to incorporate raking weights to match distributions of a target population in multiple imputation \> matching/weighting \> balance assessment \> outcome analysis workflows.
+
+In brief, raking is a procedure to compute weights for multiple variables of interest at the same time to re-weight a population to match pre-specified distributions in complex survey designs. The raking procedure is implemented in the [anesrake](https://surveyinsights.org/wp-content/uploads/2014/07/Full-anesrake-paper.pdf) package. Here, the anesrake function iteratively adjusts the weights to make the weighted sample percentages match the target population percentages for the selected variables. It does this by multiplying the current weight for each case by a factor based on the ratio of the target population proportion to the weighted sample proportion for a given category. This adjustment is performed sequentially for each category of each selected variable. Because adjusting for one variable can disrupt the match for previous variables, the process is repeated through all selected variables in cycles. This iterative process minimizes the Kullback-Leibler (KL) divergence and continues until the weighted sample proportions match the target population proportions for all categories ("full convergence"), or until no further change occurs.
+
+Raking weights could be seen as an alternative to matching-adjusted indirect comparisons (MAIC) which are often used to adjust for differences in baseline characteristics between a trial and a real-world population. However, raking weights are not the same as MAIC, as they do not require a model to estimate the treatment effect in the target population. Instead, raking weights adjust the sample to match the target population without estimating a treatment effect.
+
+## Objective
+
+This chapter aims to introduce the [raking_weights()](https://janickweberpals.github.io/encore.analytics/reference/raking_weights.html) function, which performs the raking procedure in multiply imputed and matched (`mimids`) datasets. The function is a wrapper for the `anesrake()` function from the `anesrake` package and can be used in combination with multiple imputation and propensity score matching/weighting.
 
 ```{r}
 #| label: setup
@@ -29,6 +35,8 @@ library(MatchIt)
 library(survey)
 library(gtsummary)
 library(encore.analytics)
+
+source(here("functions", "covariate_vectors.R"))
 
 # track time
 runtime <- tictoc::tic()
@@ -45,55 +53,20 @@ We use the `simulate_data()` function to simulate a realistic oncology comparati
 # load example dataset with missing observations
 data_miss <- simulate_data(
   n_total = 3500, 
-  seed = 41, 
+  seed = 42, 
   include_id = FALSE, 
   imposeNA = TRUE,
   propNA = .33
   )
 ```
 
-```{r}
-#| label: data_overview
+If it is desired ro rake categorical variables, the function works best of those variables are encoded as factor variables. 
 
-data_miss <- data_miss |> 
- # anesrake works best with factor variables
-  # create age category with age less than 65
-  mutate(dem_age_lt65 = factor(ifelse(dem_age_index_cont < 65, "<65", "65+"))) |> 
-  # convert dem_race into a binary Asian vs. non-Asian 
-  mutate(dem_race = factor(ifelse(dem_race == "Asian", "Asian", "Non-Asian"))) |>
-  # convert dem_sex_cont into a factor 
-  mutate(dem_sex_cont = factor(ifelse(dem_sex_cont == "1", "Male", "Female"))) |> 
-  # convert dem_sex_cont into a factor 
-  mutate(c_smoking_history = factor(ifelse(c_smoking_history == TRUE, "Current/former", "Never"))) |> 
-  # convert c_ecog_cont into a factor 
-  mutate(across(c(c_ecog_cont), function(x) factor(as.character(x))))
-```
-
-
-## Multiple imputation
-
-Multiple imputation using `mice:`
-
-```{r}
-#| label: mice
-#| warning: false
-
-# impute data
-data_imp <- futuremice(
-  parallelseed = 42,
-  n.core = 7,
-  data = data_miss,
-  method = "rf",
-  m = 10,
-  print = FALSE
-  )
-```
+In this example, we aim to estimate raking weights for an EHR-derived real-world dataset that aims to mimick the distributions of the [FLAURA trial population, which is one of the prioritized clinical trials to be emulated in ENCORE](https://cdn.clinicaltrials.gov/large-docs/95/NCT06675695/Prot_000.pdf). 
 
 ## Defining target distributions
 
-Before applying the re-weighting, we need to define the target distributions of patient characteristics that we want to match from the clinical trial using the *raking* procedure. The following distributions are taken from Table 1 of the FLAURA trial.
-
-![FLAURA trial Table 1; in OS analysis race was simplified to Asian vs. non-Asian](/images/nejm_tbl1.png){#tbl-FLAURAtbl1 fig-align="center"}
+Before estimating raking weights, we need to define the target distributions of patient characteristics that we want to match from the clinical trial using the *raking* procedure. The following distributions are taken from Table 1 of the FLAURA trial.
 
 ```{r}
 # Define FLAURA distributions for key covariates --------------------------
@@ -138,11 +111,47 @@ names(targets) <- c("dem_age_lt65", "dem_sex_cont", "dem_race", "c_smoking_histo
 targets
 ```
 
-## Propensity score matching and re-weighting
+Accordingly, we need to convert the categorical target variables in our simulated dataset into factors. The following code chunk shows how to do this for the `data_miss` dataset.
 
-In this step, propensity score matching and re-weighting of key patient characteristics to match those of the original RCT is performed across all imputed datasets.
+```{r}
+#| label: data_overview
 
-The propensity score model is specified as follows:
+data_miss <- data_miss |> 
+ # anesrake works best with factor variables
+  # create age category with age less than 65
+  mutate(dem_age_lt65 = factor(ifelse(dem_age_index_cont < 65, "<65", "65+"))) |> 
+  # convert dem_race into a binary Asian vs. non-Asian 
+  mutate(dem_race = factor(ifelse(dem_race == "Asian", "Asian", "Non-Asian"))) |>
+  # convert dem_sex_cont into a factor 
+  mutate(dem_sex_cont = factor(ifelse(dem_sex_cont == "1", "Male", "Female"))) |> 
+  # convert dem_sex_cont into a factor 
+  mutate(c_smoking_history = factor(ifelse(c_smoking_history == TRUE, "Current/former", "Never"))) |> 
+  # convert c_ecog_cont into a factor 
+  mutate(across(c(c_ecog_cont), function(x) factor(as.character(x))))
+```
+
+## Multiple imputation
+
+Since we operate on a simulated dataset with missing observations, we first impute the missing data before performing the propensity score matching and raking. We use the `mice` package for this purpose.
+
+```{r}
+#| label: mice
+#| warning: false
+
+# impute data
+data_imp <- futuremice(
+  parallelseed = 42,
+  n.core = 7,
+  data = data_miss,
+  method = "rf",
+  m = 10,
+  print = FALSE
+  )
+```
+
+## Propensity score matching/weighting
+
+In the next step, we create `mimids` and `wimids` object which contain the imputed and 1:1 propensity score matched/SMR-weighted datasets that will serve as the input for the raking procedure. The propensity score model is specified as follows:
 
 ```{r}
 #| label: ps-model
@@ -152,62 +161,77 @@ ps_form <- as.formula(paste("treat ~", paste(covariates_for_ps, collapse = " + "
 ps_form
 ```
 
-The matching and re-weighting is performed using the `re_weight()` function. This function is a wrapper for `matchit()` and `weightit()` in combination with the `anesrake()` function which performs the *raking* (= re-weighting) procedure.
+As already covered in the previous chapters, we can use the `matchthem()` function to perform the matching and weighting.
 
-We apply this function to each imputed dataset. Before doing so, the imputed datasets, which are currently stored as a `mids` object, needs to be converted to a list of dataframes:
-
-```{r}
-#| label: mids-to-mild
-
-# create a mild object containing lists of data.frames
-data_mild <- mice::complete(data = data_imp, action = "all", include = FALSE)
-
-summary(data_mild)
-```
-
-The lapply function loops the function through each dataframe and returns a list of `matchit` objects which contain imputed \> matched \> re-weighted datasets. To take advantage of the features that come with the `cobalt` and `matchthem` packages, the function stores the raking weights as sampling weights (`s.weights`).
+::: panel-tabset
+### Propensity score matching
 
 ```{r}
-#| label: matching-re-weighting
+#| label: ps-matching
 #| warning: false
 
-# call match re-weight
-matchit_out_list <- lapply(
-  # list of dataframes
-  X = data_mild, 
-  # call function
-  FUN = re_weight,
-  # target distributions
-  targets = targets,
-  # should matching or weighting be performed
-  matching_weighting = "matching",
-  # matching arguments passed on to matchit() function
+# matching
+mimids_data <- matchthem(
   formula = ps_form,
-  ratio = 1,
-  method = "nearest",
+  datasets = data_imp,
+  approach = 'within',
+  method = 'nearest',
   distance = "glm",
   link = "logit",
-  caliper = 0.05,
+  caliper = 0.01,
+  ratio = 1,
   replace = F
   )
+
+# print summary for matched dataset #1
+mimids_data
 ```
 
-We can inspect the output of the first imputed \> matched \> re-weighted dataset.
+### Propensity score weighting
 
 ```{r}
-matchit_out_list[[1]]
+#| label: ps-weighting
+#| warning: false
+
+# matching
+wimids_data <- weightthem(
+  formula = ps_form,
+  datasets = data_imp,
+  approach = 'within',
+  estimand = "ATT"
+  )
+
+
+# print summary for weighted dataset #1
+wimids_data
 ```
+:::
 
-## Table 1
+### Raking procedure
 
-To check if the re-weighting process worked, we can extract the matched patients and compare a Table 1 that does not include the weights vs. a Table that considers the weights. For this example, we look at the first imputed \> matched \> re-weighted dataset.
+The `raking_weights()` function as implemented in encore.analytics takes the `mimids` and `wimids` objects and the target distributions as input and returns a list of imputed, matched/SMR-weighted, and raked datasets. The function uses the `anesrake()` function from the `anesrake` package to perform the raking procedure. The only two inputs it needs is the multiply imputed and matched/SMR-weighted datasets that results from the `matchthem()` function and the target distributions which are defined in a named list. The function will then iterate over the datasets and apply the raking procedure to each dataset. The raking procedure is performed by calling the `anesrake()` function for each dataset in the `mimids` and `wimids` object. 
+
+After successful raking, the function returns list of imputed, matched and re-weighted datasets (which we refer to here as `mirwds` and `wirwds`) with an (updated) column `weights` which includes the raking weights.
 
 ```{r}
-# extract the matched of
-first_dataset <- get_matches(
-  object = matchit_out_list[[1]]
+#| label: raking
+
+# raking on the imputed and 1:1 propensity score-matched datasets
+mirwds <- raking_weights(
+  x = mimids_data, 
+  targets = targets
+  )
+
+# raking on the imputed and SMR-weighted datasets
+wirwds <- raking_weights(
+  x = wimids_data, 
+  targets = targets
   )
 ```
+
+## Comparing the final distributions in Table 1
+
+To assess the balance of the covariates before and after raking, we can use the `tbl_summary()` and `tbl_svysummary` functions from the `gtsummary` package. To illustrate the distributions in the datasets before and after raking, we use the first imputed and matched dataset before and after raking as an example.
 
 > Reminder : The target distributions look like this
 
@@ -216,15 +240,18 @@ targets
 ```
 
 ::: panel-tabset
-### Unweighted Table 1
+### Propensity score-matched datasets
+
+::: panel-tabset
+#### Table 1 BEFORE raking
 
 ```{r}
-#| label: tbl-tbl1-unweighted
-#| tbl-cap: "Table 1 BEFORE re-weighting"
+#| label: tbl-matched-before-raking
+#| tbl-cap: "Table 1 BEFORE raking (1:1 propensity score-matched data)"
 #| warning: false
 
-library(cardx)
-library(smd)
+# extract the first imputed and matched dataset BEFORE raking
+first_dataset <- MatchThem::complete(mimids_data, action = 1, all = FALSE)
 
 # print
 first_dataset |>
@@ -244,15 +271,15 @@ first_dataset |>
   modify_spanning_header(c("stat_1", "stat_2") ~ "**Treatment received**")
 ```
 
-### Weighted Table 1
+#### Table 1 AFTER raking
 
 ```{r}
-#| label: tbl-tbl1-weighted
-#| tbl-cap: "Table 1 AFTER re-weighting"
+#| label: tbl-matched-after-raking
+#| tbl-cap: "Table 1 AFTER raking (1:1 propensity score-matched data)"
 #| warning: false
 
 # create survey object 
-data_svy <- svydesign(ids = ~ 1, weights = ~ weights, data = first_dataset)
+data_svy <- svydesign(ids = ~ 1, weights = ~ weights, data = mirwds[[1]])
 
 # print
 data_svy |>
@@ -273,82 +300,110 @@ data_svy |>
 ```
 :::
 
-### Comparison of custom function vs. `matchthem()`
+### SMR-weighted datasets
 
-Lastly, we want to make sure that our custom function results in the same matched datasets as the `matchthem()` function which we use in the main analysis - not considering the re-weighting.
-
-For this demonstration, we use the same matching parameters, but without re-weighting after matching in our custom function.
-
-::: panel.tabset
-### Custom function
-
-We run again our custom function but with `targets = NULL` to not re-weight any of the included covariates. To convert the returned output of a list of matchit objects into an object of type `mimids` we use the `MatchThem::as.mimids()` function.
+::: panel-tabset
+#### Table 1 BEFORE raking
 
 ```{r}
-#| label: mimids-from-function
+#| label: tbl-smr-before-raking
+#| tbl-cap: "Table 1 BEFORE raking (SMR-weighted data)"
+#| warning: false
 
-# call match re-weight
-set.seed(42)
-matchit_out_list <- lapply(
-  X = data_mild, 
-  FUN = re_weight,
-  targets = NULL,
-  matching_weighting = "matching",
-  formula = ps_form,
-  ratio = 1,
-  method = "nearest",
-  distance = "glm",
-  link = "logit",
-  caliper = 0.05,
-  replace = F
-  )
+# extract the first imputed and matched dataset BEFORE raking
+first_dataset <- MatchThem::complete(wimids_data, action = 1, all = FALSE)
 
-# convert the output into a mimids object
-mimids_data_from_function <- MatchThem::as.mimids(
-  x = matchit_out_list, 
-  datasets = data_imp
-  )
-
-mimids_data_from_function
+# print
+first_dataset |>
+  tbl_summary(
+    by = treat,
+    include = c(dem_age_index_cont, names(targets))
+    ) |> 
+  add_difference(test = dplyr::everything() ~ "smd") |>
+  add_overall() |>
+  modify_column_hide(columns = "conf.low") |> 
+  modify_header(
+    label ~ "**Patient characteristic**",
+    stat_0 ~ "**Total** <br> N = {round(N, 2)}",
+    stat_1 ~ "**{level}** <br> N = {round(n, 2)} <br> ({style_percent(p, digits=1)}%)",
+    stat_2 ~ "**{level}** <br> N = {round(n, 2)} <br> ({style_percent(p, digits=1)}%)"
+    ) |>
+  modify_spanning_header(c("stat_1", "stat_2") ~ "**Treatment received**")
 ```
 
-### `matchthem()` function
-
-The following code resembles the code we would use in the main analysis by implementing the generic `matchthem()` function.
+#### Table 1 AFTER raking
 
 ```{r}
-#| label: mimids-from-package
+#| label: tbl-smr-after-raking
+#| tbl-cap: "Table 1 AFTER raking (SMR-weighted data)"
+#| warning: false
 
-# matching
-set.seed(42)
-mimids_data <- matchthem(
-  datasets = data_imp,
-  formula = ps_form,
-  ratio = 1,
-  method = "nearest",
-  distance = "glm",
-  link = "logit",
-  caliper = 0.05,
-  replace = F
-  )
+# create survey object 
+data_svy <- svydesign(ids = ~ 1, weights = ~ weights, data = wirwds[[1]])
 
-mimids_data
-```
-
-### Comparison of stacked datasets
-
-We can now stack the datasets (= vertically append them) and compare the resulting 10 x 10 datasets for any differences:
-
-```{r}
-#| label: compare
-
-#| echo: true
-waldo::compare(
-  MatchThem::complete(mimids_data_from_function), 
-  MatchThem::complete(mimids_data)
-  )
+# print
+data_svy |>
+  tbl_svysummary(
+    by = treat,
+    include = c(dem_age_index_cont, names(targets))
+    ) |> 
+  add_difference(test = dplyr::everything() ~ "smd") |>
+  add_overall() |>
+  modify_column_hide(columns = "conf.low") |> 
+  modify_header(
+    label ~ "**Patient characteristic**",
+    stat_0 ~ "**Total** <br> N = {round(N, 2)}",
+    stat_1 ~ "**{level}** <br> N = {round(n, 2)} <br> ({style_percent(p, digits=1)}%)",
+    stat_2 ~ "**{level}** <br> N = {round(n, 2)} <br> ({style_percent(p, digits=1)}%)"
+    ) |>
+  modify_spanning_header(c("stat_1", "stat_2") ~ "**Treatment received**")
 ```
 :::
+
+:::
+
+## Estimating final treatment effects
+
+In the final step,  the `cox_pooling()` function that comes with encore.analytics is used to fit and pool the results of a Cox proportional hazards model on the imputed, matched, and raked datasets. The function takes list of imputed data frames with weights and cluster (matching) information (= our matched/smr-weighted and raked datasets) and a formula for the Cox proportional hazards model. The data frames must have column names weights and subclass (for matched datasets to indicate the cluster membership).
+
+The `cox_pooling()` function is a convenience wrapper for fitting Cox models to multiple imputed datasets which do not come as a mimids or wimids object. This is useful when there are intermediate steps in the analysis pipeline, such as computing raking weights via `raking_weights()` which are so far not straightforward to implement in a mimids or wimids object.
+
+The function follows the following logic:
+
+1. Fit a Cox proportional hazards model to each imputed dataset; if a subclass column is present in the data, it is used as a cluster variable for matched pairs
+
+2. Pool the results using the pool.scalar function from the mice package, that is, univariate estimates (qbar) are pooled via formula (3.1.2) Rubin (1987) and the total variance (t) is estimated via robust standardard errors according to formula (3.1.5) Rubin (1987).
+
+3. Compute the confidence intervals and exponentiate the results via $exp(qbar +/- 1.96 * sqrt(t))$
+
+Our fitted Cox proportional hazards model is specified as follows:
+
+```{r}
+#| label: cox-fit
+
+# fit a survival model
+cox_fit <- as.formula(survival::Surv(fu_itt_months, death_itt) ~ treat)
+cox_fit
+```
+
+### Estimate treatment effects on matched and raked list of datasets
+
+```{r}
+#| label: cox-matched-raking
+
+# fit and pool Cox proportional hazards model results
+cox_pooling(mirwds, surv_formula = cox_fit)
+```
+
+### Estimate treatment effects on SMR-weighted and raked list of datasets
+
+```{r}
+#| label: cox-smr-raking
+
+# fit and pool Cox proportional hazards model results
+cox_pooling(wirwds, surv_formula = cox_fit)
+```
+
 
 ## Session info
 
