@@ -1,5 +1,5 @@
 ---
-title: "Re-weighting to a target population"
+title: "Computing raking weights to the distribution of a target population"
 author: Janick Weberpals, RPh, PhD
 date: last-modified
 format: html
@@ -7,7 +7,8 @@ toc: true
 toc-depth: 3
 keep-md: true
 embed-resources: true
-editor: visual
+bibliography: ../references.bib
+csl: ../pharmacoepidemiology-and-drug-safety.csl
 ---
 
 ## About raking weights
@@ -46,19 +47,7 @@ runtime <- tictoc::tic()
 
 We use the `simulate_data()` function to simulate a realistic oncology comparative effectiveness cohort analytic dataset.
 
-```{r}
-#| label: data_generation
-#| warning: false
-
-# load example dataset with missing observations
-data_miss <- simulate_data(
-  n_total = 3500, 
-  seed = 42, 
-  include_id = FALSE, 
-  imposeNA = TRUE,
-  propNA = .33
-  )
-```
+{{< include _snippets/_data_generation.qmd >}}
 
 If it is desired ro rake categorical variables, the function works best of those variables are encoded as factor variables. 
 
@@ -134,77 +123,24 @@ data_miss <- data_miss |>
 
 Since we operate on a simulated dataset with missing observations, we first impute the missing data before performing the propensity score matching and raking. We use the `mice` package for this purpose.
 
-```{r}
-#| label: mice
-#| warning: false
-
-# impute data
-data_imp <- futuremice(
-  parallelseed = 42,
-  n.core = 7,
-  data = data_miss,
-  method = "rf",
-  m = 10,
-  print = FALSE
-  )
-```
+{{< include _snippets/_imputation.qmd >}}
 
 ## Propensity score matching/weighting
 
 In the next step, we create `mimids` and `wimids` object which contain the imputed and 1:1 propensity score matched/SMR-weighted datasets that will serve as the input for the raking procedure. The propensity score model is specified as follows:
 
-```{r}
-#| label: ps-model
-
-# apply propensity score matching on mids object
-ps_form <- as.formula(paste("treat ~", paste(covariates_for_ps, collapse = " + ")))
-ps_form
-```
+{{< include _snippets/_ps_fit.qmd >}}
 
 As already covered in the previous chapters, we can use the `matchthem()` function to perform the matching and weighting.
 
 ::: panel-tabset
 ### Propensity score matching
 
-```{r}
-#| label: ps-matching
-#| warning: false
-
-# matching
-mimids_data <- matchthem(
-  formula = ps_form,
-  datasets = data_imp,
-  approach = 'within',
-  method = 'nearest',
-  distance = "glm",
-  link = "logit",
-  caliper = 0.01,
-  ratio = 1,
-  replace = F
-  )
-
-# print summary for matched dataset #1
-mimids_data
-```
+{{< include _snippets/_matching.qmd >}}
 
 ### Propensity score weighting
 
-```{r}
-#| label: ps-weighting
-#| warning: false
-
-# matching
-wimids_data <- weightthem(
-  formula = ps_form,
-  datasets = data_imp,
-  approach = 'within',
-  estimand = "ATT"
-  )
-
-
-# print summary for weighted dataset #1
-wimids_data
-```
+{{< include _snippets/_weighting.qmd >}}
 :::
 
 ### Raking procedure
@@ -370,11 +306,10 @@ The `cox_pooling()` function is a convenience wrapper for fitting Cox models to 
 
 The function follows the following logic:
 
-1. Fit a Cox proportional hazards model to each imputed dataset; if a subclass column is present in the data, it is used as a cluster variable for matched pairs
-
-2. Pool the results using the pool.scalar function from the mice package, that is, univariate estimates (qbar) are pooled via formula (3.1.2) Rubin (1987) and the total variance (t) is estimated via robust standardard errors according to formula (3.1.5) Rubin (1987).
-
-3. Compute the confidence intervals and exponentiate the results via $exp(qbar +/- 1.96 * sqrt(t))$
+1. Fit a Cox proportional hazards model to each imputed dataset. If a \code{subclass} column is present, it is used as a cluster variable for matched pairs.
+2. Convert the list of fitted models into a \code{mira} object using \code{mice::as.mira}.
+3. Pool the results using \code{mice::pool}, which applies Rubin's rules for combining estimates and variances across imputations.
+4. Format the pooled results, including exponentiating the hazard ratios and calculating confidence intervals.
 
 Our fitted Cox proportional hazards model is specified as follows:
 
@@ -404,31 +339,4 @@ cox_pooling(mirwds, surv_formula = cox_fit)
 cox_pooling(wirwds, surv_formula = cox_fit)
 ```
 
-
-## Session info
-
-```{r, include=FALSE}
-runtime <- tictoc::toc()
-```
-
-Script runtime: `r formatC((runtime$toc[[1]]-runtime$tic[[1]])/60, format = 'f', digits = 2)` minutes.
-
-::: panel-tabset
-### Loaded packages
-
-```{r}
-pander::pander(subset(data.frame(sessioninfo::package_info()), attached==TRUE, c(package, loadedversion)))
-```
-
-### Session info
-
-```{r}
-pander::pander(sessionInfo())
-```
-
-### Repositories
-
-```{r}
-pander::pander(options('repos'))
-```
-:::
+{{< include _snippets/_sessioninfo.qmd >}}

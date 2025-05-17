@@ -7,7 +7,8 @@ toc: true
 toc-depth: 3
 keep-md: true
 embed-resources: true
-editor: visual
+bibliography: ../references.bib
+csl: ../pharmacoepidemiology-and-drug-safety.csl
 ---
 
 ## About raking weights
@@ -46,12 +47,14 @@ runtime <- tictoc::tic()
 
 We use the `simulate_data()` function to simulate a realistic oncology comparative effectiveness cohort analytic dataset.
 
+
+
 ::: {.cell}
 
 ```{.r .cell-code}
 # load example dataset with missing observations
 data_miss <- simulate_data(
-  n_total = 2500, 
+  n_total = 3500, 
   seed = 42, 
   include_id = FALSE, 
   imposeNA = TRUE,
@@ -59,6 +62,7 @@ data_miss <- simulate_data(
   )
 ```
 :::
+
 
 If it is desired ro rake categorical variables, the function works best of those variables are encoded as factor variables. 
 
@@ -165,13 +169,14 @@ data_miss <- data_miss |>
 
 Since we operate on a simulated dataset with missing observations, we first impute the missing data before performing the propensity score matching and raking. We use the `mice` package for this purpose.
 
+
 ::: {.cell}
 
 ```{.r .cell-code}
 # impute data
 data_imp <- futuremice(
   parallelseed = 42,
-  n.core = 7,
+  n.core = parallel::detectCores()-1,
   data = data_miss,
   method = "rf",
   m = 10,
@@ -180,9 +185,11 @@ data_imp <- futuremice(
 ```
 :::
 
+
 ## Propensity score matching/weighting
 
 In the next step, we create `mimids` and `wimids` object which contain the imputed and 1:1 propensity score matched/SMR-weighted datasets that will serve as the input for the raking procedure. The propensity score model is specified as follows:
+
 
 ::: {.cell}
 
@@ -211,10 +218,13 @@ treat ~ dem_age_index_cont + dem_sex_cont + c_smoking_history +
 :::
 :::
 
+
+
 As already covered in the previous chapters, we can use the `matchthem()` function to perform the matching and weighting.
 
 ::: panel-tabset
 ### Propensity score matching
+
 
 ::: {.cell}
 
@@ -245,7 +255,7 @@ A `matchit` object
 
              - estimated with logistic regression
  - caliper: <distance> (0.001)
- - number of obs.: 2500 (original), 1836 (matched)
+ - number of obs.: 3500 (original), 2686 (matched)
  - target estimand: ATT
  - covariates: dem_age_index_cont, dem_sex_cont, c_smoking_history, c_number_met_sites, c_hemoglobin_g_dl_cont, c_urea_nitrogen_mg_dl_cont, c_platelets_10_9_l_cont, c_calcium_mg_dl_cont, c_glucose_mg_dl_cont, c_lymphocyte_leukocyte_ratio_cont, c_alp_u_l_cont, c_protein_g_l_cont, c_alt_u_l_cont, c_albumin_g_l_cont, c_bilirubin_mg_dl_cont, c_chloride_mmol_l_cont, c_monocytes_10_9_l_cont, c_eosinophils_leukocytes_ratio_cont, c_ldh_u_l_cont, c_hr_cont, c_sbp_cont, c_oxygen_cont, c_ecog_cont, c_neutrophil_lymphocyte_ratio_cont, c_bmi_cont, c_ast_alt_ratio_cont, c_stage_initial_dx_cont, dem_race, dem_region, dem_ses, c_time_dx_to_index
 ```
@@ -254,21 +264,29 @@ A `matchit` object
 :::
 :::
 
+
 ### Propensity score weighting
+
 
 ::: {.cell}
 
 ```{.r .cell-code}
-# matching
+# SMR weighting
 wimids_data <- weightthem(
   formula = ps_form,
   datasets = data_imp,
   approach = 'within',
+  method = "glm",
   estimand = "ATT"
   )
 
+# trim extreme weights
+wimids_data <- trim(
+  x = wimids_data, 
+  at = .95, 
+  lower = TRUE
+  )
 
-# print summary for weighted dataset #1
 wimids_data
 ```
 
@@ -277,16 +295,18 @@ wimids_data
 ```
 A weightit object
  - method: "glm" (propensity score weighting with GLM)
- - number of obs.: 2500
+ - number of obs.: 3500
  - sampling weights: none
  - treatment: 2-category
  - estimand: ATT (focal: 1)
  - covariates: dem_age_index_cont, dem_sex_cont, c_smoking_history, c_number_met_sites, c_hemoglobin_g_dl_cont, c_urea_nitrogen_mg_dl_cont, c_platelets_10_9_l_cont, c_calcium_mg_dl_cont, c_glucose_mg_dl_cont, c_lymphocyte_leukocyte_ratio_cont, c_alp_u_l_cont, c_protein_g_l_cont, c_alt_u_l_cont, c_albumin_g_l_cont, c_bilirubin_mg_dl_cont, c_chloride_mmol_l_cont, c_monocytes_10_9_l_cont, c_eosinophils_leukocytes_ratio_cont, c_ldh_u_l_cont, c_hr_cont, c_sbp_cont, c_oxygen_cont, c_ecog_cont, c_neutrophil_lymphocyte_ratio_cont, c_bmi_cont, c_ast_alt_ratio_cont, c_stage_initial_dx_cont, dem_race, dem_region, dem_ses, c_time_dx_to_index
+ - weights trimmed at 5% and 95%
 ```
 
 
 :::
 :::
+
 :::
 
 ### Raking procedure
@@ -308,15 +328,18 @@ mirwds <- raking_weights(
 ::: {.cell-output .cell-output-stdout}
 
 ```
+[1] "Raking converged in 11 iterations"
+[1] "Raking converged in 10 iterations"
+[1] "Raking converged in 13 iterations"
+[1] "Raking converged in 12 iterations"
+[1] "Raking converged in 10 iterations"
+[1] "Raking converged in 10 iterations"
 [1] "Raking converged in 14 iterations"
 [1] "Raking converged in 11 iterations"
-[1] "Raking converged in 11 iterations"
+[1] "Raking converged in 10 iterations"
 [1] "Raking converged in 13 iterations"
-[1] "Raking converged in 11 iterations"
-[1] "Raking converged in 12 iterations"
+[1] "Raking converged in 8 iterations"
 [1] "Raking converged in 10 iterations"
-[1] "Raking converged in 10 iterations"
-[1] "Raking converged in 12 iterations"
 [1] "Raking converged in 11 iterations"
 ```
 
@@ -334,17 +357,17 @@ wirwds <- raking_weights(
 ::: {.cell-output .cell-output-stdout}
 
 ```
-[1] "Raking converged in 15 iterations"
-[1] "Raking converged in 14 iterations"
-[1] "Raking converged in 14 iterations"
-[1] "Raking converged in 14 iterations"
-[1] "Raking converged in 13 iterations"
-[1] "Raking converged in 15 iterations"
 [1] "Raking converged in 12 iterations"
-[1] "Raking converged in 15 iterations"
-[1] "Raking converged in 15 iterations"
-[1] "Raking converged in 15 iterations"
+[1] "Raking converged in 11 iterations"
+[1] "Raking converged in 14 iterations"
+[1] "Raking converged in 11 iterations"
 [1] "Raking converged in 13 iterations"
+[1] "Raking converged in 13 iterations"
+[1] "Raking converged in 13 iterations"
+[1] "Raking converged in 19 iterations"
+[1] "Raking converged in 15 iterations"
+[1] "Raking converged in 15 iterations"
+[1] "Raking converged in 15 iterations"
 ```
 
 
@@ -877,82 +900,82 @@ first_dataset |>
   <thead>
     <tr class="gt_col_headings gt_spanner_row">
       <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="2" colspan="1" scope="col" id="label"><span data-qmd-base64="KipQYXRpZW50IGNoYXJhY3RlcmlzdGljKio="><span class='gt_from_md'><strong>Patient characteristic</strong></span></span></th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="2" colspan="1" scope="col" id="stat_0"><span data-qmd-base64="KipUb3RhbCoqIDxicj4gTiA9IDE4MzY="><span class='gt_from_md'><strong>Total</strong> <br> N = 1836</span></span><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height:0;"><sup>1</sup></span></th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="2" colspan="1" scope="col" id="stat_0"><span data-qmd-base64="KipUb3RhbCoqIDxicj4gTiA9IDI2ODY="><span class='gt_from_md'><strong>Total</strong> <br> N = 2686</span></span><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height:0;"><sup>1</sup></span></th>
       <th class="gt_center gt_columns_top_border gt_column_spanner_outer" rowspan="1" colspan="2" scope="colgroup" id="level 1; stat_1">
         <div class="gt_column_spanner"><span data-qmd-base64="KipUcmVhdG1lbnQgcmVjZWl2ZWQqKg=="><span class='gt_from_md'><strong>Treatment received</strong></span></span></div>
       </th>
       <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="2" colspan="1" scope="col" id="estimate"><span data-qmd-base64="KipEaWZmZXJlbmNlKio="><span class='gt_from_md'><strong>Difference</strong></span></span><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height:0;"><sup>2</sup></span></th>
     </tr>
     <tr class="gt_col_headings">
-      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="stat_1"><span data-qmd-base64="KiowKiogPGJyPiBOID0gOTE4IDxicj4gKDUwLjAlKQ=="><span class='gt_from_md'><strong>0</strong> <br> N = 918 <br> (50.0%)</span></span><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height:0;"><sup>1</sup></span></th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="stat_2"><span data-qmd-base64="KioxKiogPGJyPiBOID0gOTE4IDxicj4gKDUwLjAlKQ=="><span class='gt_from_md'><strong>1</strong> <br> N = 918 <br> (50.0%)</span></span><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height:0;"><sup>1</sup></span></th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="stat_1"><span data-qmd-base64="KiowKiogPGJyPiBOID0gMTM0MyA8YnI+ICg1MC4wJSk="><span class='gt_from_md'><strong>0</strong> <br> N = 1343 <br> (50.0%)</span></span><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height:0;"><sup>1</sup></span></th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="stat_2"><span data-qmd-base64="KioxKiogPGJyPiBOID0gMTM0MyA8YnI+ICg1MC4wJSk="><span class='gt_from_md'><strong>1</strong> <br> N = 1343 <br> (50.0%)</span></span><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height:0;"><sup>1</sup></span></th>
     </tr>
   </thead>
   <tbody class="gt_table_body">
     <tr><td headers="label" class="gt_row gt_left">dem_age_index_cont</td>
 <td headers="stat_0" class="gt_row gt_center">69 (64, 74)</td>
-<td headers="stat_1" class="gt_row gt_center">69 (64, 75)</td>
-<td headers="stat_2" class="gt_row gt_center">69 (64, 74)</td>
-<td headers="estimate" class="gt_row gt_center">0.03</td></tr>
+<td headers="stat_1" class="gt_row gt_center">69 (64, 74)</td>
+<td headers="stat_2" class="gt_row gt_center">69 (63, 74)</td>
+<td headers="estimate" class="gt_row gt_center">0.00</td></tr>
     <tr><td headers="label" class="gt_row gt_left">dem_age_lt65</td>
 <td headers="stat_0" class="gt_row gt_center"><br /></td>
 <td headers="stat_1" class="gt_row gt_center"><br /></td>
 <td headers="stat_2" class="gt_row gt_center"><br /></td>
-<td headers="estimate" class="gt_row gt_center">0.02</td></tr>
+<td headers="estimate" class="gt_row gt_center">0.01</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    &lt;65</td>
-<td headers="stat_0" class="gt_row gt_center">548 (30%)</td>
-<td headers="stat_1" class="gt_row gt_center">270 (29%)</td>
-<td headers="stat_2" class="gt_row gt_center">278 (30%)</td>
+<td headers="stat_0" class="gt_row gt_center">840 (31%)</td>
+<td headers="stat_1" class="gt_row gt_center">423 (31%)</td>
+<td headers="stat_2" class="gt_row gt_center">417 (31%)</td>
 <td headers="estimate" class="gt_row gt_center"><br /></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    65+</td>
-<td headers="stat_0" class="gt_row gt_center">1,288 (70%)</td>
-<td headers="stat_1" class="gt_row gt_center">648 (71%)</td>
-<td headers="stat_2" class="gt_row gt_center">640 (70%)</td>
+<td headers="stat_0" class="gt_row gt_center">1,846 (69%)</td>
+<td headers="stat_1" class="gt_row gt_center">920 (69%)</td>
+<td headers="stat_2" class="gt_row gt_center">926 (69%)</td>
 <td headers="estimate" class="gt_row gt_center"><br /></td></tr>
     <tr><td headers="label" class="gt_row gt_left">dem_sex_cont</td>
 <td headers="stat_0" class="gt_row gt_center"><br /></td>
 <td headers="stat_1" class="gt_row gt_center"><br /></td>
 <td headers="stat_2" class="gt_row gt_center"><br /></td>
-<td headers="estimate" class="gt_row gt_center">0.01</td></tr>
+<td headers="estimate" class="gt_row gt_center">0.03</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Female</td>
-<td headers="stat_0" class="gt_row gt_center">1,253 (68%)</td>
-<td headers="stat_1" class="gt_row gt_center">625 (68%)</td>
-<td headers="stat_2" class="gt_row gt_center">628 (68%)</td>
+<td headers="stat_0" class="gt_row gt_center">1,817 (68%)</td>
+<td headers="stat_1" class="gt_row gt_center">898 (67%)</td>
+<td headers="stat_2" class="gt_row gt_center">919 (68%)</td>
 <td headers="estimate" class="gt_row gt_center"><br /></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Male</td>
-<td headers="stat_0" class="gt_row gt_center">583 (32%)</td>
-<td headers="stat_1" class="gt_row gt_center">293 (32%)</td>
-<td headers="stat_2" class="gt_row gt_center">290 (32%)</td>
+<td headers="stat_0" class="gt_row gt_center">869 (32%)</td>
+<td headers="stat_1" class="gt_row gt_center">445 (33%)</td>
+<td headers="stat_2" class="gt_row gt_center">424 (32%)</td>
 <td headers="estimate" class="gt_row gt_center"><br /></td></tr>
     <tr><td headers="label" class="gt_row gt_left">dem_race</td>
 <td headers="stat_0" class="gt_row gt_center"><br /></td>
 <td headers="stat_1" class="gt_row gt_center"><br /></td>
 <td headers="stat_2" class="gt_row gt_center"><br /></td>
-<td headers="estimate" class="gt_row gt_center">0.02</td></tr>
+<td headers="estimate" class="gt_row gt_center">0.04</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Asian</td>
-<td headers="stat_0" class="gt_row gt_center">663 (36%)</td>
-<td headers="stat_1" class="gt_row gt_center">335 (36%)</td>
-<td headers="stat_2" class="gt_row gt_center">328 (36%)</td>
+<td headers="stat_0" class="gt_row gt_center">990 (37%)</td>
+<td headers="stat_1" class="gt_row gt_center">507 (38%)</td>
+<td headers="stat_2" class="gt_row gt_center">483 (36%)</td>
 <td headers="estimate" class="gt_row gt_center"><br /></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Non-Asian</td>
-<td headers="stat_0" class="gt_row gt_center">1,173 (64%)</td>
-<td headers="stat_1" class="gt_row gt_center">583 (64%)</td>
-<td headers="stat_2" class="gt_row gt_center">590 (64%)</td>
+<td headers="stat_0" class="gt_row gt_center">1,696 (63%)</td>
+<td headers="stat_1" class="gt_row gt_center">836 (62%)</td>
+<td headers="stat_2" class="gt_row gt_center">860 (64%)</td>
 <td headers="estimate" class="gt_row gt_center"><br /></td></tr>
     <tr><td headers="label" class="gt_row gt_left">c_smoking_history</td>
 <td headers="stat_0" class="gt_row gt_center"><br /></td>
 <td headers="stat_1" class="gt_row gt_center"><br /></td>
 <td headers="stat_2" class="gt_row gt_center"><br /></td>
-<td headers="estimate" class="gt_row gt_center">0.03</td></tr>
+<td headers="estimate" class="gt_row gt_center">0.01</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Current/former</td>
-<td headers="stat_0" class="gt_row gt_center">812 (44%)</td>
-<td headers="stat_1" class="gt_row gt_center">412 (45%)</td>
-<td headers="stat_2" class="gt_row gt_center">400 (44%)</td>
+<td headers="stat_0" class="gt_row gt_center">1,255 (47%)</td>
+<td headers="stat_1" class="gt_row gt_center">632 (47%)</td>
+<td headers="stat_2" class="gt_row gt_center">623 (46%)</td>
 <td headers="estimate" class="gt_row gt_center"><br /></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Never</td>
-<td headers="stat_0" class="gt_row gt_center">1,024 (56%)</td>
-<td headers="stat_1" class="gt_row gt_center">506 (55%)</td>
-<td headers="stat_2" class="gt_row gt_center">518 (56%)</td>
+<td headers="stat_0" class="gt_row gt_center">1,431 (53%)</td>
+<td headers="stat_1" class="gt_row gt_center">711 (53%)</td>
+<td headers="stat_2" class="gt_row gt_center">720 (54%)</td>
 <td headers="estimate" class="gt_row gt_center"><br /></td></tr>
     <tr><td headers="label" class="gt_row gt_left">c_ecog_cont</td>
 <td headers="stat_0" class="gt_row gt_center"><br /></td>
@@ -960,14 +983,14 @@ first_dataset |>
 <td headers="stat_2" class="gt_row gt_center"><br /></td>
 <td headers="estimate" class="gt_row gt_center">0.01</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    0</td>
-<td headers="stat_0" class="gt_row gt_center">777 (42%)</td>
-<td headers="stat_1" class="gt_row gt_center">390 (42%)</td>
-<td headers="stat_2" class="gt_row gt_center">387 (42%)</td>
+<td headers="stat_0" class="gt_row gt_center">1,178 (44%)</td>
+<td headers="stat_1" class="gt_row gt_center">587 (44%)</td>
+<td headers="stat_2" class="gt_row gt_center">591 (44%)</td>
 <td headers="estimate" class="gt_row gt_center"><br /></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    1</td>
-<td headers="stat_0" class="gt_row gt_center">1,059 (58%)</td>
-<td headers="stat_1" class="gt_row gt_center">528 (58%)</td>
-<td headers="stat_2" class="gt_row gt_center">531 (58%)</td>
+<td headers="stat_0" class="gt_row gt_center">1,508 (56%)</td>
+<td headers="stat_1" class="gt_row gt_center">756 (56%)</td>
+<td headers="stat_2" class="gt_row gt_center">752 (56%)</td>
 <td headers="estimate" class="gt_row gt_center"><br /></td></tr>
   </tbody>
   <tfoot class="gt_sourcenotes">
@@ -1472,97 +1495,97 @@ data_svy |>
   <thead>
     <tr class="gt_col_headings gt_spanner_row">
       <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="2" colspan="1" scope="col" id="label"><span data-qmd-base64="KipQYXRpZW50IGNoYXJhY3RlcmlzdGljKio="><span class='gt_from_md'><strong>Patient characteristic</strong></span></span></th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="2" colspan="1" scope="col" id="stat_0"><span data-qmd-base64="KipUb3RhbCoqIDxicj4gTiA9IDE4MzY="><span class='gt_from_md'><strong>Total</strong> <br> N = 1836</span></span><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height:0;"><sup>1</sup></span></th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="2" colspan="1" scope="col" id="stat_0"><span data-qmd-base64="KipUb3RhbCoqIDxicj4gTiA9IDI2ODY="><span class='gt_from_md'><strong>Total</strong> <br> N = 2686</span></span><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height:0;"><sup>1</sup></span></th>
       <th class="gt_center gt_columns_top_border gt_column_spanner_outer" rowspan="1" colspan="2" scope="colgroup" id="level 1; stat_1">
         <div class="gt_column_spanner"><span data-qmd-base64="KipUcmVhdG1lbnQgcmVjZWl2ZWQqKg=="><span class='gt_from_md'><strong>Treatment received</strong></span></span></div>
       </th>
       <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="2" colspan="1" scope="col" id="estimate"><span data-qmd-base64="KipEaWZmZXJlbmNlKio="><span class='gt_from_md'><strong>Difference</strong></span></span><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height:0;"><sup>2</sup></span></th>
     </tr>
     <tr class="gt_col_headings">
-      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="stat_1"><span data-qmd-base64="KiowKiogPGJyPiBOID0gOTE0Ljg2IDxicj4gKDQ5LjglKQ=="><span class='gt_from_md'><strong>0</strong> <br> N = 914.86 <br> (49.8%)</span></span><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height:0;"><sup>1</sup></span></th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="stat_2"><span data-qmd-base64="KioxKiogPGJyPiBOID0gOTIxLjE0IDxicj4gKDUwLjIlKQ=="><span class='gt_from_md'><strong>1</strong> <br> N = 921.14 <br> (50.2%)</span></span><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height:0;"><sup>1</sup></span></th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="stat_1"><span data-qmd-base64="KiowKiogPGJyPiBOID0gMTM2My4yNCA8YnI+ICg1MC44JSk="><span class='gt_from_md'><strong>0</strong> <br> N = 1363.24 <br> (50.8%)</span></span><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height:0;"><sup>1</sup></span></th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="stat_2"><span data-qmd-base64="KioxKiogPGJyPiBOID0gMTMyMi43NiA8YnI+ICg0OS4yJSk="><span class='gt_from_md'><strong>1</strong> <br> N = 1322.76 <br> (49.2%)</span></span><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height:0;"><sup>1</sup></span></th>
     </tr>
   </thead>
   <tbody class="gt_table_body">
     <tr><td headers="label" class="gt_row gt_left">dem_age_index_cont</td>
 <td headers="stat_0" class="gt_row gt_center">64 (60, 71)</td>
-<td headers="stat_1" class="gt_row gt_center">64 (61, 71)</td>
+<td headers="stat_1" class="gt_row gt_center">64 (60, 71)</td>
 <td headers="stat_2" class="gt_row gt_center">64 (60, 71)</td>
-<td headers="estimate" class="gt_row gt_center">0.03</td></tr>
+<td headers="estimate" class="gt_row gt_center">-0.02</td></tr>
     <tr><td headers="label" class="gt_row gt_left">dem_age_lt65</td>
 <td headers="stat_0" class="gt_row gt_center"><br /></td>
 <td headers="stat_1" class="gt_row gt_center"><br /></td>
 <td headers="stat_2" class="gt_row gt_center"><br /></td>
-<td headers="estimate" class="gt_row gt_center">0.03</td></tr>
+<td headers="estimate" class="gt_row gt_center">0.02</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    &lt;65</td>
-<td headers="stat_0" class="gt_row gt_center">991 (54%)</td>
-<td headers="stat_1" class="gt_row gt_center">487 (53%)</td>
-<td headers="stat_2" class="gt_row gt_center">504 (55%)</td>
+<td headers="stat_0" class="gt_row gt_center">1,450 (54%)</td>
+<td headers="stat_1" class="gt_row gt_center">744 (55%)</td>
+<td headers="stat_2" class="gt_row gt_center">707 (53%)</td>
 <td headers="estimate" class="gt_row gt_center"><br /></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    65+</td>
-<td headers="stat_0" class="gt_row gt_center">845 (46%)</td>
-<td headers="stat_1" class="gt_row gt_center">427 (47%)</td>
-<td headers="stat_2" class="gt_row gt_center">417 (45%)</td>
+<td headers="stat_0" class="gt_row gt_center">1,236 (46%)</td>
+<td headers="stat_1" class="gt_row gt_center">619 (45%)</td>
+<td headers="stat_2" class="gt_row gt_center">616 (47%)</td>
 <td headers="estimate" class="gt_row gt_center"><br /></td></tr>
     <tr><td headers="label" class="gt_row gt_left">dem_sex_cont</td>
 <td headers="stat_0" class="gt_row gt_center"><br /></td>
 <td headers="stat_1" class="gt_row gt_center"><br /></td>
 <td headers="stat_2" class="gt_row gt_center"><br /></td>
-<td headers="estimate" class="gt_row gt_center">0.00</td></tr>
+<td headers="estimate" class="gt_row gt_center">0.11</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Female</td>
-<td headers="stat_0" class="gt_row gt_center">1,157 (63%)</td>
-<td headers="stat_1" class="gt_row gt_center">577 (63%)</td>
-<td headers="stat_2" class="gt_row gt_center">580 (63%)</td>
+<td headers="stat_0" class="gt_row gt_center">1,692 (63%)</td>
+<td headers="stat_1" class="gt_row gt_center">824 (60%)</td>
+<td headers="stat_2" class="gt_row gt_center">868 (66%)</td>
 <td headers="estimate" class="gt_row gt_center"><br /></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Male</td>
-<td headers="stat_0" class="gt_row gt_center">679 (37%)</td>
-<td headers="stat_1" class="gt_row gt_center">338 (37%)</td>
-<td headers="stat_2" class="gt_row gt_center">341 (37%)</td>
+<td headers="stat_0" class="gt_row gt_center">994 (37%)</td>
+<td headers="stat_1" class="gt_row gt_center">539 (40%)</td>
+<td headers="stat_2" class="gt_row gt_center">455 (34%)</td>
 <td headers="estimate" class="gt_row gt_center"><br /></td></tr>
     <tr><td headers="label" class="gt_row gt_left">dem_race</td>
 <td headers="stat_0" class="gt_row gt_center"><br /></td>
 <td headers="stat_1" class="gt_row gt_center"><br /></td>
 <td headers="stat_2" class="gt_row gt_center"><br /></td>
-<td headers="estimate" class="gt_row gt_center">0.01</td></tr>
+<td headers="estimate" class="gt_row gt_center">0.05</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Asian</td>
-<td headers="stat_0" class="gt_row gt_center">1,138 (62%)</td>
-<td headers="stat_1" class="gt_row gt_center">569 (62%)</td>
-<td headers="stat_2" class="gt_row gt_center">569 (62%)</td>
+<td headers="stat_0" class="gt_row gt_center">1,665 (62%)</td>
+<td headers="stat_1" class="gt_row gt_center">862 (63%)</td>
+<td headers="stat_2" class="gt_row gt_center">804 (61%)</td>
 <td headers="estimate" class="gt_row gt_center"><br /></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Non-Asian</td>
-<td headers="stat_0" class="gt_row gt_center">698 (38%)</td>
-<td headers="stat_1" class="gt_row gt_center">345 (38%)</td>
-<td headers="stat_2" class="gt_row gt_center">352 (38%)</td>
+<td headers="stat_0" class="gt_row gt_center">1,021 (38%)</td>
+<td headers="stat_1" class="gt_row gt_center">502 (37%)</td>
+<td headers="stat_2" class="gt_row gt_center">519 (39%)</td>
 <td headers="estimate" class="gt_row gt_center"><br /></td></tr>
     <tr><td headers="label" class="gt_row gt_left">c_smoking_history</td>
 <td headers="stat_0" class="gt_row gt_center"><br /></td>
 <td headers="stat_1" class="gt_row gt_center"><br /></td>
 <td headers="stat_2" class="gt_row gt_center"><br /></td>
-<td headers="estimate" class="gt_row gt_center">0.03</td></tr>
+<td headers="estimate" class="gt_row gt_center">0.05</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Current/former</td>
-<td headers="stat_0" class="gt_row gt_center">643 (35%)</td>
-<td headers="stat_1" class="gt_row gt_center">313 (34%)</td>
-<td headers="stat_2" class="gt_row gt_center">329 (36%)</td>
+<td headers="stat_0" class="gt_row gt_center">940 (35%)</td>
+<td headers="stat_1" class="gt_row gt_center">493 (36%)</td>
+<td headers="stat_2" class="gt_row gt_center">447 (34%)</td>
 <td headers="estimate" class="gt_row gt_center"><br /></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Never</td>
-<td headers="stat_0" class="gt_row gt_center">1,193 (65%)</td>
-<td headers="stat_1" class="gt_row gt_center">601 (66%)</td>
-<td headers="stat_2" class="gt_row gt_center">592 (64%)</td>
+<td headers="stat_0" class="gt_row gt_center">1,746 (65%)</td>
+<td headers="stat_1" class="gt_row gt_center">870 (64%)</td>
+<td headers="stat_2" class="gt_row gt_center">875 (66%)</td>
 <td headers="estimate" class="gt_row gt_center"><br /></td></tr>
     <tr><td headers="label" class="gt_row gt_left">c_ecog_cont</td>
 <td headers="stat_0" class="gt_row gt_center"><br /></td>
 <td headers="stat_1" class="gt_row gt_center"><br /></td>
 <td headers="stat_2" class="gt_row gt_center"><br /></td>
-<td headers="estimate" class="gt_row gt_center">0.01</td></tr>
+<td headers="estimate" class="gt_row gt_center">0.05</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    0</td>
-<td headers="stat_0" class="gt_row gt_center">788 (43%)</td>
-<td headers="stat_1" class="gt_row gt_center">391 (43%)</td>
-<td headers="stat_2" class="gt_row gt_center">397 (43%)</td>
+<td headers="stat_0" class="gt_row gt_center">1,101 (41%)</td>
+<td headers="stat_1" class="gt_row gt_center">575 (42%)</td>
+<td headers="stat_2" class="gt_row gt_center">526 (40%)</td>
 <td headers="estimate" class="gt_row gt_center"><br /></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    1</td>
-<td headers="stat_0" class="gt_row gt_center">1,048 (57%)</td>
-<td headers="stat_1" class="gt_row gt_center">524 (57%)</td>
-<td headers="stat_2" class="gt_row gt_center">524 (57%)</td>
+<td headers="stat_0" class="gt_row gt_center">1,585 (59%)</td>
+<td headers="stat_1" class="gt_row gt_center">788 (58%)</td>
+<td headers="stat_2" class="gt_row gt_center">797 (60%)</td>
 <td headers="estimate" class="gt_row gt_center"><br /></td></tr>
   </tbody>
   <tfoot class="gt_sourcenotes">
@@ -2071,15 +2094,15 @@ first_dataset |>
   <thead>
     <tr class="gt_col_headings gt_spanner_row">
       <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="2" colspan="1" scope="col" id="label"><span data-qmd-base64="KipQYXRpZW50IGNoYXJhY3RlcmlzdGljKio="><span class='gt_from_md'><strong>Patient characteristic</strong></span></span></th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="2" colspan="1" scope="col" id="stat_0"><span data-qmd-base64="KipUb3RhbCoqIDxicj4gTiA9IDI1MDA="><span class='gt_from_md'><strong>Total</strong> <br> N = 2500</span></span><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height:0;"><sup>1</sup></span></th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="2" colspan="1" scope="col" id="stat_0"><span data-qmd-base64="KipUb3RhbCoqIDxicj4gTiA9IDM1MDA="><span class='gt_from_md'><strong>Total</strong> <br> N = 3500</span></span><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height:0;"><sup>1</sup></span></th>
       <th class="gt_center gt_columns_top_border gt_column_spanner_outer" rowspan="1" colspan="2" scope="colgroup" id="level 1; stat_1">
         <div class="gt_column_spanner"><span data-qmd-base64="KipUcmVhdG1lbnQgcmVjZWl2ZWQqKg=="><span class='gt_from_md'><strong>Treatment received</strong></span></span></div>
       </th>
       <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="2" colspan="1" scope="col" id="estimate"><span data-qmd-base64="KipEaWZmZXJlbmNlKio="><span class='gt_from_md'><strong>Difference</strong></span></span><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height:0;"><sup>2</sup></span></th>
     </tr>
     <tr class="gt_col_headings">
-      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="stat_1"><span data-qmd-base64="KiowKiogPGJyPiBOID0gMTA1NyA8YnI+ICg0Mi4zJSk="><span class='gt_from_md'><strong>0</strong> <br> N = 1057 <br> (42.3%)</span></span><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height:0;"><sup>1</sup></span></th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="stat_2"><span data-qmd-base64="KioxKiogPGJyPiBOID0gMTQ0MyA8YnI+ICg1Ny43JSk="><span class='gt_from_md'><strong>1</strong> <br> N = 1443 <br> (57.7%)</span></span><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height:0;"><sup>1</sup></span></th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="stat_1"><span data-qmd-base64="KiowKiogPGJyPiBOID0gMTQ4NyA8YnI+ICg0Mi41JSk="><span class='gt_from_md'><strong>0</strong> <br> N = 1487 <br> (42.5%)</span></span><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height:0;"><sup>1</sup></span></th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="stat_2"><span data-qmd-base64="KioxKiogPGJyPiBOID0gMjAxMyA8YnI+ICg1Ny41JSk="><span class='gt_from_md'><strong>1</strong> <br> N = 2013 <br> (57.5%)</span></span><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height:0;"><sup>1</sup></span></th>
     </tr>
   </thead>
   <tbody class="gt_table_body">
@@ -2087,81 +2110,81 @@ first_dataset |>
 <td headers="stat_0" class="gt_row gt_center">69 (64, 74)</td>
 <td headers="stat_1" class="gt_row gt_center">69 (64, 74)</td>
 <td headers="stat_2" class="gt_row gt_center">69 (64, 74)</td>
-<td headers="estimate" class="gt_row gt_center">-0.02</td></tr>
+<td headers="estimate" class="gt_row gt_center">-0.04</td></tr>
     <tr><td headers="label" class="gt_row gt_left">dem_age_lt65</td>
 <td headers="stat_0" class="gt_row gt_center"><br /></td>
 <td headers="stat_1" class="gt_row gt_center"><br /></td>
 <td headers="stat_2" class="gt_row gt_center"><br /></td>
-<td headers="estimate" class="gt_row gt_center">0.01</td></tr>
+<td headers="estimate" class="gt_row gt_center">0.03</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    &lt;65</td>
-<td headers="stat_0" class="gt_row gt_center">763 (31%)</td>
-<td headers="stat_1" class="gt_row gt_center">326 (31%)</td>
-<td headers="stat_2" class="gt_row gt_center">437 (30%)</td>
+<td headers="stat_0" class="gt_row gt_center">1,085 (31%)</td>
+<td headers="stat_1" class="gt_row gt_center">472 (32%)</td>
+<td headers="stat_2" class="gt_row gt_center">613 (30%)</td>
 <td headers="estimate" class="gt_row gt_center"><br /></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    65+</td>
-<td headers="stat_0" class="gt_row gt_center">1,737 (69%)</td>
-<td headers="stat_1" class="gt_row gt_center">731 (69%)</td>
-<td headers="stat_2" class="gt_row gt_center">1,006 (70%)</td>
+<td headers="stat_0" class="gt_row gt_center">2,415 (69%)</td>
+<td headers="stat_1" class="gt_row gt_center">1,015 (68%)</td>
+<td headers="stat_2" class="gt_row gt_center">1,400 (70%)</td>
 <td headers="estimate" class="gt_row gt_center"><br /></td></tr>
     <tr><td headers="label" class="gt_row gt_left">dem_sex_cont</td>
 <td headers="stat_0" class="gt_row gt_center"><br /></td>
 <td headers="stat_1" class="gt_row gt_center"><br /></td>
 <td headers="stat_2" class="gt_row gt_center"><br /></td>
-<td headers="estimate" class="gt_row gt_center">0.01</td></tr>
+<td headers="estimate" class="gt_row gt_center">0.02</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Female</td>
-<td headers="stat_0" class="gt_row gt_center">1,697 (68%)</td>
-<td headers="stat_1" class="gt_row gt_center">721 (68%)</td>
-<td headers="stat_2" class="gt_row gt_center">976 (68%)</td>
+<td headers="stat_0" class="gt_row gt_center">2,354 (67%)</td>
+<td headers="stat_1" class="gt_row gt_center">993 (67%)</td>
+<td headers="stat_2" class="gt_row gt_center">1,361 (68%)</td>
 <td headers="estimate" class="gt_row gt_center"><br /></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Male</td>
-<td headers="stat_0" class="gt_row gt_center">803 (32%)</td>
-<td headers="stat_1" class="gt_row gt_center">336 (32%)</td>
-<td headers="stat_2" class="gt_row gt_center">467 (32%)</td>
+<td headers="stat_0" class="gt_row gt_center">1,146 (33%)</td>
+<td headers="stat_1" class="gt_row gt_center">494 (33%)</td>
+<td headers="stat_2" class="gt_row gt_center">652 (32%)</td>
 <td headers="estimate" class="gt_row gt_center"><br /></td></tr>
     <tr><td headers="label" class="gt_row gt_left">dem_race</td>
 <td headers="stat_0" class="gt_row gt_center"><br /></td>
 <td headers="stat_1" class="gt_row gt_center"><br /></td>
 <td headers="stat_2" class="gt_row gt_center"><br /></td>
-<td headers="estimate" class="gt_row gt_center">0.03</td></tr>
+<td headers="estimate" class="gt_row gt_center">0.04</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Asian</td>
-<td headers="stat_0" class="gt_row gt_center">912 (36%)</td>
-<td headers="stat_1" class="gt_row gt_center">395 (37%)</td>
-<td headers="stat_2" class="gt_row gt_center">517 (36%)</td>
+<td headers="stat_0" class="gt_row gt_center">1,330 (38%)</td>
+<td headers="stat_1" class="gt_row gt_center">550 (37%)</td>
+<td headers="stat_2" class="gt_row gt_center">780 (39%)</td>
 <td headers="estimate" class="gt_row gt_center"><br /></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Non-Asian</td>
-<td headers="stat_0" class="gt_row gt_center">1,588 (64%)</td>
-<td headers="stat_1" class="gt_row gt_center">662 (63%)</td>
-<td headers="stat_2" class="gt_row gt_center">926 (64%)</td>
+<td headers="stat_0" class="gt_row gt_center">2,170 (62%)</td>
+<td headers="stat_1" class="gt_row gt_center">937 (63%)</td>
+<td headers="stat_2" class="gt_row gt_center">1,233 (61%)</td>
 <td headers="estimate" class="gt_row gt_center"><br /></td></tr>
     <tr><td headers="label" class="gt_row gt_left">c_smoking_history</td>
 <td headers="stat_0" class="gt_row gt_center"><br /></td>
 <td headers="stat_1" class="gt_row gt_center"><br /></td>
 <td headers="stat_2" class="gt_row gt_center"><br /></td>
-<td headers="estimate" class="gt_row gt_center">0.09</td></tr>
+<td headers="estimate" class="gt_row gt_center">0.10</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Current/former</td>
-<td headers="stat_0" class="gt_row gt_center">1,083 (43%)</td>
-<td headers="stat_1" class="gt_row gt_center">486 (46%)</td>
-<td headers="stat_2" class="gt_row gt_center">597 (41%)</td>
+<td headers="stat_0" class="gt_row gt_center">1,616 (46%)</td>
+<td headers="stat_1" class="gt_row gt_center">728 (49%)</td>
+<td headers="stat_2" class="gt_row gt_center">888 (44%)</td>
 <td headers="estimate" class="gt_row gt_center"><br /></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Never</td>
-<td headers="stat_0" class="gt_row gt_center">1,417 (57%)</td>
-<td headers="stat_1" class="gt_row gt_center">571 (54%)</td>
-<td headers="stat_2" class="gt_row gt_center">846 (59%)</td>
+<td headers="stat_0" class="gt_row gt_center">1,884 (54%)</td>
+<td headers="stat_1" class="gt_row gt_center">759 (51%)</td>
+<td headers="stat_2" class="gt_row gt_center">1,125 (56%)</td>
 <td headers="estimate" class="gt_row gt_center"><br /></td></tr>
     <tr><td headers="label" class="gt_row gt_left">c_ecog_cont</td>
 <td headers="stat_0" class="gt_row gt_center"><br /></td>
 <td headers="stat_1" class="gt_row gt_center"><br /></td>
 <td headers="stat_2" class="gt_row gt_center"><br /></td>
-<td headers="estimate" class="gt_row gt_center">0.05</td></tr>
+<td headers="estimate" class="gt_row gt_center">0.06</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    0</td>
-<td headers="stat_0" class="gt_row gt_center">1,069 (43%)</td>
-<td headers="stat_1" class="gt_row gt_center">436 (41%)</td>
-<td headers="stat_2" class="gt_row gt_center">633 (44%)</td>
+<td headers="stat_0" class="gt_row gt_center">1,561 (45%)</td>
+<td headers="stat_1" class="gt_row gt_center">636 (43%)</td>
+<td headers="stat_2" class="gt_row gt_center">925 (46%)</td>
 <td headers="estimate" class="gt_row gt_center"><br /></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    1</td>
-<td headers="stat_0" class="gt_row gt_center">1,431 (57%)</td>
-<td headers="stat_1" class="gt_row gt_center">621 (59%)</td>
-<td headers="stat_2" class="gt_row gt_center">810 (56%)</td>
+<td headers="stat_0" class="gt_row gt_center">1,939 (55%)</td>
+<td headers="stat_1" class="gt_row gt_center">851 (57%)</td>
+<td headers="stat_2" class="gt_row gt_center">1,088 (54%)</td>
 <td headers="estimate" class="gt_row gt_center"><br /></td></tr>
   </tbody>
   <tfoot class="gt_sourcenotes">
@@ -2184,7 +2207,7 @@ first_dataset |>
 :::
 :::
 
-### Table 1 AFTER raking
+#### Table 1 AFTER raking
 
 ::: {#tbl-smr-after-raking .cell tbl-cap='Table 1 AFTER raking (SMR-weighted data)'}
 
@@ -2666,52 +2689,52 @@ data_svy |>
   <thead>
     <tr class="gt_col_headings gt_spanner_row">
       <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="2" colspan="1" scope="col" id="label"><span data-qmd-base64="KipQYXRpZW50IGNoYXJhY3RlcmlzdGljKio="><span class='gt_from_md'><strong>Patient characteristic</strong></span></span></th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="2" colspan="1" scope="col" id="stat_0"><span data-qmd-base64="KipUb3RhbCoqIDxicj4gTiA9IDI1MDA="><span class='gt_from_md'><strong>Total</strong> <br> N = 2500</span></span><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height:0;"><sup>1</sup></span></th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="2" colspan="1" scope="col" id="stat_0"><span data-qmd-base64="KipUb3RhbCoqIDxicj4gTiA9IDM1MDA="><span class='gt_from_md'><strong>Total</strong> <br> N = 3500</span></span><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height:0;"><sup>1</sup></span></th>
       <th class="gt_center gt_columns_top_border gt_column_spanner_outer" rowspan="1" colspan="2" scope="colgroup" id="level 1; stat_1">
         <div class="gt_column_spanner"><span data-qmd-base64="KipUcmVhdG1lbnQgcmVjZWl2ZWQqKg=="><span class='gt_from_md'><strong>Treatment received</strong></span></span></div>
       </th>
       <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="2" colspan="1" scope="col" id="estimate"><span data-qmd-base64="KipEaWZmZXJlbmNlKio="><span class='gt_from_md'><strong>Difference</strong></span></span><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height:0;"><sup>2</sup></span></th>
     </tr>
     <tr class="gt_col_headings">
-      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="stat_1"><span data-qmd-base64="KiowKiogPGJyPiBOID0gMTIzMy42MSA8YnI+ICg0OS4zJSk="><span class='gt_from_md'><strong>0</strong> <br> N = 1233.61 <br> (49.3%)</span></span><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height:0;"><sup>1</sup></span></th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="stat_2"><span data-qmd-base64="KioxKiogPGJyPiBOID0gMTI2Ni4zOSA8YnI+ICg1MC43JSk="><span class='gt_from_md'><strong>1</strong> <br> N = 1266.39 <br> (50.7%)</span></span><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height:0;"><sup>1</sup></span></th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="stat_1"><span data-qmd-base64="KiowKiogPGJyPiBOID0gMTczMC42OCA8YnI+ICg0OS40JSk="><span class='gt_from_md'><strong>0</strong> <br> N = 1730.68 <br> (49.4%)</span></span><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height:0;"><sup>1</sup></span></th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="stat_2"><span data-qmd-base64="KioxKiogPGJyPiBOID0gMTc2OS4zMiA8YnI+ICg1MC42JSk="><span class='gt_from_md'><strong>1</strong> <br> N = 1769.32 <br> (50.6%)</span></span><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height:0;"><sup>1</sup></span></th>
     </tr>
   </thead>
   <tbody class="gt_table_body">
     <tr><td headers="label" class="gt_row gt_left">dem_age_index_cont</td>
 <td headers="stat_0" class="gt_row gt_center">64 (60, 71)</td>
-<td headers="stat_1" class="gt_row gt_center">64 (61, 71)</td>
-<td headers="stat_2" class="gt_row gt_center">64 (60, 71)</td>
-<td headers="estimate" class="gt_row gt_center">0.03</td></tr>
+<td headers="stat_1" class="gt_row gt_center">65 (61, 71)</td>
+<td headers="stat_2" class="gt_row gt_center">64 (60, 72)</td>
+<td headers="estimate" class="gt_row gt_center">0.00</td></tr>
     <tr><td headers="label" class="gt_row gt_left">dem_age_lt65</td>
 <td headers="stat_0" class="gt_row gt_center"><br /></td>
 <td headers="stat_1" class="gt_row gt_center"><br /></td>
 <td headers="stat_2" class="gt_row gt_center"><br /></td>
-<td headers="estimate" class="gt_row gt_center">0.04</td></tr>
+<td headers="estimate" class="gt_row gt_center">0.02</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    &lt;65</td>
-<td headers="stat_0" class="gt_row gt_center">1,350 (54%)</td>
-<td headers="stat_1" class="gt_row gt_center">656 (53%)</td>
-<td headers="stat_2" class="gt_row gt_center">694 (55%)</td>
+<td headers="stat_0" class="gt_row gt_center">1,890 (54%)</td>
+<td headers="stat_1" class="gt_row gt_center">928 (54%)</td>
+<td headers="stat_2" class="gt_row gt_center">962 (54%)</td>
 <td headers="estimate" class="gt_row gt_center"><br /></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    65+</td>
-<td headers="stat_0" class="gt_row gt_center">1,150 (46%)</td>
-<td headers="stat_1" class="gt_row gt_center">578 (47%)</td>
-<td headers="stat_2" class="gt_row gt_center">572 (45%)</td>
+<td headers="stat_0" class="gt_row gt_center">1,610 (46%)</td>
+<td headers="stat_1" class="gt_row gt_center">803 (46%)</td>
+<td headers="stat_2" class="gt_row gt_center">807 (46%)</td>
 <td headers="estimate" class="gt_row gt_center"><br /></td></tr>
     <tr><td headers="label" class="gt_row gt_left">dem_sex_cont</td>
 <td headers="stat_0" class="gt_row gt_center"><br /></td>
 <td headers="stat_1" class="gt_row gt_center"><br /></td>
 <td headers="stat_2" class="gt_row gt_center"><br /></td>
-<td headers="estimate" class="gt_row gt_center">0.02</td></tr>
+<td headers="estimate" class="gt_row gt_center">0.05</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Female</td>
-<td headers="stat_0" class="gt_row gt_center">1,575 (63%)</td>
-<td headers="stat_1" class="gt_row gt_center">783 (63%)</td>
-<td headers="stat_2" class="gt_row gt_center">792 (63%)</td>
+<td headers="stat_0" class="gt_row gt_center">2,205 (63%)</td>
+<td headers="stat_1" class="gt_row gt_center">1,068 (62%)</td>
+<td headers="stat_2" class="gt_row gt_center">1,137 (64%)</td>
 <td headers="estimate" class="gt_row gt_center"><br /></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Male</td>
-<td headers="stat_0" class="gt_row gt_center">925 (37%)</td>
-<td headers="stat_1" class="gt_row gt_center">451 (37%)</td>
-<td headers="stat_2" class="gt_row gt_center">474 (37%)</td>
+<td headers="stat_0" class="gt_row gt_center">1,295 (37%)</td>
+<td headers="stat_1" class="gt_row gt_center">663 (38%)</td>
+<td headers="stat_2" class="gt_row gt_center">632 (36%)</td>
 <td headers="estimate" class="gt_row gt_center"><br /></td></tr>
     <tr><td headers="label" class="gt_row gt_left">dem_race</td>
 <td headers="stat_0" class="gt_row gt_center"><br /></td>
@@ -2719,44 +2742,44 @@ data_svy |>
 <td headers="stat_2" class="gt_row gt_center"><br /></td>
 <td headers="estimate" class="gt_row gt_center">0.01</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Asian</td>
-<td headers="stat_0" class="gt_row gt_center">1,550 (62%)</td>
-<td headers="stat_1" class="gt_row gt_center">762 (62%)</td>
-<td headers="stat_2" class="gt_row gt_center">788 (62%)</td>
+<td headers="stat_0" class="gt_row gt_center">2,170 (62%)</td>
+<td headers="stat_1" class="gt_row gt_center">1,069 (62%)</td>
+<td headers="stat_2" class="gt_row gt_center">1,101 (62%)</td>
 <td headers="estimate" class="gt_row gt_center"><br /></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Non-Asian</td>
-<td headers="stat_0" class="gt_row gt_center">950 (38%)</td>
-<td headers="stat_1" class="gt_row gt_center">472 (38%)</td>
-<td headers="stat_2" class="gt_row gt_center">478 (38%)</td>
+<td headers="stat_0" class="gt_row gt_center">1,330 (38%)</td>
+<td headers="stat_1" class="gt_row gt_center">661 (38%)</td>
+<td headers="stat_2" class="gt_row gt_center">669 (38%)</td>
 <td headers="estimate" class="gt_row gt_center"><br /></td></tr>
     <tr><td headers="label" class="gt_row gt_left">c_smoking_history</td>
 <td headers="stat_0" class="gt_row gt_center"><br /></td>
 <td headers="stat_1" class="gt_row gt_center"><br /></td>
 <td headers="stat_2" class="gt_row gt_center"><br /></td>
-<td headers="estimate" class="gt_row gt_center">0.01</td></tr>
+<td headers="estimate" class="gt_row gt_center">0.05</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Current/former</td>
-<td headers="stat_0" class="gt_row gt_center">875 (35%)</td>
-<td headers="stat_1" class="gt_row gt_center">428 (35%)</td>
-<td headers="stat_2" class="gt_row gt_center">447 (35%)</td>
+<td headers="stat_0" class="gt_row gt_center">1,225 (35%)</td>
+<td headers="stat_1" class="gt_row gt_center">626 (36%)</td>
+<td headers="stat_2" class="gt_row gt_center">599 (34%)</td>
 <td headers="estimate" class="gt_row gt_center"><br /></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Never</td>
-<td headers="stat_0" class="gt_row gt_center">1,625 (65%)</td>
-<td headers="stat_1" class="gt_row gt_center">805 (65%)</td>
-<td headers="stat_2" class="gt_row gt_center">820 (65%)</td>
+<td headers="stat_0" class="gt_row gt_center">2,275 (65%)</td>
+<td headers="stat_1" class="gt_row gt_center">1,105 (64%)</td>
+<td headers="stat_2" class="gt_row gt_center">1,170 (66%)</td>
 <td headers="estimate" class="gt_row gt_center"><br /></td></tr>
     <tr><td headers="label" class="gt_row gt_left">c_ecog_cont</td>
 <td headers="stat_0" class="gt_row gt_center"><br /></td>
 <td headers="stat_1" class="gt_row gt_center"><br /></td>
 <td headers="stat_2" class="gt_row gt_center"><br /></td>
-<td headers="estimate" class="gt_row gt_center">0.01</td></tr>
+<td headers="estimate" class="gt_row gt_center">0.03</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    0</td>
-<td headers="stat_0" class="gt_row gt_center">1,025 (41%)</td>
-<td headers="stat_1" class="gt_row gt_center">504 (41%)</td>
-<td headers="stat_2" class="gt_row gt_center">521 (41%)</td>
+<td headers="stat_0" class="gt_row gt_center">1,435 (41%)</td>
+<td headers="stat_1" class="gt_row gt_center">723 (42%)</td>
+<td headers="stat_2" class="gt_row gt_center">712 (40%)</td>
 <td headers="estimate" class="gt_row gt_center"><br /></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    1</td>
-<td headers="stat_0" class="gt_row gt_center">1,475 (59%)</td>
-<td headers="stat_1" class="gt_row gt_center">730 (59%)</td>
-<td headers="stat_2" class="gt_row gt_center">745 (59%)</td>
+<td headers="stat_0" class="gt_row gt_center">2,065 (59%)</td>
+<td headers="stat_1" class="gt_row gt_center">1,007 (58%)</td>
+<td headers="stat_2" class="gt_row gt_center">1,058 (60%)</td>
 <td headers="estimate" class="gt_row gt_center"><br /></td></tr>
   </tbody>
   <tfoot class="gt_sourcenotes">
@@ -2782,11 +2805,88 @@ data_svy |>
 
 :::
 
+## Estimating final treatment effects
+
+In the final step,  the `cox_pooling()` function that comes with encore.analytics is used to fit and pool the results of a Cox proportional hazards model on the imputed, matched, and raked datasets. The function takes list of imputed data frames with weights and cluster (matching) information (= our matched/smr-weighted and raked datasets) and a formula for the Cox proportional hazards model. The data frames must have column names weights and subclass (for matched datasets to indicate the cluster membership).
+
+The `cox_pooling()` function is a convenience wrapper for fitting Cox models to multiple imputed datasets which do not come as a mimids or wimids object. This is useful when there are intermediate steps in the analysis pipeline, such as computing raking weights via `raking_weights()` which are so far not straightforward to implement in a mimids or wimids object.
+
+The function follows the following logic:
+
+1. Fit a Cox proportional hazards model to each imputed dataset. If a \code{subclass} column is present, it is used as a cluster variable for matched pairs.
+2. Convert the list of fitted models into a \code{mira} object using \code{mice::as.mira}.
+3. Pool the results using \code{mice::pool}, which applies Rubin's rules for combining estimates and variances across imputations.
+4. Format the pooled results, including exponentiating the hazard ratios and calculating confidence intervals.
+
+Our fitted Cox proportional hazards model is specified as follows:
+
+::: {.cell}
+
+```{.r .cell-code}
+# fit a survival model
+cox_fit <- as.formula(survival::Surv(fu_itt_months, death_itt) ~ treat)
+cox_fit
+```
+
+::: {.cell-output .cell-output-stdout}
+
+```
+survival::Surv(fu_itt_months, death_itt) ~ treat
+```
+
+
+:::
+:::
+
+### Estimate treatment effects on matched and raked list of datasets
+
+::: {.cell}
+
+```{.r .cell-code}
+# fit and pool Cox proportional hazards model results
+cox_pooling(mirwds, surv_formula = cox_fit)
+```
+
+::: {.cell-output .cell-output-stdout}
+
+```
+   term  estimate  std.error statistic      p.value  conf.low conf.high
+1 treat 0.7398062 0.05166569 -5.833021 1.060081e-08 0.6683716 0.8188757
+             b      df dfcom       fmi    lambda  m       riv        ubar
+1 0.0003134966 437.178  2654 0.1331443 0.1291877 10 0.1483531 0.002324497
+```
+
+
+:::
+:::
+
+### Estimate treatment effects on SMR-weighted and raked list of datasets
+
+::: {.cell}
+
+```{.r .cell-code}
+# fit and pool Cox proportional hazards model results
+cox_pooling(wirwds, surv_formula = cox_fit)
+```
+
+::: {.cell-output .cell-output-stdout}
+
+```
+   term  estimate std.error statistic      p.value  conf.low conf.high
+1 treat 0.7438464 0.0454113 -6.516456 1.089725e-10 0.6804354 0.8131667
+             b       df dfcom        fmi     lambda  m        riv        ubar
+1 0.0001364739 1110.119  3459 0.07446312 0.07279717 10 0.07851267 0.001912065
+```
+
+
+:::
+:::
+
 ## Session info
 
 
 
-Script runtime: 0.41 minutes.
+Script runtime: 0.43 minutes.
 
 ::: panel-tabset
 ### Loaded packages
@@ -2844,13 +2944,13 @@ pander::pander(sessionInfo())
 en_US.UTF-8||en_US.UTF-8||en_US.UTF-8||C||en_US.UTF-8||en_US.UTF-8
 
 **attached base packages:** 
-_grid_, _stats_, _graphics_, _grDevices_, _utils_, _datasets_, _methods_ and _base_
+_grid_, _stats_, _graphics_, _grDevices_, _datasets_, _utils_, _methods_ and _base_
 
 **other attached packages:** 
 _encore.analytics(v.0.1.0)_, _gtsummary(v.2.2.0)_, _survey(v.4.4-2)_, _Matrix(v.1.7-0)_, _MatchIt(v.4.7.1)_, _MatchThem(v.1.2.1)_, _mice(v.3.17.0)_, _survival(v.3.5-8)_, _dplyr(v.1.1.4)_ and _here(v.1.0.1)_
 
 **loaded via a namespace (and not attached):** 
-_Rdpack(v.2.6.4)_, _DBI(v.1.2.3)_, _gridExtra(v.2.3)_, _sandwich(v.3.1-1)_, _rlang(v.1.1.6)_, _magrittr(v.2.0.3)_, _furrr(v.0.3.1)_, _compiler(v.4.4.0)_, _gdata(v.3.0.1)_, _vctrs(v.0.6.5)_, _stringr(v.1.5.1)_, _pkgconfig(v.2.0.3)_, _shape(v.1.4.6.1)_, _crayon(v.1.5.3)_, _fastmap(v.1.2.0)_, _backports(v.1.5.0)_, _pander(v.0.6.5)_, _rmarkdown(v.2.29)_, _sessioninfo(v.1.2.2)_, _markdown(v.2.0)_, _nloptr(v.2.2.1)_, _purrr(v.1.0.4)_, _xfun(v.0.52)_, _glmnet(v.4.1-8)_, _jomo(v.2.7-6)_, _litedown(v.0.7)_, _anesrake(v.0.80)_, _jsonlite(v.2.0.0)_, _tictoc(v.1.2.1)_, _chk(v.0.10.0)_, _pan(v.1.9)_, _broom(v.1.0.8)_, _parallel(v.4.4.0)_, _cluster(v.2.1.6)_, _R6(v.2.6.1)_, _simsurv(v.1.0.0)_, _stringi(v.1.8.7)_, _RColorBrewer(v.1.1-3)_, _parallelly(v.1.38.0)_, _boot(v.1.3-30)_, _rpart(v.4.1.23)_, _Rcpp(v.1.0.14)_, _assertthat(v.0.2.1)_, _iterators(v.1.0.14)_, _knitr(v.1.50)_, _zoo(v.1.8-14)_, _base64enc(v.0.1-3)_, _weights(v.1.0.4)_, _splines(v.4.4.0)_, _nnet(v.7.3-19)_, _tidyselect(v.1.2.1)_, _rstudioapi(v.0.17.1)_, _yaml(v.2.3.10)_, _codetools(v.0.2-20)_, _listenv(v.0.9.1)_, _lattice(v.0.22-6)_, _tibble(v.3.2.1)_, _withr(v.3.0.2)_, _evaluate(v.1.0.3)_, _foreign(v.0.8-86)_, _future(v.1.34.0)_, _xml2(v.1.3.8)_, _pillar(v.1.10.2)_, _WeightIt(v.1.4.0)_, _checkmate(v.2.3.2)_, _foreach(v.1.5.2)_, _reformulas(v.0.4.1)_, _generics(v.0.1.4)_, _rprojroot(v.2.0.4)_, _ggplot2(v.3.5.2)_, _commonmark(v.1.9.5)_, _scales(v.1.4.0)_, _minqa(v.1.2.8)_, _globals(v.0.16.3)_, _gtools(v.3.9.5)_, _glue(v.1.8.0)_, _Hmisc(v.5.2-3)_, _tools(v.4.4.0)_, _data.table(v.1.17.2)_, _lme4(v.1.1-37)_, _locfit(v.1.5-9.12)_, _tidyr(v.1.3.1)_, _mitools(v.2.4)_, _rbibutils(v.2.3)_, _cards(v.0.6.0)_, _colorspace(v.2.1-1)_, _nlme(v.3.1-164)_, _cardx(v.0.2.4)_, _htmlTable(v.2.4.3)_, _Formula(v.1.2-5)_, _cli(v.3.6.5)_, _smd(v.0.8.0)_, _gt(v.1.0.0)_, _gtable(v.0.3.6)_, _sass(v.0.4.10)_, _digest(v.0.6.37)_, _htmlwidgets(v.1.6.4)_, _farver(v.2.1.2)_, _htmltools(v.0.5.8.1)_, _lifecycle(v.1.0.4)_, _mitml(v.0.4-5)_ and _MASS(v.7.3-60.2)_
+_Rdpack(v.2.6.4)_, _DBI(v.1.2.3)_, _gridExtra(v.2.3)_, _sandwich(v.3.1-1)_, _rlang(v.1.1.6)_, _magrittr(v.2.0.3)_, _furrr(v.0.3.1)_, _compiler(v.4.4.0)_, _gdata(v.3.0.1)_, _vctrs(v.0.6.5)_, _stringr(v.1.5.1)_, _pkgconfig(v.2.0.3)_, _shape(v.1.4.6.1)_, _crayon(v.1.5.3)_, _fastmap(v.1.2.0)_, _backports(v.1.5.0)_, _pander(v.0.6.5)_, _rmarkdown(v.2.29)_, _sessioninfo(v.1.2.2)_, _markdown(v.2.0)_, _nloptr(v.2.2.1)_, _purrr(v.1.0.4)_, _xfun(v.0.52)_, _glmnet(v.4.1-8)_, _jomo(v.2.7-6)_, _litedown(v.0.7)_, _anesrake(v.0.80)_, _jsonlite(v.2.0.0)_, _tictoc(v.1.2.1)_, _chk(v.0.10.0)_, _pan(v.1.9)_, _broom(v.1.0.8)_, _parallel(v.4.4.0)_, _cluster(v.2.1.6)_, _R6(v.2.6.1)_, _simsurv(v.1.0.0)_, _stringi(v.1.8.7)_, _RColorBrewer(v.1.1-3)_, _parallelly(v.1.38.0)_, _boot(v.1.3-30)_, _rpart(v.4.1.23)_, _Rcpp(v.1.0.14)_, _assertthat(v.0.2.1)_, _iterators(v.1.0.14)_, _knitr(v.1.50)_, _zoo(v.1.8-14)_, _base64enc(v.0.1-3)_, _weights(v.1.0.4)_, _splines(v.4.4.0)_, _nnet(v.7.3-19)_, _tidyselect(v.1.2.1)_, _rstudioapi(v.0.17.1)_, _yaml(v.2.3.10)_, _codetools(v.0.2-20)_, _listenv(v.0.9.1)_, _lattice(v.0.22-6)_, _tibble(v.3.2.1)_, _withr(v.3.0.2)_, _evaluate(v.1.0.3)_, _foreign(v.0.8-86)_, _future(v.1.34.0)_, _xml2(v.1.3.8)_, _pillar(v.1.10.2)_, _WeightIt(v.1.4.0)_, _checkmate(v.2.3.2)_, _renv(v.1.0.7)_, _foreach(v.1.5.2)_, _reformulas(v.0.4.1)_, _generics(v.0.1.4)_, _rprojroot(v.2.0.4)_, _ggplot2(v.3.5.2)_, _commonmark(v.1.9.5)_, _scales(v.1.4.0)_, _minqa(v.1.2.8)_, _globals(v.0.16.3)_, _gtools(v.3.9.5)_, _glue(v.1.8.0)_, _Hmisc(v.5.2-3)_, _tools(v.4.4.0)_, _data.table(v.1.17.2)_, _lme4(v.1.1-37)_, _locfit(v.1.5-9.12)_, _tidyr(v.1.3.1)_, _mitools(v.2.4)_, _rbibutils(v.2.3)_, _cards(v.0.6.0)_, _colorspace(v.2.1-1)_, _nlme(v.3.1-164)_, _cardx(v.0.2.4)_, _htmlTable(v.2.4.3)_, _Formula(v.1.2-5)_, _cli(v.3.6.5)_, _smd(v.0.8.0)_, _gt(v.1.0.0)_, _gtable(v.0.3.6)_, _sass(v.0.4.10)_, _digest(v.0.6.37)_, _htmlwidgets(v.1.6.4)_, _farver(v.2.1.2)_, _htmltools(v.0.5.8.1)_, _lifecycle(v.1.0.4)_, _mitml(v.0.4-5)_ and _MASS(v.7.3-60.2)_
 :::
 :::
 
@@ -2867,11 +2967,11 @@ pander::pander(options('repos'))
 
   * **repos**:
 
-    --------
-      CRAN
-    --------
-     @CRAN@
-    --------
+    ---------------------------------------------
+                      REPO_NAME
+    ---------------------------------------------
+     https://packagemanager.posit.co/cran/latest
+    ---------------------------------------------
 
 
 <!-- end of list -->
@@ -2881,3 +2981,4 @@ pander::pander(options('repos'))
 :::
 :::
 :::
+

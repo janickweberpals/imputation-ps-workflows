@@ -1,0 +1,23 @@
+
+```{r}
+#| label: weighting
+#| warning: false
+
+# SMR weighting
+wimids_data <- weightthem(
+  formula = ps_form,
+  datasets = data_imp,
+  approach = 'within',
+  method = "glm",
+  estimand = "ATT"
+  )
+
+# trim extreme weights
+wimids_data <- trim(
+  x = wimids_data, 
+  at = .95, 
+  lower = TRUE
+  )
+
+wimids_data
+```

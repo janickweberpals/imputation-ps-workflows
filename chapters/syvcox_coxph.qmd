@@ -1,5 +1,5 @@
 ---
-subtitle: "Comparison of coxph versus svycoxph after multiple imputation and propensity score matching"
+title: "Comparison of coxph versus svycoxph after multiple imputation and propensity score matching"
 author: Janick Weberpals, RPh, PhD
 date: last-modified
 format: html
@@ -7,8 +7,8 @@ toc: true
 toc-depth: 3
 keep-md: true
 embed-resources: true
-editor: visual
-bibliography: references.bib
+bibliography: ../references.bib
+csl: ../pharmacoepidemiology-and-drug-safety.csl
 ---
 
 # Application in Cox PH models {#sec-application-in-cox-ph-models}
@@ -47,25 +47,11 @@ We use the `simulate_flaura()` function to simulate a realistic oncology compara
 
 The following cohort resembles [distributions observed in the EHR-derived *EDB1*](https://drugepi.gitlab-pages.partners.org/encore/flaura-nct-02296125/00_derive_cohort_edb1.html#table-1-post-eligibility-criteria)dataset used in ENCORE. *Note: the values of some continuous covariates (labs) are displayed after log/log-log transformation.*
 
-```{r}
-#| label: data_generation
-#| warning: false
+{{< include _snippets/_data_generation.qmd >}}
 
-# load example dataset with missing observations
-data_miss <- simulate_data(
-  n_total = 3500, 
-  seed = 42, 
-  include_id = FALSE, 
-  imposeNA = TRUE,
-  propNA = .33
-  )
+We can use the `create_table1()` function from the `encore.analytics` package to create a summary table of the simulated dataset. The function is a convenient wrapper around the `gtsummary` package [@gtsummary] and allows to create a table in the following fashion:
 
-data_miss |> 
-  create_table1(
-    covariates = table1_covariates$covariate, 
-    covariates_labels = table1_labels
-    )
-```
+{{< include _snippets/_table1.qmd >}}
 
 ## Step 1 - Multiple imputation
 
@@ -101,20 +87,7 @@ Following the results of various simulation studies [@shah2014; @Weberpals2024],
 
 *Note: In this example we utilize the `futuremice()` instead of the legacy `mice()` function to run the `mice` imputation across `r parallel::detectCores()-1` cores in parallel.*
 
-```{r}
-#| label: mice
-#| warning: false
-
-# impute data
-data_imp <- futuremice(
-  parallelseed = 42,
-  n.core = parallel::detectCores()-1,
-  data = data_miss,
-  method = "rf",
-  m = 10,
-  print = FALSE
-  )
-```
+{{< include _snippets/_imputation.qmd >}}
 
 The imputation step creates an object of class...
 
@@ -130,39 +103,14 @@ Apply propensity score matching and weighting with replacement within in each im
 
 Let's assume we fit the following propensity score model within each imputed dataset.
 
-```{r}
-#| label: ps-fit
-
-# apply propensity score matching on mids object
-ps_form <- as.formula(paste("treat ~", paste(covariates_for_ps, collapse = " + ")))
-ps_form
-```
+{{< include _snippets/_ps_fit.qmd >}}
 
 ::: panel-tabset
 ### Matching
 
 The matching step happens using the `matchthem()` function, which is a wrapper around the `matchit()` function. This function not only provides the functionality to match on the propensity score, but also to perform (coarsened) exact matching, cardinality matching, genetic matching and more. In this example, we use a simple 1:1 nearest neighbor matching on the propensity score (estimated through logistic regression) without replacement with a caliper of 1% of the standard deviation of the propensity score.
 
-```{r}
-#| label: matching
-#| warning: false
-
-# matching
-mimids_data <- matchthem(
-  formula = ps_form,
-  datasets = data_imp,
-  approach = 'within',
-  method = 'nearest',
-  distance = "glm",
-  link = "logit",
-  caliper = 0.01,
-  ratio = 1,
-  replace = F
-  )
-
-# print summary for matched dataset #1
-mimids_data
-```
+{{< include _snippets/_matching.qmd >}}
 
 The resulting "mimids" object contains the original imputed data and the output of the calls to `matchit()` applied to each imputed dataset.
 
@@ -172,28 +120,7 @@ The weighting step is performed very similarly using the `weightthem()` function
 
 To mitigate the risks of extreme weights, the subsequent `trim()` function truncates large weights by setting all weights higher than that at a given quantile (in this example the 95% quantile) to the weight at the quantile. Since we specify `lower = TRUE`, this is done symmetrically also with the 5% quantile.
 
-```{r}
-#| label: weighting
-#| warning: false
-
-# SMR weighting
-wimids_data <- weightthem(
-  formula = ps_form,
-  datasets = data_imp,
-  approach = 'within',
-  method = "glm",
-  estimand = "ATT"
-  )
-
-# trim extreme weights
-wimids_data <- trim(
-  x = wimids_data, 
-  at = .95, 
-  lower = TRUE
-  )
-
-wimids_data
-```
+{{< include _snippets/_weighting.qmd >}}
 
 The resulting "wimids" object contains the original imputed data and the output of the calls to `weightit()` applied to each imputed dataset.
 :::
@@ -426,32 +353,4 @@ rbind(coxph_results, svycoxph_results)
 ```
 :::
 
-## Session info
-
-```{r, include=FALSE}
-runtime <- tictoc::toc()
-```
-
-Script runtime: `r formatC((runtime$toc[[1]]-runtime$tic[[1]])/60, format = 'f', digits = 2)` minutes.
-
-::: panel-tabset
-### Loaded packages
-
-```{r}
-pander::pander(subset(data.frame(sessioninfo::package_info()), attached==TRUE, c(package, loadedversion)))
-```
-
-### Session info
-
-```{r}
-pander::pander(sessionInfo())
-```
-
-### Repositories
-
-```{r}
-pander::pander(options('repos'))
-```
-:::
-
-## 
+{{< include _snippets/_sessioninfo.qmd >}}

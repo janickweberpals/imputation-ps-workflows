@@ -1,0 +1,15 @@
+
+```{r}
+#| label: mice
+#| warning: false
+
+# impute data
+data_imp <- futuremice(
+  parallelseed = 42,
+  n.core = parallel::detectCores()-1,
+  data = data_miss,
+  method = "rf",
+  m = 10,
+  print = FALSE
+  )
+```

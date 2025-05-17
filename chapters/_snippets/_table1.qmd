@@ -1,0 +1,11 @@
+
+```{r}
+#| label: tbl-data
+#| tbl-cap: "Summary table of the simulated dataset."
+
+data_miss |> 
+  create_table1(
+    covariates = table1_covariates$covariate, 
+    covariates_labels = table1_labels
+    )
+```

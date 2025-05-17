@@ -616,7 +616,6 @@
       "RemoteHost": "api.github.com",
       "RemoteRepo": "encore.analytics",
       "RemoteUsername": "janickweberpals",
-      "RemotePkgRef": "janickweberpals/encore.analytics",
       "RemoteRef": "HEAD",
       "RemoteSha": "6512047c4677410d8b400926f7e9b94f832ec007",
       "Requirements": [
@@ -636,7 +635,7 @@
         "survival",
         "tibble"
       ],
-      "Hash": "2d587cc520ae25752a7fac125b094e56"
+      "Hash": "41ad9731e3234c54a828aaa023676205"
     },
     "evaluate": {
       "Package": "evaluate",
