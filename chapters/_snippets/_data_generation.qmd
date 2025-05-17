@@ -1,0 +1,15 @@
+
+
+```{r}
+#| label: data_generation
+#| warning: false
+
+# load example dataset with missing observations
+data_miss <- simulate_data(
+  n_total = 3500, 
+  seed = 42, 
+  include_id = FALSE, 
+  imposeNA = TRUE,
+  propNA = .33
+  )
+```

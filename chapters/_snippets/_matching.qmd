@@ -1,0 +1,21 @@
+
+```{r}
+#| label: matching
+#| warning: false
+
+# matching
+mimids_data <- matchthem(
+  formula = ps_form,
+  datasets = data_imp,
+  approach = 'within',
+  method = 'nearest',
+  distance = "glm",
+  link = "logit",
+  caliper = 0.01,
+  ratio = 1,
+  replace = F
+  )
+
+# print summary for matched dataset #1
+mimids_data
+```

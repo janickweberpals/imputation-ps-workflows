@@ -7,8 +7,8 @@ toc: true
 toc-depth: 3
 keep-md: true
 embed-resources: true
-editor: visual
-bibliography: references.bib
+bibliography: ../references.bib
+csl: ../pharmacoepidemiology-and-drug-safety.csl
 ---
 
 # Application in Cox PH models {#sec-application-in-cox-ph-models}
@@ -47,6 +47,8 @@ We use the `simulate_flaura()` function to simulate a realistic oncology compara
 
 The following cohort resembles [distributions observed in the EHR-derived *EDB1*](https://drugepi.gitlab-pages.partners.org/encore/flaura-nct-02296125/00_derive_cohort_edb1.html#table-1-post-eligibility-criteria)dataset used in ENCORE. *Note: the values of some continuous covariates (labs) are displayed after log/log-log transformation.*
 
+
+
 ::: {.cell}
 
 ```{.r .cell-code}
@@ -58,7 +60,16 @@ data_miss <- simulate_data(
   imposeNA = TRUE,
   propNA = .33
   )
+```
+:::
 
+
+We can use the `create_table1()` function from the `encore.analytics` package to create a summary table of the simulated dataset. The function is a convenient wrapper around the `gtsummary` package [@gtsummary] and allows to create a table in the following fashion:
+
+
+::: {#tbl-data .cell tbl-cap='Summary table of the simulated dataset.'}
+
+```{.r .cell-code}
 data_miss |> 
   create_table1(
     covariates = table1_covariates$covariate, 
@@ -635,6 +646,7 @@ data_miss |>
 :::
 :::
 
+
 ## Step 1 - Multiple imputation
 
 The first step after deriving the analytic cohort includes the creation of multiple imputed datasets using `mice` R package[@mice].
@@ -669,6 +681,7 @@ Following the results of various simulation studies [@shah2014; @Weberpals2024],
 
 *Note: In this example we utilize the `futuremice()` instead of the legacy `mice()` function to run the `mice` imputation across 9 cores in parallel.*
 
+
 ::: {.cell}
 
 ```{.r .cell-code}
@@ -683,6 +696,7 @@ data_imp <- futuremice(
   )
 ```
 :::
+
 
 The imputation step creates an object of class...
 
@@ -709,6 +723,7 @@ class(data_imp)
 Apply propensity score matching and weighting with replacement within in each imputed dataset. As pointed in @sec-simulation-study-results, the **MIte** approach performed best in terms of bias, standardized differences/balancing, coverage rate and variance estimation. In `MatchThem` this approach is referred to a `within` approach (performing matching within each dataset), while the inferior **MIps** approach (estimating propensity scores within each dataset, averaging them across datasets, and performing matching using the averaged propensity scores in each dataset) is referred to as `across` approach. Since **MIte/`within`** has been shown to have superior performance in most cases, we only illustrate this approach here.
 
 Let's assume we fit the following propensity score model within each imputed dataset.
+
 
 ::: {.cell}
 
@@ -737,10 +752,13 @@ treat ~ dem_age_index_cont + dem_sex_cont + c_smoking_history +
 :::
 :::
 
+
+
 ::: panel-tabset
 ### Matching
 
 The matching step happens using the `matchthem()` function, which is a wrapper around the `matchit()` function. This function not only provides the functionality to match on the propensity score, but also to perform (coarsened) exact matching, cardinality matching, genetic matching and more. In this example, we use a simple 1:1 nearest neighbor matching on the propensity score (estimated through logistic regression) without replacement with a caliper of 1% of the standard deviation of the propensity score.
+
 
 ::: {.cell}
 
@@ -780,6 +798,7 @@ A `matchit` object
 :::
 :::
 
+
 The resulting "mimids" object contains the original imputed data and the output of the calls to `matchit()` applied to each imputed dataset.
 
 ### Weighting
@@ -787,6 +806,7 @@ The resulting "mimids" object contains the original imputed data and the output 
 The weighting step is performed very similarly using the `weightthem()` function. In this example we apply SMR weighting to arrive at the same ATT estimand as matching which is indicated through the `estimand = "ATT"` argument. In case we wanted to weight patients based on overlap weights, `estimand = "AT0"` would need to be specified (which is one of the sensitivity analyses in the FLAURA protocol).
 
 To mitigate the risks of extreme weights, the subsequent `trim()` function truncates large weights by setting all weights higher than that at a given quantile (in this example the 95% quantile) to the weight at the quantile. Since we specify `lower = TRUE`, this is done symmetrically also with the 5% quantile.
+
 
 ::: {.cell}
 
@@ -826,6 +846,7 @@ A weightit object
 
 :::
 :::
+
 
 The resulting "wimids" object contains the original imputed data and the output of the calls to `weightit()` applied to each imputed dataset.
 :::
@@ -1188,7 +1209,7 @@ rbind(coxph_results, svycoxph_results)
 
 
 
-Script runtime: 0.37 minutes.
+Script runtime: 0.34 minutes.
 
 ::: panel-tabset
 ### Loaded packages
@@ -1294,4 +1315,3 @@ pander::pander(options('repos'))
 :::
 :::
 
-## 

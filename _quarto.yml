@@ -15,7 +15,7 @@ book:
     - chapters/background.qmd
     - chapters/syvcox_coxph.qmd
     - chapters/raking_weights.qmd
-    #- chapters/subgroup_analysis.qmd
+    - chapters/km_pooling.qmd
 
   reader-mode: true
   repo-url: https://github.com/janickweberpals/imputation-ps-workflows

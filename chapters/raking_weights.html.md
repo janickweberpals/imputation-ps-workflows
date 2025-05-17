@@ -7,7 +7,8 @@ toc: true
 toc-depth: 3
 keep-md: true
 embed-resources: true
-editor: visual
+bibliography: ../references.bib
+csl: ../pharmacoepidemiology-and-drug-safety.csl
 ---
 
 ## About raking weights
@@ -46,6 +47,8 @@ runtime <- tictoc::tic()
 
 We use the `simulate_data()` function to simulate a realistic oncology comparative effectiveness cohort analytic dataset.
 
+
+
 ::: {.cell}
 
 ```{.r .cell-code}
@@ -59,6 +62,7 @@ data_miss <- simulate_data(
   )
 ```
 :::
+
 
 If it is desired ro rake categorical variables, the function works best of those variables are encoded as factor variables. 
 
@@ -165,13 +169,14 @@ data_miss <- data_miss |>
 
 Since we operate on a simulated dataset with missing observations, we first impute the missing data before performing the propensity score matching and raking. We use the `mice` package for this purpose.
 
+
 ::: {.cell}
 
 ```{.r .cell-code}
 # impute data
 data_imp <- futuremice(
   parallelseed = 42,
-  n.core = 7,
+  n.core = parallel::detectCores()-1,
   data = data_miss,
   method = "rf",
   m = 10,
@@ -180,9 +185,11 @@ data_imp <- futuremice(
 ```
 :::
 
+
 ## Propensity score matching/weighting
 
 In the next step, we create `mimids` and `wimids` object which contain the imputed and 1:1 propensity score matched/SMR-weighted datasets that will serve as the input for the raking procedure. The propensity score model is specified as follows:
+
 
 ::: {.cell}
 
@@ -211,10 +218,13 @@ treat ~ dem_age_index_cont + dem_sex_cont + c_smoking_history +
 :::
 :::
 
+
+
 As already covered in the previous chapters, we can use the `matchthem()` function to perform the matching and weighting.
 
 ::: panel-tabset
 ### Propensity score matching
+
 
 ::: {.cell}
 
@@ -254,21 +264,29 @@ A `matchit` object
 :::
 :::
 
+
 ### Propensity score weighting
+
 
 ::: {.cell}
 
 ```{.r .cell-code}
-# matching
+# SMR weighting
 wimids_data <- weightthem(
   formula = ps_form,
   datasets = data_imp,
   approach = 'within',
+  method = "glm",
   estimand = "ATT"
   )
 
+# trim extreme weights
+wimids_data <- trim(
+  x = wimids_data, 
+  at = .95, 
+  lower = TRUE
+  )
 
-# print summary for weighted dataset #1
 wimids_data
 ```
 
@@ -282,11 +300,13 @@ A weightit object
  - treatment: 2-category
  - estimand: ATT (focal: 1)
  - covariates: dem_age_index_cont, dem_sex_cont, c_smoking_history, c_number_met_sites, c_hemoglobin_g_dl_cont, c_urea_nitrogen_mg_dl_cont, c_platelets_10_9_l_cont, c_calcium_mg_dl_cont, c_glucose_mg_dl_cont, c_lymphocyte_leukocyte_ratio_cont, c_alp_u_l_cont, c_protein_g_l_cont, c_alt_u_l_cont, c_albumin_g_l_cont, c_bilirubin_mg_dl_cont, c_chloride_mmol_l_cont, c_monocytes_10_9_l_cont, c_eosinophils_leukocytes_ratio_cont, c_ldh_u_l_cont, c_hr_cont, c_sbp_cont, c_oxygen_cont, c_ecog_cont, c_neutrophil_lymphocyte_ratio_cont, c_bmi_cont, c_ast_alt_ratio_cont, c_stage_initial_dx_cont, dem_race, dem_region, dem_ses, c_time_dx_to_index
+ - weights trimmed at 5% and 95%
 ```
 
 
 :::
 :::
+
 :::
 
 ### Raking procedure
@@ -314,11 +334,13 @@ mirwds <- raking_weights(
 [1] "Raking converged in 12 iterations"
 [1] "Raking converged in 10 iterations"
 [1] "Raking converged in 10 iterations"
-[1] "Raking converged in 13 iterations"
 [1] "Raking converged in 14 iterations"
 [1] "Raking converged in 11 iterations"
+[1] "Raking converged in 10 iterations"
+[1] "Raking converged in 13 iterations"
+[1] "Raking converged in 8 iterations"
+[1] "Raking converged in 10 iterations"
 [1] "Raking converged in 11 iterations"
-[1] "Raking converged in 9 iterations"
 ```
 
 
@@ -335,15 +357,16 @@ wirwds <- raking_weights(
 ::: {.cell-output .cell-output-stdout}
 
 ```
-[1] "Raking converged in 13 iterations"
-[1] "Raking converged in 10 iterations"
-[1] "Raking converged in 14 iterations"
 [1] "Raking converged in 12 iterations"
 [1] "Raking converged in 11 iterations"
 [1] "Raking converged in 14 iterations"
-[1] "Raking converged in 14 iterations"
+[1] "Raking converged in 11 iterations"
 [1] "Raking converged in 13 iterations"
-[1] "Raking converged in 14 iterations"
+[1] "Raking converged in 13 iterations"
+[1] "Raking converged in 13 iterations"
+[1] "Raking converged in 19 iterations"
+[1] "Raking converged in 15 iterations"
+[1] "Raking converged in 15 iterations"
 [1] "Raking converged in 15 iterations"
 ```
 
@@ -2673,8 +2696,8 @@ data_svy |>
       <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="2" colspan="1" scope="col" id="estimate"><span data-qmd-base64="KipEaWZmZXJlbmNlKio="><span class='gt_from_md'><strong>Difference</strong></span></span><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height:0;"><sup>2</sup></span></th>
     </tr>
     <tr class="gt_col_headings">
-      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="stat_1"><span data-qmd-base64="KiowKiogPGJyPiBOID0gMTczNS40IDxicj4gKDQ5LjYlKQ=="><span class='gt_from_md'><strong>0</strong> <br> N = 1735.4 <br> (49.6%)</span></span><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height:0;"><sup>1</sup></span></th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="stat_2"><span data-qmd-base64="KioxKiogPGJyPiBOID0gMTc2NC42IDxicj4gKDUwLjQlKQ=="><span class='gt_from_md'><strong>1</strong> <br> N = 1764.6 <br> (50.4%)</span></span><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height:0;"><sup>1</sup></span></th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="stat_1"><span data-qmd-base64="KiowKiogPGJyPiBOID0gMTczMC42OCA8YnI+ICg0OS40JSk="><span class='gt_from_md'><strong>0</strong> <br> N = 1730.68 <br> (49.4%)</span></span><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height:0;"><sup>1</sup></span></th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="stat_2"><span data-qmd-base64="KioxKiogPGJyPiBOID0gMTc2OS4zMiA8YnI+ICg1MC42JSk="><span class='gt_from_md'><strong>1</strong> <br> N = 1769.32 <br> (50.6%)</span></span><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height:0;"><sup>1</sup></span></th>
     </tr>
   </thead>
   <tbody class="gt_table_body">
@@ -2690,28 +2713,28 @@ data_svy |>
 <td headers="estimate" class="gt_row gt_center">0.02</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    &lt;65</td>
 <td headers="stat_0" class="gt_row gt_center">1,890 (54%)</td>
-<td headers="stat_1" class="gt_row gt_center">928 (53%)</td>
-<td headers="stat_2" class="gt_row gt_center">962 (55%)</td>
+<td headers="stat_1" class="gt_row gt_center">928 (54%)</td>
+<td headers="stat_2" class="gt_row gt_center">962 (54%)</td>
 <td headers="estimate" class="gt_row gt_center"><br /></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    65+</td>
 <td headers="stat_0" class="gt_row gt_center">1,610 (46%)</td>
-<td headers="stat_1" class="gt_row gt_center">808 (47%)</td>
-<td headers="stat_2" class="gt_row gt_center">802 (45%)</td>
+<td headers="stat_1" class="gt_row gt_center">803 (46%)</td>
+<td headers="stat_2" class="gt_row gt_center">807 (46%)</td>
 <td headers="estimate" class="gt_row gt_center"><br /></td></tr>
     <tr><td headers="label" class="gt_row gt_left">dem_sex_cont</td>
 <td headers="stat_0" class="gt_row gt_center"><br /></td>
 <td headers="stat_1" class="gt_row gt_center"><br /></td>
 <td headers="stat_2" class="gt_row gt_center"><br /></td>
-<td headers="estimate" class="gt_row gt_center">0.06</td></tr>
+<td headers="estimate" class="gt_row gt_center">0.05</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Female</td>
 <td headers="stat_0" class="gt_row gt_center">2,205 (63%)</td>
-<td headers="stat_1" class="gt_row gt_center">1,070 (62%)</td>
-<td headers="stat_2" class="gt_row gt_center">1,135 (64%)</td>
+<td headers="stat_1" class="gt_row gt_center">1,068 (62%)</td>
+<td headers="stat_2" class="gt_row gt_center">1,137 (64%)</td>
 <td headers="estimate" class="gt_row gt_center"><br /></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Male</td>
 <td headers="stat_0" class="gt_row gt_center">1,295 (37%)</td>
-<td headers="stat_1" class="gt_row gt_center">665 (38%)</td>
-<td headers="stat_2" class="gt_row gt_center">630 (36%)</td>
+<td headers="stat_1" class="gt_row gt_center">663 (38%)</td>
+<td headers="stat_2" class="gt_row gt_center">632 (36%)</td>
 <td headers="estimate" class="gt_row gt_center"><br /></td></tr>
     <tr><td headers="label" class="gt_row gt_left">dem_race</td>
 <td headers="stat_0" class="gt_row gt_center"><br /></td>
@@ -2720,38 +2743,38 @@ data_svy |>
 <td headers="estimate" class="gt_row gt_center">0.01</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Asian</td>
 <td headers="stat_0" class="gt_row gt_center">2,170 (62%)</td>
-<td headers="stat_1" class="gt_row gt_center">1,072 (62%)</td>
-<td headers="stat_2" class="gt_row gt_center">1,098 (62%)</td>
+<td headers="stat_1" class="gt_row gt_center">1,069 (62%)</td>
+<td headers="stat_2" class="gt_row gt_center">1,101 (62%)</td>
 <td headers="estimate" class="gt_row gt_center"><br /></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Non-Asian</td>
 <td headers="stat_0" class="gt_row gt_center">1,330 (38%)</td>
-<td headers="stat_1" class="gt_row gt_center">663 (38%)</td>
-<td headers="stat_2" class="gt_row gt_center">667 (38%)</td>
+<td headers="stat_1" class="gt_row gt_center">661 (38%)</td>
+<td headers="stat_2" class="gt_row gt_center">669 (38%)</td>
 <td headers="estimate" class="gt_row gt_center"><br /></td></tr>
     <tr><td headers="label" class="gt_row gt_left">c_smoking_history</td>
 <td headers="stat_0" class="gt_row gt_center"><br /></td>
 <td headers="stat_1" class="gt_row gt_center"><br /></td>
 <td headers="stat_2" class="gt_row gt_center"><br /></td>
-<td headers="estimate" class="gt_row gt_center">0.04</td></tr>
+<td headers="estimate" class="gt_row gt_center">0.05</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Current/former</td>
 <td headers="stat_0" class="gt_row gt_center">1,225 (35%)</td>
-<td headers="stat_1" class="gt_row gt_center">625 (36%)</td>
-<td headers="stat_2" class="gt_row gt_center">600 (34%)</td>
+<td headers="stat_1" class="gt_row gt_center">626 (36%)</td>
+<td headers="stat_2" class="gt_row gt_center">599 (34%)</td>
 <td headers="estimate" class="gt_row gt_center"><br /></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Never</td>
 <td headers="stat_0" class="gt_row gt_center">2,275 (65%)</td>
-<td headers="stat_1" class="gt_row gt_center">1,110 (64%)</td>
-<td headers="stat_2" class="gt_row gt_center">1,165 (66%)</td>
+<td headers="stat_1" class="gt_row gt_center">1,105 (64%)</td>
+<td headers="stat_2" class="gt_row gt_center">1,170 (66%)</td>
 <td headers="estimate" class="gt_row gt_center"><br /></td></tr>
     <tr><td headers="label" class="gt_row gt_left">c_ecog_cont</td>
 <td headers="stat_0" class="gt_row gt_center"><br /></td>
 <td headers="stat_1" class="gt_row gt_center"><br /></td>
 <td headers="stat_2" class="gt_row gt_center"><br /></td>
-<td headers="estimate" class="gt_row gt_center">0.04</td></tr>
+<td headers="estimate" class="gt_row gt_center">0.03</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    0</td>
 <td headers="stat_0" class="gt_row gt_center">1,435 (41%)</td>
-<td headers="stat_1" class="gt_row gt_center">729 (42%)</td>
-<td headers="stat_2" class="gt_row gt_center">706 (40%)</td>
+<td headers="stat_1" class="gt_row gt_center">723 (42%)</td>
+<td headers="stat_2" class="gt_row gt_center">712 (40%)</td>
 <td headers="estimate" class="gt_row gt_center"><br /></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    1</td>
 <td headers="stat_0" class="gt_row gt_center">2,065 (59%)</td>
@@ -2790,11 +2813,10 @@ The `cox_pooling()` function is a convenience wrapper for fitting Cox models to 
 
 The function follows the following logic:
 
-1. Fit a Cox proportional hazards model to each imputed dataset; if a subclass column is present in the data, it is used as a cluster variable for matched pairs
-
-2. Pool the results using the pool.scalar function from the mice package, that is, univariate estimates (qbar) are pooled via formula (3.1.2) Rubin (1987) and the total variance (t) is estimated via robust standardard errors according to formula (3.1.5) Rubin (1987).
-
-3. Compute the confidence intervals and exponentiate the results via $exp(qbar +/- 1.96 * sqrt(t))$
+1. Fit a Cox proportional hazards model to each imputed dataset. If a \code{subclass} column is present, it is used as a cluster variable for matched pairs.
+2. Convert the list of fitted models into a \code{mira} object using \code{mice::as.mira}.
+3. Pool the results using \code{mice::pool}, which applies Rubin's rules for combining estimates and variances across imputations.
+4. Format the pooled results, including exponentiating the hazard ratios and calculating confidence intervals.
 
 Our fitted Cox proportional hazards model is specified as follows:
 
@@ -2828,10 +2850,10 @@ cox_pooling(mirwds, surv_formula = cox_fit)
 ::: {.cell-output .cell-output-stdout}
 
 ```
-   term  estimate  std.error statistic     p.value  conf.low conf.high
-1 treat 0.7395658 0.05336813 -5.653036 4.71902e-08 0.6657417 0.8215764
-             b       df dfcom       fmi    lambda  m       riv        ubar
-1 0.0004882392 226.4772  2654 0.1956371 0.1885651 10 0.2323848 0.002311094
+   term  estimate  std.error statistic      p.value  conf.low conf.high
+1 treat 0.7398062 0.05166569 -5.833021 1.060081e-08 0.6683716 0.8188757
+             b      df dfcom       fmi    lambda  m       riv        ubar
+1 0.0003134966 437.178  2654 0.1331443 0.1291877 10 0.1483531 0.002324497
 ```
 
 
@@ -2850,22 +2872,21 @@ cox_pooling(wirwds, surv_formula = cox_fit)
 ::: {.cell-output .cell-output-stdout}
 
 ```
-   term  estimate  std.error statistic     p.value  conf.low conf.high
-1 treat 0.7457257 0.04490998 -6.533012 8.70771e-11 0.6828446 0.8143973
-             b      df dfcom        fmi     lambda  m      riv        ubar
-1 0.0001008894 1556.38  3459 0.05623605 0.05502406 10 0.058228 0.001905928
+   term  estimate std.error statistic      p.value  conf.low conf.high
+1 treat 0.7438464 0.0454113 -6.516456 1.089725e-10 0.6804354 0.8131667
+             b       df dfcom        fmi     lambda  m        riv        ubar
+1 0.0001364739 1110.119  3459 0.07446312 0.07279717 10 0.07851267 0.001912065
 ```
 
 
 :::
 :::
 
-
 ## Session info
 
 
 
-Script runtime: 0.49 minutes.
+Script runtime: 0.43 minutes.
 
 ::: panel-tabset
 ### Loaded packages
@@ -2960,3 +2981,4 @@ pander::pander(options('repos'))
 :::
 :::
 :::
+

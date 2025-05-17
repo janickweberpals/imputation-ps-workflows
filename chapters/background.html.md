@@ -9,7 +9,8 @@ toc-depth: 3
 keep-md: true
 editor: visual
 embed-resources: true
-bibliography: references.bib
+bibliography: ../references.bib
+csl: ../pharmacoepidemiology-and-drug-safety.csl
 ---
 
 

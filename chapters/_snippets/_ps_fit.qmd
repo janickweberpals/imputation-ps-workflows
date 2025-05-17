@@ -1,0 +1,9 @@
+
+```{r}
+#| label: ps-fit
+
+# apply propensity score matching on mids object
+ps_form <- as.formula(paste("treat ~", paste(covariates_for_ps, collapse = " + ")))
+ps_form
+```
+
