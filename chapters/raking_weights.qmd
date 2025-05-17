@@ -370,11 +370,10 @@ The `cox_pooling()` function is a convenience wrapper for fitting Cox models to 
 
 The function follows the following logic:
 
-1. Fit a Cox proportional hazards model to each imputed dataset; if a subclass column is present in the data, it is used as a cluster variable for matched pairs
-
-2. Pool the results using the pool.scalar function from the mice package, that is, univariate estimates (qbar) are pooled via formula (3.1.2) Rubin (1987) and the total variance (t) is estimated via robust standardard errors according to formula (3.1.5) Rubin (1987).
-
-3. Compute the confidence intervals and exponentiate the results via $exp(qbar +/- 1.96 * sqrt(t))$
+1. Fit a Cox proportional hazards model to each imputed dataset. If a \code{subclass} column is present, it is used as a cluster variable for matched pairs.
+2. Convert the list of fitted models into a \code{mira} object using \code{mice::as.mira}.
+3. Pool the results using \code{mice::pool}, which applies Rubin's rules for combining estimates and variances across imputations.
+4. Format the pooled results, including exponentiating the hazard ratios and calculating confidence intervals.
 
 Our fitted Cox proportional hazards model is specified as follows:
 

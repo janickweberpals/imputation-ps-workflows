@@ -3,24 +3,19 @@ subtitle: "Comparison of coxph versus svycoxph after multiple imputation and pro
 author: Janick Weberpals, RPh, PhD
 date: last-modified
 format: html
-code-fold: false
 toc: true
 toc-depth: 3
-code-tools: true
 keep-md: true
 embed-resources: true
 editor: visual
 bibliography: references.bib
 ---
 
-
-
 # Application in Cox PH models {#sec-application-in-cox-ph-models}
 
 In @sec-application-in-cox-ph-models we illustrate a reproducible example on how to use `coxph` ([survival](https://cran.r-project.org/web/packages/survival/index.html) package [@survival]) and `svycoxph` ([survey](https://cran.r-project.org/web/packages/survey/index.html) package [@survey]) in combination with multiple imputation by chained equations ([mice](https://cran.r-project.org/web/packages/mice/index.html) package [@mice]) and propensity score matching using the `MatchThem` package [@pishgar2021].
 
 First, we load the required R libraries/packages and some custom functions that are part of the `encore.io` R package that is being developed to streamline the analysis of all **ENCORE** trial emulations (non-public package).
-
 
 ::: {.cell}
 
@@ -37,15 +32,14 @@ library(ranger)
 library(furrr)
 library(cobalt)
 library(gsDesign)
-library(encore.io)
+library(encore.analytics)
 
-source(here("functions", "source_encore.io_functions.R"))
+source(here("functions", "covariate_vectors.R"))
 
 # track time
 runtime <- tictoc::tic()
 ```
 :::
-
 
 ## Data generation
 
@@ -53,12 +47,11 @@ We use the `simulate_flaura()` function to simulate a realistic oncology compara
 
 The following cohort resembles [distributions observed in the EHR-derived *EDB1*](https://drugepi.gitlab-pages.partners.org/encore/flaura-nct-02296125/00_derive_cohort_edb1.html#table-1-post-eligibility-criteria)dataset used in ENCORE. *Note: the values of some continuous covariates (labs) are displayed after log/log-log transformation.*
 
-
 ::: {.cell}
 
 ```{.r .cell-code}
 # load example dataset with missing observations
-data_miss <- simulate_flaura(
+data_miss <- simulate_data(
   n_total = 3500, 
   seed = 42, 
   include_id = FALSE, 
@@ -66,26 +59,14 @@ data_miss <- simulate_flaura(
   propNA = .33
   )
 
-# crate Table 1
 data_miss |> 
-  tbl_summary(
-    by = "treat", 
-    include = table1_covariates$covariate,
-    label = table1_labels
-    ) |> 
-  add_overall() |> 
-  modify_header(
-    label ~ "**Patient characteristic**",
-    stat_0 ~ "**Total** <br> N = {N}",
-    stat_1 ~ "**Comparator** <br> N = {n} <br> ({style_percent(p, digits=1)}%)",
-    stat_2 ~ "**Exposure** <br> N = {n} <br> ({style_percent(p, digits=1)}%)"
-    ) |> 
-  modify_spanning_header(c("stat_1", "stat_2") ~ "**Treatment received**") |> 
-  modify_caption("**Table 1. Patient Characteristics**")
+  create_table1(
+    covariates = table1_covariates$covariate, 
+    covariates_labels = table1_labels
+    )
 ```
 
 ::: {.cell-output-display}
-
 
 ```{=html}
 <div id="mhvesddiol" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
@@ -538,99 +519,121 @@ data_miss |>
 }
 </style>
 <table class="gt_table" data-quarto-disable-processing="false" data-quarto-bootstrap="false">
-  <caption><div data-qmd-base64="KipUYWJsZSAxLiBQYXRpZW50IENoYXJhY3RlcmlzdGljcyoq"><div class='gt_from_md'><p><strong>Table 1. Patient Characteristics</strong></p>
-</div></div></caption>
   <thead>
     <tr class="gt_col_headings gt_spanner_row">
-      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="2" colspan="1" scope="col" id="&lt;div data-qmd-base64=&quot;KipQYXRpZW50IGNoYXJhY3RlcmlzdGljKio=&quot;&gt;&lt;div class='gt_from_md'&gt;&lt;p&gt;&lt;strong&gt;Patient characteristic&lt;/strong&gt;&lt;/p&gt;&#10;&lt;/div&gt;&lt;/div&gt;"><div data-qmd-base64="KipQYXRpZW50IGNoYXJhY3RlcmlzdGljKio="><div class='gt_from_md'><p><strong>Patient characteristic</strong></p>
-</div></div></th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="2" colspan="1" scope="col" id="&lt;div data-qmd-base64=&quot;KipUb3RhbCoqIDxicj4gTiA9IDM1MDA=&quot;&gt;&lt;div class='gt_from_md'&gt;&lt;p&gt;&lt;strong&gt;Total&lt;/strong&gt; &lt;br&gt; N = 3500&lt;/p&gt;&#10;&lt;/div&gt;&lt;/div&gt;&lt;span class=&quot;gt_footnote_marks&quot; style=&quot;white-space:nowrap;font-style:italic;font-weight:normal;line-height: 0;&quot;&gt;&lt;sup&gt;1&lt;/sup&gt;&lt;/span&gt;"><div data-qmd-base64="KipUb3RhbCoqIDxicj4gTiA9IDM1MDA="><div class='gt_from_md'><p><strong>Total</strong> <br> N = 3500</p>
-</div></div><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height: 0;"><sup>1</sup></span></th>
-      <th class="gt_center gt_columns_top_border gt_column_spanner_outer" rowspan="1" colspan="2" scope="colgroup" id="&lt;div data-qmd-base64=&quot;KipUcmVhdG1lbnQgcmVjZWl2ZWQqKg==&quot;&gt;&lt;div class='gt_from_md'&gt;&lt;p&gt;&lt;strong&gt;Treatment received&lt;/strong&gt;&lt;/p&gt;&#10;&lt;/div&gt;&lt;/div&gt;">
-        <span class="gt_column_spanner"><div data-qmd-base64="KipUcmVhdG1lbnQgcmVjZWl2ZWQqKg=="><div class='gt_from_md'><p><strong>Treatment received</strong></p>
-</div></div></span>
+      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="2" colspan="1" scope="col" id="label"><span data-qmd-base64="KipQYXRpZW50IGNoYXJhY3RlcmlzdGljKio="><span class='gt_from_md'><strong>Patient characteristic</strong></span></span></th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="2" colspan="1" scope="col" id="stat_0"><span data-qmd-base64="KipUb3RhbCoqIDxicj4gTiA9IDM1MDA="><span class='gt_from_md'><strong>Total</strong> <br> N = 3500</span></span><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height:0;"><sup>1</sup></span></th>
+      <th class="gt_center gt_columns_top_border gt_column_spanner_outer" rowspan="1" colspan="2" scope="colgroup" id="level 1; stat_1">
+        <div class="gt_column_spanner"><span data-qmd-base64="KipUcmVhdG1lbnQgcmVjZWl2ZWQqKg=="><span class='gt_from_md'><strong>Treatment received</strong></span></span></div>
       </th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="2" colspan="1" scope="col" id="estimate"><span data-qmd-base64="KipEaWZmZXJlbmNlKio="><span class='gt_from_md'><strong>Difference</strong></span></span><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height:0;"><sup>2</sup></span></th>
     </tr>
     <tr class="gt_col_headings">
-      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="&lt;div data-qmd-base64=&quot;KipDb21wYXJhdG9yKiogPGJyPiBOID0gMTQ4NyA8YnI+ICg0Mi41JSk=&quot;&gt;&lt;div class='gt_from_md'&gt;&lt;p&gt;&lt;strong&gt;Comparator&lt;/strong&gt; &lt;br&gt; N = 1487 &lt;br&gt; (42.5%)&lt;/p&gt;&#10;&lt;/div&gt;&lt;/div&gt;&lt;span class=&quot;gt_footnote_marks&quot; style=&quot;white-space:nowrap;font-style:italic;font-weight:normal;line-height: 0;&quot;&gt;&lt;sup&gt;1&lt;/sup&gt;&lt;/span&gt;"><div data-qmd-base64="KipDb21wYXJhdG9yKiogPGJyPiBOID0gMTQ4NyA8YnI+ICg0Mi41JSk="><div class='gt_from_md'><p><strong>Comparator</strong> <br> N = 1487 <br> (42.5%)</p>
-</div></div><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height: 0;"><sup>1</sup></span></th>
-      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="&lt;div data-qmd-base64=&quot;KipFeHBvc3VyZSoqIDxicj4gTiA9IDIwMTMgPGJyPiAoNTcuNSUp&quot;&gt;&lt;div class='gt_from_md'&gt;&lt;p&gt;&lt;strong&gt;Exposure&lt;/strong&gt; &lt;br&gt; N = 2013 &lt;br&gt; (57.5%)&lt;/p&gt;&#10;&lt;/div&gt;&lt;/div&gt;&lt;span class=&quot;gt_footnote_marks&quot; style=&quot;white-space:nowrap;font-style:italic;font-weight:normal;line-height: 0;&quot;&gt;&lt;sup&gt;1&lt;/sup&gt;&lt;/span&gt;"><div data-qmd-base64="KipFeHBvc3VyZSoqIDxicj4gTiA9IDIwMTMgPGJyPiAoNTcuNSUp"><div class='gt_from_md'><p><strong>Exposure</strong> <br> N = 2013 <br> (57.5%)</p>
-</div></div><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height: 0;"><sup>1</sup></span></th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="stat_1"><span data-qmd-base64="KiowKiogPGJyPiBOID0gMTQ4NyA8YnI+ICg0Mi41JSk="><span class='gt_from_md'><strong>0</strong> <br> N = 1487 <br> (42.5%)</span></span><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height:0;"><sup>1</sup></span></th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_center" rowspan="1" colspan="1" scope="col" id="stat_2"><span data-qmd-base64="KioxKiogPGJyPiBOID0gMjAxMyA8YnI+ICg1Ny41JSk="><span class='gt_from_md'><strong>1</strong> <br> N = 2013 <br> (57.5%)</span></span><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height:0;"><sup>1</sup></span></th>
     </tr>
   </thead>
   <tbody class="gt_table_body">
     <tr><td headers="label" class="gt_row gt_left">Age at index date</td>
 <td headers="stat_0" class="gt_row gt_center">69 (64, 74)</td>
 <td headers="stat_1" class="gt_row gt_center">69 (64, 74)</td>
-<td headers="stat_2" class="gt_row gt_center">69 (64, 74)</td></tr>
+<td headers="stat_2" class="gt_row gt_center">69 (64, 74)</td>
+<td headers="estimate" class="gt_row gt_center">-0.04</td></tr>
     <tr><td headers="label" class="gt_row gt_left">Sex</td>
 <td headers="stat_0" class="gt_row gt_center">1,146 (33%)</td>
 <td headers="stat_1" class="gt_row gt_center">494 (33%)</td>
-<td headers="stat_2" class="gt_row gt_center">652 (32%)</td></tr>
+<td headers="stat_2" class="gt_row gt_center">652 (32%)</td>
+<td headers="estimate" class="gt_row gt_center">0.02</td></tr>
     <tr><td headers="label" class="gt_row gt_left">Race</td>
 <td headers="stat_0" class="gt_row gt_center"><br /></td>
 <td headers="stat_1" class="gt_row gt_center"><br /></td>
-<td headers="stat_2" class="gt_row gt_center"><br /></td></tr>
+<td headers="stat_2" class="gt_row gt_center"><br /></td>
+<td headers="estimate" class="gt_row gt_center">0.03</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Asian</td>
-<td headers="stat_0" class="gt_row gt_center">835 (36%)</td>
-<td headers="stat_1" class="gt_row gt_center">347 (35%)</td>
-<td headers="stat_2" class="gt_row gt_center">488 (36%)</td></tr>
+<td headers="stat_0" class="gt_row gt_center">835 (24%)</td>
+<td headers="stat_1" class="gt_row gt_center">347 (23%)</td>
+<td headers="stat_2" class="gt_row gt_center">488 (24%)</td>
+<td headers="estimate" class="gt_row gt_center"><br /></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    Other</td>
-<td headers="stat_0" class="gt_row gt_center">54 (2.3%)</td>
-<td headers="stat_1" class="gt_row gt_center">22 (2.2%)</td>
-<td headers="stat_2" class="gt_row gt_center">32 (2.4%)</td></tr>
+<td headers="stat_0" class="gt_row gt_center">54 (1.5%)</td>
+<td headers="stat_1" class="gt_row gt_center">22 (1.5%)</td>
+<td headers="stat_2" class="gt_row gt_center">32 (1.6%)</td>
+<td headers="estimate" class="gt_row gt_center"><br /></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    White</td>
-<td headers="stat_0" class="gt_row gt_center">1,449 (62%)</td>
-<td headers="stat_1" class="gt_row gt_center">625 (63%)</td>
-<td headers="stat_2" class="gt_row gt_center">824 (61%)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
-<td headers="stat_0" class="gt_row gt_center">1,162</td>
-<td headers="stat_1" class="gt_row gt_center">493</td>
-<td headers="stat_2" class="gt_row gt_center">669</td></tr>
+<td headers="stat_0" class="gt_row gt_center">1,449 (41%)</td>
+<td headers="stat_1" class="gt_row gt_center">625 (42%)</td>
+<td headers="stat_2" class="gt_row gt_center">824 (41%)</td>
+<td headers="estimate" class="gt_row gt_center"><br /></td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    Missing</td>
+<td headers="stat_0" class="gt_row gt_center">1,162 (33%)</td>
+<td headers="stat_1" class="gt_row gt_center">493 (33%)</td>
+<td headers="stat_2" class="gt_row gt_center">669 (33%)</td>
+<td headers="estimate" class="gt_row gt_center"><br /></td></tr>
     <tr><td headers="label" class="gt_row gt_left">Smoking history</td>
-<td headers="stat_0" class="gt_row gt_center">1,033 (44%)</td>
-<td headers="stat_1" class="gt_row gt_center">482 (48%)</td>
-<td headers="stat_2" class="gt_row gt_center">551 (41%)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
-<td headers="stat_0" class="gt_row gt_center">1,162</td>
-<td headers="stat_1" class="gt_row gt_center">493</td>
-<td headers="stat_2" class="gt_row gt_center">669</td></tr>
+<td headers="stat_0" class="gt_row gt_center"><br /></td>
+<td headers="stat_1" class="gt_row gt_center"><br /></td>
+<td headers="stat_2" class="gt_row gt_center"><br /></td>
+<td headers="estimate" class="gt_row gt_center">0.12</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    TRUE</td>
+<td headers="stat_0" class="gt_row gt_center">1,033 (30%)</td>
+<td headers="stat_1" class="gt_row gt_center">482 (32%)</td>
+<td headers="stat_2" class="gt_row gt_center">551 (27%)</td>
+<td headers="estimate" class="gt_row gt_center"><br /></td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    FALSE</td>
+<td headers="stat_0" class="gt_row gt_center">1,305 (37%)</td>
+<td headers="stat_1" class="gt_row gt_center">512 (34%)</td>
+<td headers="stat_2" class="gt_row gt_center">793 (39%)</td>
+<td headers="estimate" class="gt_row gt_center"><br /></td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    Missing</td>
+<td headers="stat_0" class="gt_row gt_center">1,162 (33%)</td>
+<td headers="stat_1" class="gt_row gt_center">493 (33%)</td>
+<td headers="stat_2" class="gt_row gt_center">669 (33%)</td>
+<td headers="estimate" class="gt_row gt_center"><br /></td></tr>
     <tr><td headers="label" class="gt_row gt_left">ECOG</td>
 <td headers="stat_0" class="gt_row gt_center">1,327 (57%)</td>
 <td headers="stat_1" class="gt_row gt_center">583 (59%)</td>
-<td headers="stat_2" class="gt_row gt_center">744 (55%)</td></tr>
-    <tr><td headers="label" class="gt_row gt_left">    Unknown</td>
+<td headers="stat_2" class="gt_row gt_center">744 (55%)</td>
+<td headers="estimate" class="gt_row gt_center">0.07</td></tr>
+    <tr><td headers="label" class="gt_row gt_left">    Missing</td>
 <td headers="stat_0" class="gt_row gt_center">1,162</td>
 <td headers="stat_1" class="gt_row gt_center">493</td>
-<td headers="stat_2" class="gt_row gt_center">669</td></tr>
+<td headers="stat_2" class="gt_row gt_center">669</td>
+<td headers="estimate" class="gt_row gt_center"><br /></td></tr>
     <tr><td headers="label" class="gt_row gt_left">Index year</td>
 <td headers="stat_0" class="gt_row gt_center"><br /></td>
 <td headers="stat_1" class="gt_row gt_center"><br /></td>
-<td headers="stat_2" class="gt_row gt_center"><br /></td></tr>
+<td headers="stat_2" class="gt_row gt_center"><br /></td>
+<td headers="estimate" class="gt_row gt_center">0.06</td></tr>
     <tr><td headers="label" class="gt_row gt_left">    &lt;2018</td>
 <td headers="stat_0" class="gt_row gt_center">3,324 (95%)</td>
 <td headers="stat_1" class="gt_row gt_center">1,400 (94%)</td>
-<td headers="stat_2" class="gt_row gt_center">1,924 (96%)</td></tr>
+<td headers="stat_2" class="gt_row gt_center">1,924 (96%)</td>
+<td headers="estimate" class="gt_row gt_center"><br /></td></tr>
     <tr><td headers="label" class="gt_row gt_left">    2018+</td>
 <td headers="stat_0" class="gt_row gt_center">176 (5.0%)</td>
 <td headers="stat_1" class="gt_row gt_center">87 (5.9%)</td>
-<td headers="stat_2" class="gt_row gt_center">89 (4.4%)</td></tr>
+<td headers="stat_2" class="gt_row gt_center">89 (4.4%)</td>
+<td headers="estimate" class="gt_row gt_center"><br /></td></tr>
   </tbody>
-  
+  <tfoot class="gt_sourcenotes">
+    <tr>
+      <td class="gt_sourcenote" colspan="5"><span data-qmd-base64="QWJicmV2aWF0aW9uOiBDSSA9IENvbmZpZGVuY2UgSW50ZXJ2YWw="><span class='gt_from_md'>Abbreviation: CI = Confidence Interval</span></span></td>
+    </tr>
+  </tfoot>
   <tfoot class="gt_footnotes">
     <tr>
-      <td class="gt_footnote" colspan="4"><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height: 0;"><sup>1</sup></span> <div data-qmd-base64="TWVkaWFuIChRMSwgUTMpOyBuICglKQ=="><div class='gt_from_md'><p>Median (Q1, Q3); n (%)</p>
-</div></div></td>
+      <td class="gt_footnote" colspan="5"><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height:0;"><sup>1</sup></span> <span data-qmd-base64="TWVkaWFuIChRMSwgUTMpOyBuICglKQ=="><span class='gt_from_md'>Median (Q1, Q3); n (%)</span></span></td>
+    </tr>
+    <tr>
+      <td class="gt_footnote" colspan="5"><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height:0;"><sup>2</sup></span> <span data-qmd-base64="U3RhbmRhcmRpemVkIE1lYW4gRGlmZmVyZW5jZQ=="><span class='gt_from_md'>Standardized Mean Difference</span></span></td>
     </tr>
   </tfoot>
 </table>
 </div>
 ```
 
-
 :::
 :::
-
 
 ## Step 1 - Multiple imputation
 
@@ -666,7 +669,6 @@ Following the results of various simulation studies [@shah2014; @Weberpals2024],
 
 *Note: In this example we utilize the `futuremice()` instead of the legacy `mice()` function to run the `mice` imputation across 9 cores in parallel.*
 
-
 ::: {.cell}
 
 ```{.r .cell-code}
@@ -682,9 +684,7 @@ data_imp <- futuremice(
 ```
 :::
 
-
 The imputation step creates an object of class...
-
 
 ::: {.cell}
 
@@ -702,7 +702,6 @@ class(data_imp)
 :::
 :::
 
-
 ...which stands for *multiple imputed datasets*. It contains important information on the imputation procedure and the actual imputed datasets.
 
 ## Step 2 - Propensity score matching and weighting
@@ -710,7 +709,6 @@ class(data_imp)
 Apply propensity score matching and weighting with replacement within in each imputed dataset. As pointed in @sec-simulation-study-results, the **MIte** approach performed best in terms of bias, standardized differences/balancing, coverage rate and variance estimation. In `MatchThem` this approach is referred to a `within` approach (performing matching within each dataset), while the inferior **MIps** approach (estimating propensity scores within each dataset, averaging them across datasets, and performing matching using the averaged propensity scores in each dataset) is referred to as `across` approach. Since **MIte/`within`** has been shown to have superior performance in most cases, we only illustrate this approach here.
 
 Let's assume we fit the following propensity score model within each imputed dataset.
-
 
 ::: {.cell}
 
@@ -739,12 +737,10 @@ treat ~ dem_age_index_cont + dem_sex_cont + c_smoking_history +
 :::
 :::
 
-
 ::: panel-tabset
 ### Matching
 
 The matching step happens using the `matchthem()` function, which is a wrapper around the `matchit()` function. This function not only provides the functionality to match on the propensity score, but also to perform (coarsened) exact matching, cardinality matching, genetic matching and more. In this example, we use a simple 1:1 nearest neighbor matching on the propensity score (estimated through logistic regression) without replacement with a caliper of 1% of the standard deviation of the propensity score.
-
 
 ::: {.cell}
 
@@ -769,9 +765,10 @@ mimids_data
 ::: {.cell-output .cell-output-stdout}
 
 ```
-A matchit object
+A `matchit` object
  - method: 1:1 nearest neighbor matching without replacement
  - distance: Propensity score [caliper]
+
              - estimated with logistic regression
  - caliper: <distance> (0.001)
  - number of obs.: 3500 (original), 2672 (matched)
@@ -783,7 +780,6 @@ A matchit object
 :::
 :::
 
-
 The resulting "mimids" object contains the original imputed data and the output of the calls to `matchit()` applied to each imputed dataset.
 
 ### Weighting
@@ -791,7 +787,6 @@ The resulting "mimids" object contains the original imputed data and the output 
 The weighting step is performed very similarly using the `weightthem()` function. In this example we apply SMR weighting to arrive at the same ATT estimand as matching which is indicated through the `estimand = "ATT"` argument. In case we wanted to weight patients based on overlap weights, `estimand = "AT0"` would need to be specified (which is one of the sensitivity analyses in the FLAURA protocol).
 
 To mitigate the risks of extreme weights, the subsequent `trim()` function truncates large weights by setting all weights higher than that at a given quantile (in this example the 95% quantile) to the weight at the quantile. Since we specify `lower = TRUE`, this is done symmetrically also with the 5% quantile.
-
 
 ::: {.cell}
 
@@ -832,7 +827,6 @@ A weightit object
 :::
 :::
 
-
 The resulting "wimids" object contains the original imputed data and the output of the calls to `weightit()` applied to each imputed dataset.
 :::
 
@@ -842,7 +836,6 @@ The inspection of balance assessment in multiple imputed and matched/weighted da
 
 ::: panel-tabset
 ### Balance table
-
 
 ::: {#tbl-balance .cell tbl-cap='Covariate balance table.'}
 
@@ -911,9 +904,7 @@ Unmatched  137.2  663.2
 :::
 :::
 
-
 ### Covariate balance (conditional exchangeability)
-
 
 ::: {.cell}
 
@@ -938,9 +929,7 @@ love.plot(
 :::
 :::
 
-
 ### Distributional balance (positivity)
-
 
 ::: {.cell}
 
@@ -955,10 +944,9 @@ bal.plot(
 ```
 
 ::: {.cell-output-display}
-![](syvcox_coxph_files/figure-html/unnamed-chunk-10-1.png){width=672}
+![](syvcox_coxph_files/figure-html/unnamed-chunk-2-1.png){width=672}
 :::
 :::
-
 
 ### Power calculations
 
@@ -973,7 +961,6 @@ For power calculations, we use the method proposed by Schoenfeld [@schoenfeld198
 -   Events = as observed in data
 
 Since we have multiple imputed and matched datasets, we need to average the number of events before before computing $\beta$.
-
 
 ::: {.cell}
 
@@ -1046,7 +1033,6 @@ beta_gsDesign
 
 :::
 :::
-
 :::
 
 ## Step 4 - Estimation of marginal treatment effects
@@ -1072,7 +1058,6 @@ We now want to compare treatment effect estimates for `treat` when computed (a) 
 
 #### `coxph`
 
-
 ::: {.cell}
 
 ```{.r .cell-code}
@@ -1094,9 +1079,7 @@ coxph_results
 ```
 :::
 
-
 #### `svycoxph`
-
 
 ::: {.cell}
 
@@ -1116,9 +1099,7 @@ svycoxph_results
 ```
 :::
 
-
 #### Summary
-
 
 ::: {.cell}
 
@@ -1130,19 +1111,17 @@ rbind(coxph_results, svycoxph_results)
 
 ```
    package  term  estimate  std.error  conf.low conf.high
-1 survival treat 0.6980895 0.04378617 0.6402933 0.7611027
-2   survey treat 0.6980895 0.04379887 0.6403105 0.7610823
+1 survival treat 0.6980895 0.04378617 0.6402936 0.7611024
+2   survey treat 0.6980895 0.04379887 0.6402780 0.7611209
 ```
 
 
 :::
 :::
 
-
 ### Weighting
 
 #### `coxph`
-
 
 ::: {.cell}
 
@@ -1164,9 +1143,7 @@ coxph_results
 ```
 :::
 
-
 #### `svycoxph`
-
 
 ::: {.cell}
 
@@ -1186,9 +1163,7 @@ svycoxph_results
 ```
 :::
 
-
 #### Summary
-
 
 ::: {.cell}
 
@@ -1201,18 +1176,15 @@ rbind(coxph_results, svycoxph_results)
 ```
    package  term  estimate  std.error  conf.low conf.high
 1 survival treat 0.7031986 0.03545543 0.6559682 0.7538297
-2   survey treat 0.7031986 0.03546033 0.6559784 0.7538180
+2   survey treat 0.7031986 0.03546033 0.6559619 0.7538369
 ```
 
 
 :::
 :::
-
 :::
 
 ## Session info
-
-
 
 
 
@@ -1220,7 +1192,6 @@ Script runtime: 0.37 minutes.
 
 ::: panel-tabset
 ### Loaded packages
-
 
 ::: {.cell}
 
@@ -1230,47 +1201,45 @@ pander::pander(subset(data.frame(sessioninfo::package_info()), attached==TRUE, c
 
 ::: {.cell-output-display}
 
----------------------------------------------
-     &nbsp;        package     loadedversion 
----------------- ------------ ---------------
-   **cobalt**       cobalt         4.5.5     
+---------------------------------------------------------
+        &nbsp;              package        loadedversion 
+---------------------- ------------------ ---------------
+      **cobalt**             cobalt            4.6.0     
 
-   **dplyr**        dplyr          1.1.4     
+      **dplyr**              dplyr             1.1.4     
 
- **encore.io**    encore.io        0.2.0     
+ **encore.analytics**   encore.analytics       0.1.0     
 
-   **furrr**        furrr          0.3.1     
+      **furrr**              furrr             0.3.1     
 
-   **future**       future        1.34.0     
+      **future**             future           1.34.0     
 
-  **gsDesign**     gsDesign        3.6.4     
+     **gsDesign**           gsDesign           3.6.4     
 
- **gtsummary**    gtsummary        2.0.2     
+    **gtsummary**          gtsummary           2.2.0     
 
-    **here**         here          1.0.1     
+       **here**               here             1.0.1     
 
- **MatchThem**    MatchThem        1.2.1     
+    **MatchThem**          MatchThem           1.2.1     
 
-   **Matrix**       Matrix         1.7-0     
+      **Matrix**             Matrix            1.7-0     
 
-    **mice**         mice         3.16.0     
+       **mice**               mice            3.17.0     
 
- **parallelly**   parallelly      1.38.0     
+    **parallelly**         parallelly         1.38.0     
 
-   **ranger**       ranger        0.16.0     
+      **ranger**             ranger           0.16.0     
 
-   **survey**       survey         4.4-2     
+      **survey**             survey            4.4-2     
 
-  **survival**     survival        3.5-8     
----------------------------------------------
+     **survival**           survival           3.5-8     
+---------------------------------------------------------
 
 
 :::
 :::
-
 
 ### Session info
-
 
 ::: {.cell}
 
@@ -1290,16 +1259,14 @@ en_US.UTF-8||en_US.UTF-8||en_US.UTF-8||C||en_US.UTF-8||en_US.UTF-8
 _grid_, _stats_, _graphics_, _grDevices_, _datasets_, _utils_, _methods_ and _base_
 
 **other attached packages:** 
-_encore.io(v.0.2.0)_, _gsDesign(v.3.6.4)_, _cobalt(v.4.5.5)_, _furrr(v.0.3.1)_, _future(v.1.34.0)_, _ranger(v.0.16.0)_, _parallelly(v.1.38.0)_, _gtsummary(v.2.0.2)_, _here(v.1.0.1)_, _survey(v.4.4-2)_, _Matrix(v.1.7-0)_, _MatchThem(v.1.2.1)_, _mice(v.3.16.0)_, _survival(v.3.5-8)_ and _dplyr(v.1.1.4)_
+_encore.analytics(v.0.1.0)_, _gsDesign(v.3.6.4)_, _cobalt(v.4.6.0)_, _furrr(v.0.3.1)_, _future(v.1.34.0)_, _ranger(v.0.16.0)_, _parallelly(v.1.38.0)_, _gtsummary(v.2.2.0)_, _here(v.1.0.1)_, _survey(v.4.4-2)_, _Matrix(v.1.7-0)_, _MatchThem(v.1.2.1)_, _mice(v.3.17.0)_, _survival(v.3.5-8)_ and _dplyr(v.1.1.4)_
 
 **loaded via a namespace (and not attached):** 
-_DBI(v.1.2.3)_, _pROC(v.1.18.5)_, _rlang(v.1.1.4)_, _magrittr(v.2.0.3)_, _compiler(v.4.4.0)_, _vctrs(v.0.6.5)_, _stringr(v.1.5.1)_, _pkgconfig(v.2.0.3)_, _shape(v.1.4.6.1)_, _crayon(v.1.5.3)_, _fastmap(v.1.2.0)_, _backports(v.1.5.0)_, _labeling(v.0.4.3)_, _pander(v.0.6.5)_, _utf8(v.1.2.4)_, _rmarkdown(v.2.28)_, _markdown(v.1.13)_, _sessioninfo(v.1.2.2)_, _nloptr(v.2.1.1)_, _purrr(v.1.0.2)_, _bit(v.4.5.0)_, _xfun(v.0.47)_, _glmnet(v.4.1-8)_, _jomo(v.2.7-6)_, _jsonlite(v.1.8.9)_, _tictoc(v.1.2.1)_, _chk(v.0.9.2)_, _pan(v.1.9)_, _broom(v.1.0.6)_, _parallel(v.4.4.0)_, _MatchIt(v.4.5.5)_, _R6(v.2.5.1)_, _simsurv(v.1.0.0)_, _stringi(v.1.8.4)_, _boot(v.1.3-30)_, _rpart(v.4.1.23)_, _lubridate(v.1.9.3)_, _Rcpp(v.1.0.13)_, _assertthat(v.0.2.1)_, _iterators(v.1.0.14)_, _knitr(v.1.48)_, _base64enc(v.0.1-3)_, _splines(v.4.4.0)_, _nnet(v.7.3-19)_, _timechange(v.0.3.0)_, _tidyselect(v.1.2.1)_, _rstudioapi(v.0.16.0)_, _yaml(v.2.3.10)_, _codetools(v.0.2-20)_, _listenv(v.0.9.1)_, _lattice(v.0.22-6)_, _tibble(v.3.2.1)_, _plyr(v.1.8.9)_, _withr(v.3.0.1)_, _evaluate(v.1.0.0)_, _xml2(v.1.3.6)_, _pillar(v.1.9.0)_, _WeightIt(v.1.3.0)_, _renv(v.1.0.7)_, _foreach(v.1.5.2)_, _generics(v.0.1.3)_, _rprojroot(v.2.0.4)_, _ggplot2(v.3.5.1)_, _munsell(v.0.5.1)_, _commonmark(v.1.9.1)_, _scales(v.1.3.0)_, _minqa(v.1.2.8)_, _globals(v.0.16.3)_, _xtable(v.1.8-4)_, _glue(v.1.7.0)_, _tools(v.4.4.0)_, _data.table(v.1.16.0)_, _lme4(v.1.1-35.5)_, _locfit(v.1.5-9.10)_, _forcats(v.1.0.0)_, _tidyr(v.1.3.1)_, _mitools(v.2.4)_, _cards(v.0.2.2)_, _colorspace(v.2.1-1)_, _nlme(v.3.1-164)_, _cli(v.3.6.3)_, _r2rtf(v.1.1.1)_, _fansi(v.1.0.6)_, _gt(v.0.11.0)_, _arrow(v.17.0.0.1)_, _gtable(v.0.3.5)_, _sass(v.0.4.9)_, _digest(v.0.6.37)_, _htmlwidgets(v.1.6.4)_, _farver(v.2.1.2)_, _htmltools(v.0.5.8.1)_, _lifecycle(v.1.0.4)_, _mitml(v.0.4-5)_, _bit64(v.4.5.2)_ and _MASS(v.7.3-60.2)_
+_tidyselect(v.1.2.1)_, _farver(v.2.1.2)_, _smd(v.0.8.0)_, _fastmap(v.1.2.0)_, _digest(v.0.6.37)_, _rpart(v.4.1.23)_, _lifecycle(v.1.0.4)_, _magrittr(v.2.0.3)_, _compiler(v.4.4.0)_, _sass(v.0.4.10)_, _rlang(v.1.1.6)_, _tools(v.4.4.0)_, _yaml(v.2.3.10)_, _gt(v.1.0.0)_, _knitr(v.1.50)_, _labeling(v.0.4.3)_, _htmlwidgets(v.1.6.4)_, _xml2(v.1.3.8)_, _r2rtf(v.1.1.1)_, _RColorBrewer(v.1.1-3)_, _withr(v.3.0.2)_, _purrr(v.1.0.4)_, _nnet(v.7.3-19)_, _jomo(v.2.7-6)_, _xtable(v.1.8-4)_, _ggplot2(v.3.5.2)_, _globals(v.0.16.3)_, _scales(v.1.4.0)_, _iterators(v.1.0.14)_, _MASS(v.7.3-60.2)_, _cli(v.3.6.5)_, _rmarkdown(v.2.29)_, _crayon(v.1.5.3)_, _reformulas(v.0.4.1)_, _generics(v.0.1.4)_, _rstudioapi(v.0.17.1)_, _sessioninfo(v.1.2.2)_, _commonmark(v.1.9.5)_, _minqa(v.1.2.8)_, _DBI(v.1.2.3)_, _pander(v.0.6.5)_, _stringr(v.1.5.1)_, _splines(v.4.4.0)_, _assertthat(v.0.2.1)_, _parallel(v.4.4.0)_, _base64enc(v.0.1-3)_, _mitools(v.2.4)_, _vctrs(v.0.6.5)_, _WeightIt(v.1.4.0)_, _boot(v.1.3-30)_, _glmnet(v.4.1-8)_, _sandwich(v.3.1-1)_, _jsonlite(v.2.0.0)_, _litedown(v.0.7)_, _mitml(v.0.4-5)_, _listenv(v.0.9.1)_, _locfit(v.1.5-9.12)_, _foreach(v.1.5.2)_, _tidyr(v.1.3.1)_, _glue(v.1.8.0)_, _nloptr(v.2.2.1)_, _pan(v.1.9)_, _chk(v.0.10.0)_, _codetools(v.0.2-20)_, _stringi(v.1.8.7)_, _shape(v.1.4.6.1)_, _gtable(v.0.3.6)_, _lme4(v.1.1-37)_, _tibble(v.3.2.1)_, _pillar(v.1.10.2)_, _htmltools(v.0.5.8.1)_, _R6(v.2.6.1)_, _Rdpack(v.2.6.4)_, _rprojroot(v.2.0.4)_, _evaluate(v.1.0.3)_, _lattice(v.0.22-6)_, _markdown(v.2.0)_, _cards(v.0.6.0)_, _rbibutils(v.2.3)_, _backports(v.1.5.0)_, _tictoc(v.1.2.1)_, _MatchIt(v.4.7.1)_, _broom(v.1.0.8)_, _simsurv(v.1.0.0)_, _renv(v.1.0.7)_, _cardx(v.0.2.4)_, _Rcpp(v.1.0.14)_, _nlme(v.3.1-164)_, _xfun(v.0.52)_, _forcats(v.1.0.0)_, _zoo(v.1.8-14)_ and _pkgconfig(v.2.0.3)_
 :::
 :::
-
 
 ### Repositories
-
 
 ::: {.cell}
 
@@ -1325,7 +1292,6 @@ pander::pander(options('repos'))
 
 :::
 :::
-
 :::
 
 ## 
