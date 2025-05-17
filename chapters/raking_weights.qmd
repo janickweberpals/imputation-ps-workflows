@@ -12,7 +12,7 @@ embed-resources: true
 editor: visual
 ---
 
-This is a reproducible example on how to incorporate population weights to match distributions of a target population in multiple imputation \> matching/weighting \> balance assessment \> outcome analysis workflows.
+This is a reproducible example on how to incorporate raking weights to match distributions of a target population in multiple imputation \> matching/weighting \> balance assessment \> outcome analysis workflows.
 
 Load packages:
 
@@ -28,10 +28,7 @@ library(MatchThem)
 library(MatchIt)
 library(survey)
 library(gtsummary)
-library(encore.io)
-
-# calling functions
-source(here::here("functions", "source_encore.io_functions.R"))
+library(encore.analytics)
 
 # track time
 runtime <- tictoc::tic()
@@ -39,21 +36,27 @@ runtime <- tictoc::tic()
 
 ## Data generation
 
-We use the `simulate_flaura()` function to simulate a realistic oncology comparative effectiveness cohort analytic dataset.
+We use the `simulate_data()` function to simulate a realistic oncology comparative effectiveness cohort analytic dataset.
 
 ```{r}
 #| label: data_generation
 #| warning: false
 
 # load example dataset with missing observations
-data_miss <- simulate_flaura(
+data_miss <- simulate_data(
   n_total = 3500, 
   seed = 41, 
   include_id = FALSE, 
   imposeNA = TRUE,
   propNA = .33
-  ) |> 
-  # anesrake works best with factor variables
+  )
+```
+
+```{r}
+#| label: data_overview
+
+data_miss <- data_miss |> 
+ # anesrake works best with factor variables
   # create age category with age less than 65
   mutate(dem_age_lt65 = factor(ifelse(dem_age_index_cont < 65, "<65", "65+"))) |> 
   # convert dem_race into a binary Asian vs. non-Asian 
@@ -65,6 +68,7 @@ data_miss <- simulate_flaura(
   # convert c_ecog_cont into a factor 
   mutate(across(c(c_ecog_cont), function(x) factor(as.character(x))))
 ```
+
 
 ## Multiple imputation
 

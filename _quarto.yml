@@ -14,7 +14,7 @@ book:
     - index.qmd
     - chapters/background.qmd
     - chapters/syvcox_coxph.qmd
-    - chapters/re_weight.qmd
+    - chapters/raking_weights.qmd
     - chapters/subgroup_analysis.qmd
 
   reader-mode: true
