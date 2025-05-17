@@ -12,7 +12,7 @@ book:
   chapters:
     # landing page
     - index.qmd
-    - chapters/whole_game.qmd
+    - chapters/background.qmd
     - chapters/syvcox_coxph.qmd
     - chapters/re_weight.qmd
     - chapters/subgroup_analysis.qmd

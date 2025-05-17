@@ -35,9 +35,9 @@ library(ranger)
 library(furrr)
 library(cobalt)
 library(gsDesign)
-library(encore.io)
+library(encore.analytics)
 
-source(here("functions", "source_encore.io_functions.R"))
+source(here("functions", "covariate_vectors.R"))
 
 # track time
 runtime <- tictoc::tic()
@@ -54,7 +54,7 @@ The following cohort resembles [distributions observed in the EHR-derived *EDB1*
 #| warning: false
 
 # load example dataset with missing observations
-data_miss <- simulate_flaura(
+data_miss <- simulate_data(
   n_total = 3500, 
   seed = 42, 
   include_id = FALSE, 
@@ -62,22 +62,11 @@ data_miss <- simulate_flaura(
   propNA = .33
   )
 
-# crate Table 1
 data_miss |> 
-  tbl_summary(
-    by = "treat", 
-    include = table1_covariates$covariate,
-    label = table1_labels
-    ) |> 
-  add_overall() |> 
-  modify_header(
-    label ~ "**Patient characteristic**",
-    stat_0 ~ "**Total** <br> N = {N}",
-    stat_1 ~ "**Comparator** <br> N = {n} <br> ({style_percent(p, digits=1)}%)",
-    stat_2 ~ "**Exposure** <br> N = {n} <br> ({style_percent(p, digits=1)}%)"
-    ) |> 
-  modify_spanning_header(c("stat_1", "stat_2") ~ "**Treatment received**") |> 
-  modify_caption("**Table 1. Patient Characteristics**")
+  create_table1(
+    covariates = table1_covariates$covariate, 
+    covariates_labels = table1_labels
+    )
 ```
 
 ## Step 1 - Multiple imputation
