@@ -1,5 +1,5 @@
 ---
-title: "Comparison of coxph versus svycoxph after multiple imputation and propensity score matching"
+subtitle: "Comparison of coxph versus svycoxph after multiple imputation and propensity score matching"
 author: Janick Weberpals, RPh, PhD
 date: last-modified
 format: html
@@ -11,7 +11,7 @@ bibliography: ../references.bib
 csl: ../pharmacoepidemiology-and-drug-safety.csl
 ---
 
-# Application in Cox PH models {#sec-application-in-cox-ph-models}
+# General Workflow and application in Survival Models {#sec-application-in-cox-ph-models}
 
 In @sec-application-in-cox-ph-models we illustrate a reproducible example on how to use `coxph` ([survival](https://cran.r-project.org/web/packages/survival/index.html) package [@survival]) and `svycoxph` ([survey](https://cran.r-project.org/web/packages/survey/index.html) package [@survey]) in combination with multiple imputation by chained equations ([mice](https://cran.r-project.org/web/packages/mice/index.html) package [@mice]) and propensity score matching using the `MatchThem` package [@pishgar2021].
 

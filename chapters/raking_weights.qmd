@@ -1,5 +1,5 @@
 ---
-title: "Computing raking weights to the distribution of a target population"
+title: "Computing Raking Weights to the Distribution of a Target Population"
 author: Janick Weberpals, RPh, PhD
 date: last-modified
 format: html
