@@ -4,10 +4,8 @@ subtitle: "Multiple imputation workflows with propensity score and survival anal
 author: Janick Weberpals, RPh, PhD
 date: last-modified
 format: html
-code-fold: false
 toc: true
 toc-depth: 3
-code-tools: true
 keep-md: true
 editor: visual
 embed-resources: true

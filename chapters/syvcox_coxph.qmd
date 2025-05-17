@@ -3,10 +3,8 @@ subtitle: "Comparison of coxph versus svycoxph after multiple imputation and pro
 author: Janick Weberpals, RPh, PhD
 date: last-modified
 format: html
-code-fold: false
 toc: true
 toc-depth: 3
-code-tools: true
 keep-md: true
 embed-resources: true
 editor: visual
