@@ -627,6 +627,31 @@
       ],
       "Hash": "fedd9d00c2944ff00a0e2696ccf048ec"
     },
+    "encore.analytics": {
+      "Package": "encore.analytics",
+      "Version": "0.1.0",
+      "Source": "GitHub",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteUsername": "janickweberpals",
+      "RemoteRepo": "encore.analytics",
+      "RemoteRef": "main",
+      "RemoteSha": "15356c811b0c0934a7c6b6d236f84747750e5479",
+      "Requirements": [
+        "MatchThem",
+        "assertthat",
+        "dplyr",
+        "forcats",
+        "ggplot2",
+        "gtsummary",
+        "locfit",
+        "mice",
+        "simsurv",
+        "survival",
+        "tibble"
+      ],
+      "Hash": "615a8c1db928243e681bfedff3f9e720"
+    },
     "encore.io": {
       "Package": "encore.io",
       "Version": "0.2.0",
@@ -1271,6 +1296,17 @@
       ],
       "Hash": "16a08fc75007da0d08e0c0388c7c33e6"
     },
+    "locfit": {
+      "Package": "locfit",
+      "Version": "1.5-9.10",
+      "Source": "Repository",
+      "Repository": "REPO_NAME",
+      "Requirements": [
+        "R",
+        "lattice"
+      ],
+      "Hash": "7d8e0ac914051ca0254332387d9b5816"
+    },
     "lubridate": {
       "Package": "lubridate",
       "Version": "1.9.3",
@@ -1856,6 +1892,18 @@
         "stats"
       ],
       "Hash": "5c47e84dc0a3ca761ae1d307889e796d"
+    },
+    "simsurv": {
+      "Package": "simsurv",
+      "Version": "1.0.0",
+      "Source": "Repository",
+      "Repository": "REPO_NAME",
+      "Requirements": [
+        "R",
+        "methods",
+        "stats"
+      ],
+      "Hash": "9ea850bdb2184bdaf7eeb71041b95bb9"
     },
     "smd": {
       "Package": "smd",
