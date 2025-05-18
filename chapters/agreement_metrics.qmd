@@ -172,4 +172,4 @@ When interpreting agreement metrics, @wang2023 suggest several important conside
     -   Measurement challenges in real-world data
     -   Random variation
 
-## References
+{{< include _snippets/_sessioninfo.qmd >}}

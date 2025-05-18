@@ -339,4 +339,5 @@ cox_pooling(mirwds, surv_formula = cox_fit)
 cox_pooling(wirwds, surv_formula = cox_fit)
 ```
 
+
 {{< include _snippets/_sessioninfo.qmd >}}
