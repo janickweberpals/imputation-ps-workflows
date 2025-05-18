@@ -253,6 +253,7 @@ From the `MatchThem` documentation:
 
 We now want to compare treatment effect estimates for `treat` when computed (a) using `coxph` (survival package) and (b) `svycoxph` (survey package). More information on estimating treatment effects after matching is provided in <https://kosukeimai.github.io/MatchIt/articles/estimating-effects.html#survival-outcomes>
 
+::: panel-tabset
 #### `coxph`
 
 ```{r}
@@ -295,6 +296,7 @@ svycoxph_results <- with(
 
 svycoxph_results
 ```
+:::
 
 #### Summary
 
@@ -304,6 +306,7 @@ rbind(coxph_results, svycoxph_results)
 
 ### Weighting
 
+::: panel-tabset
 #### `coxph`
 
 ```{r}
@@ -345,6 +348,7 @@ svycoxph_results <- with(
 
 svycoxph_results
 ```
+:::
 
 #### Summary
 

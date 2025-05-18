@@ -1,3 +1,8 @@
+## References
+
+::: {#refs}
+:::
+
 ## Session info
 
 ```{r, include=FALSE}
