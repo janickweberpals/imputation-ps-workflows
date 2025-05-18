@@ -1,0 +1,12 @@
+.gt_table {
+  width: 100% !important;
+  margin-bottom: 2em;
+}
+
+.gt_row {
+  white-space: nowrap;
+}
+
+.gt_col_heading {
+  white-space: nowrap;
+}

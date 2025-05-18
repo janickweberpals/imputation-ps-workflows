@@ -402,23 +402,6 @@
       ],
       "Hash": "a27bfbc110818010f1b6843db9168615"
     },
-    "cardx": {
-      "Package": "cardx",
-      "Version": "0.2.4",
-      "Source": "Repository",
-      "Repository": "RSPM",
-      "Requirements": [
-        "R",
-        "cards",
-        "cli",
-        "dplyr",
-        "glue",
-        "lifecycle",
-        "rlang",
-        "tidyr"
-      ],
-      "Hash": "7e382b32c68014326ab0b248bf87eefe"
-    },
     "checkmate": {
       "Package": "checkmate",
       "Version": "2.3.2",
@@ -616,26 +599,30 @@
       "RemoteHost": "api.github.com",
       "RemoteRepo": "encore.analytics",
       "RemoteUsername": "janickweberpals",
+      "RemotePkgRef": "janickweberpals/encore.analytics",
       "RemoteRef": "HEAD",
-      "RemoteSha": "6512047c4677410d8b400926f7e9b94f832ec007",
+      "RemoteSha": "94e1519f636de3c7ae4da7d9b96db48c9178a64c",
       "Requirements": [
         "MatchThem",
         "anesrake",
         "assertthat",
         "broom",
-        "cardx",
         "dplyr",
         "forcats",
         "ggplot2",
+        "glue",
+        "gt",
         "gtsummary",
         "locfit",
         "mice",
         "simsurv",
         "smd",
+        "stringr",
         "survival",
-        "tibble"
+        "tibble",
+        "tidyr"
       ],
-      "Hash": "41ad9731e3234c54a828aaa023676205"
+      "Hash": "d2ea31213b88bf418f7d91d4a51e2917"
     },
     "evaluate": {
       "Package": "evaluate",
