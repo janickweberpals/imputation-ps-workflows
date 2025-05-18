@@ -16,6 +16,7 @@ book:
     - chapters/syvcox_coxph.qmd
     - chapters/raking_weights.qmd
     - chapters/km_pooling.qmd
+    - chapters/agreement_metrics.qmd
 
   reader-mode: true
   repo-url: https://github.com/janickweberpals/imputation-ps-workflows
