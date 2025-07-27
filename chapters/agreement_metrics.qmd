@@ -80,7 +80,7 @@ First, let's look at a simple comparison between one RCT and RWE result:
 x <- tribble(
   ~Analysis, ~rct_estimate, ~rct_lower, ~rct_upper, ~rwe_estimate, ~rwe_lower, ~rwe_upper,
   "Main analysis", 0.87, 0.78, 0.97, 0.82, 0.76, 0.87
-)
+  )
 
 # Calculate agreement metrics
 agreement_metrics(x, analysis_col = "Analysis")
@@ -99,7 +99,7 @@ x_multi <- tribble(
   "Main analysis", "Database 1", 0.87, 0.78, 0.97, 0.82, 0.76, 0.87,
   "Main analysis", "Database 2", 0.50, 0.40, 0.60, 2.00, 1.80, 2.20,
   "Main analysis", "Database 3", 0.80, 0.70, 0.90, 1.50, 1.40, 1.60
-)
+  )
 
 # Calculate agreement metrics with grouping
 agreement_metrics(x_multi, 
@@ -122,7 +122,7 @@ smd <- smd_agreement(
   rwe_estimate = log(0.82),
   rwe_lower = log(0.76),
   rwe_upper = log(0.87)
-)
+  )
 
 print(paste("SMD value:", round(smd, 2)))
 ```
