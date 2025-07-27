@@ -92,6 +92,18 @@ library(here)
 library(dplyr)
 library(survival)
 library(mice)
+```
+
+::: {.cell-output .cell-output-stderr}
+
+```
+Warning: package 'mice' was built under R version 4.4.1
+```
+
+
+:::
+
+```{.r .cell-code}
 library(MatchThem)
 library(encore.analytics)
 
@@ -205,7 +217,7 @@ A `matchit` object
 
              - estimated with logistic regression
  - caliper: <distance> (0.001)
- - number of obs.: 3500 (original), 2672 (matched)
+ - number of obs.: 3500 (original), 2678 (matched)
  - target estimand: ATT
  - covariates: dem_age_index_cont, dem_sex_cont, c_smoking_history, c_number_met_sites, c_hemoglobin_g_dl_cont, c_urea_nitrogen_mg_dl_cont, c_platelets_10_9_l_cont, c_calcium_mg_dl_cont, c_glucose_mg_dl_cont, c_lymphocyte_leukocyte_ratio_cont, c_alp_u_l_cont, c_protein_g_l_cont, c_alt_u_l_cont, c_albumin_g_l_cont, c_bilirubin_mg_dl_cont, c_chloride_mmol_l_cont, c_monocytes_10_9_l_cont, c_eosinophils_leukocytes_ratio_cont, c_ldh_u_l_cont, c_hr_cont, c_sbp_cont, c_oxygen_cont, c_ecog_cont, c_neutrophil_lymphocyte_ratio_cont, c_bmi_cont, c_ast_alt_ratio_cont, c_stage_initial_dx_cont, dem_race, dem_region, dem_ses, c_time_dx_to_index
 ```
@@ -241,8 +253,8 @@ km_out$km_median_survival
 # A tibble: 2 × 4
   strata  t_median t_lower t_upper
   <fct>      <dbl>   <dbl>   <dbl>
-1 treat=0     15.4    14.3    16.3
-2 treat=1     21.8    20.1    23.2
+1 treat=0     15.5    14.3    16.5
+2 treat=1     21.8    20.5    23.1
 ```
 
 
@@ -262,8 +274,34 @@ km_out$km_plot
 
 The output provides:
 
-1.  **Median Survival Times**: Point estimates and 95% confidence intervals for each treatment group
-2.  **Survival Curve**: A visualization showing the pooled survival probabilities over time with confidence bands
+1.  **Median Survival Times (`km_median_survival`):** Pooled median survival estimates and 95% confidence intervals for each treatment group.
+
+-   strata = stratum
+-   t_median = median survival time
+-   t_lower = lower 95% CI of median survival time
+-   t_upper = upper 95% CI of median survival time
+
+2.  **Kaplan-Meier survival table (`km_survival_table`):**
+
+-   strata = stratum
+
+-   time = observed time point
+
+-   m = number of imputed datasets
+
+-   qbar = pooled univariate estimate of the complementary log-log transformed survival probabilities, see formula (3.1.2) Rubin (1987)
+
+-   t = total variance of the pooled univariate estimate of the complementary log-log transformed survival probabilities, formula (3.1.5) Rubin (1987)
+
+-   se = total standard error of the pooled estimate (derived as sqrt(t))
+
+-   surv = back-transformed pooled survival probability
+
+-   lower = Wald-type lower 95% confidence interval of back-transformed pooled survival probability
+
+-   upper = Wald-type upper 95% confidence interval of back-transformed pooled survival probability
+
+3.  **Kaplan-Meier Curve (**`km_plot`**)**: A visualization showing the pooled survival probabilities over time with confidence bands (ggplot2 object)
 
 ## Technical Details
 

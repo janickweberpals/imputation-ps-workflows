@@ -20,6 +20,7 @@ First, we load the required R libraries/packages and some custom functions that 
 ```{r}
 #| label: setup
 #| message: false
+#| include: false
 
 library(dplyr)
 library(survival)
@@ -56,7 +57,6 @@ The following cohort resembles [distributions observed in the EHR-derived *EDB1*
 
 Using the `encore.analytics` package, we can also draw a design diagram of the simulated dataset. The design diagram illustrates the longirudinal analytic cohort, the treatment assignment, the measurement of the covariates, and the outcome of interest. We read the study parameters from the `_params.yml` file, which contains the study parameters such as the treatment name, outcome name, and covariates.
 
-
 ```{r}
 #| label: read-design-params
 
@@ -82,8 +82,6 @@ With the above table format, the study design diagram can be very easily created
 ```{r}
 #| label: fig-design-diagram
 #| fig-cap: "Design diagram of the simulated dataset."
-#| fig-height: 10
-#| fig-width: 22
 
 custom_colors <- c(
  "Covariate Assessment Window" = "dodgerblue4",
@@ -116,12 +114,8 @@ ggsave(
   dpi = 300
   )
 
-#knitr::include_graphics(here("images", "design_diagram.png"))
-
-# plot
-p
+knitr::include_graphics(here("images", "design_diagram.png"))
 ```
-
 
 We can use the `create_table1()` function from the `encore.analytics` package to create a summary table of the simulated dataset. The function is a convenient wrapper around the `gtsummary` package [@gtsummary] and allows to create a table in the following fashion:
 
