@@ -1,0 +1,259 @@
+params:
+  - variable: "dem_age_index_cont"
+    label: "Age [yrs]"
+    encoding: "continuous"
+    dimension: "Covariate Assessment Window"
+    measurement_min: 0
+    measurement_max: 0
+  - variable: "dem_sex_cont"
+    label: "Sex"
+    encoding: "binary"
+    dimension: "Covariate Assessment Window"
+    measurement_min: 0
+    measurement_max: 0
+  - variable: "c_smoking_history"
+    label: "Smoking history"
+    encoding: "binary"
+    dimension: "Covariate Assessment Window"
+    measurement_min: 0
+    measurement_max: 0
+  - variable: "c_number_met_sites"
+    label: "Number of unqiue metastatic sites"
+    encoding: "continuous"
+    dimension: "Covariate Assessment Window"
+    measurement_min: -90
+    measurement_max: 0
+  - variable: "c_ecog_cont"
+    label: "ECOG Performance Status"
+    encoding: "ordinal"
+    dimension: "Covariate Assessment Window"
+    measurement_min: -90
+    measurement_max: 0
+  - variable: "c_stage_initial_dx_cont"
+    label: "Stage at initial diagnosis"
+    encoding: "ordinal"
+    dimension: "Covariate Assessment Window"
+    measurement_min: -90
+    measurement_max: 0
+  - variable: "dem_race"
+    label: "Race"
+    encoding: "categorical"
+    dimension: "Covariate Assessment Window"
+    measurement_min: 0
+    measurement_max: 0
+  - variable: "dem_region"
+    label: "Geographic region"
+    encoding: "categorical"
+    dimension: "Covariate Assessment Window"
+    measurement_min: 0
+    measurement_max: 0
+  - variable: "dem_ses"
+    label: "Socioeconomic status"
+    encoding: "ordinal"
+    dimension: "Covariate Assessment Window"
+    measurement_min: 0
+    measurement_max: 0
+  - variable: "c_hemoglobin_g_dl_cont"
+    label: "Hemoglobin [g/dL]"
+    encoding: "continuous"
+    dimension: "Covariate Assessment Window"
+    measurement_min: -90
+    measurement_max: 0
+  - variable: "c_urea_nitrogen_mg_dl_cont"
+    label: "Urea nitrogen [mg/dL]"
+    encoding: "continuous"
+    dimension: "Covariate Assessment Window"
+    measurement_min: -90
+    measurement_max: 0
+  - variable: "c_platelets_10_9_l_cont"
+    label: "Platelets [10^9/L]"
+    encoding: "continuous"
+    dimension: "Covariate Assessment Window"
+    measurement_min: -90
+    measurement_max: 0
+  - variable: "c_calcium_mg_dl_cont"
+    label: "Calcium [mg/dL]"
+    encoding: "continuous"
+    dimension: "Covariate Assessment Window"
+    measurement_min: -90
+    measurement_max: 0
+  - variable: "c_glucose_mg_dl_cont"
+    label: "Glucose [mg/dL]"
+    encoding: "continuous"
+    dimension: "Covariate Assessment Window"
+    measurement_min: -90
+    measurement_max: 0
+  - variable: "c_lymphocyte_leukocyte_ratio_cont"
+    label: "Lymphocyte to leukocyte ratio"
+    encoding: "continuous"
+    dimension: "Covariate Assessment Window"
+    measurement_min: -90
+    measurement_max: 0
+  - variable: "c_alp_u_l_cont"
+    label: "Alkaline phosphatase [U/L]"
+    encoding: "continuous"
+    dimension: "Covariate Assessment Window"
+    measurement_min: -90
+    measurement_max: 0
+  - variable: "c_protein_g_l_cont"
+    label: "Protein [g/L]"
+    encoding: "continuous"
+    dimension: "Covariate Assessment Window"
+    measurement_min: -90
+    measurement_max: 0
+  - variable: "c_alt_u_l_cont"
+    label: "Alanine aminotransferase [U/L]"
+    encoding: "continuous"
+    dimension: "Covariate Assessment Window"
+    measurement_min: -90
+    measurement_max: 0
+  - variable: "c_albumin_g_l_cont"
+    label: "Albumin [g/L]"
+    encoding: "continuous"
+    dimension: "Covariate Assessment Window"
+    measurement_min: -90
+    measurement_max: 0
+  - variable: "c_bilirubin_mg_dl_cont"
+    label: "Bilirubin [mg/dL]"
+    encoding: "continuous"
+    dimension: "Covariate Assessment Window"
+    measurement_min: -90
+    measurement_max: 0
+  - variable: "c_chloride_mmol_l_cont"
+    label: "Chloride [mmol/L]"
+    encoding: "continuous"
+    dimension: "Covariate Assessment Window"
+    measurement_min: -90
+    measurement_max: 0
+  - variable: "c_monocytes_10_9_l_cont"
+    label: "Monocytes [10^9/L]"
+    encoding: "continuous"
+    dimension: "Covariate Assessment Window"
+    measurement_min: -90
+    measurement_max: 0
+  - variable: "c_eosinophils_leukocytes_ratio_cont"
+    label: "Eosinophils to leukocytes ratio"
+    encoding: "continuous"
+    dimension: "Covariate Assessment Window"
+    measurement_min: -90
+    measurement_max: 0
+  - variable: "c_ldh_u_l_cont"
+    label: "Lactate dehydrogenase [U/L]"
+    encoding: "continuous"
+    dimension: "Covariate Assessment Window"
+    measurement_min: -90
+    measurement_max: 0
+  - variable: "c_hr_cont"
+    label: "Heart rate [bpm]"
+    encoding: "continuous"
+    dimension: "Covariate Assessment Window"
+    measurement_min: -90
+    measurement_max: 0
+  - variable: "c_sbp_cont"
+    label: "Systolic blood pressure [mmHg]"
+    encoding: "continuous"
+    dimension: "Covariate Assessment Window"
+    measurement_min: -90
+    measurement_max: 0
+  - variable: "c_oxygen_cont"
+    label: "Oxygen saturation [SpO2]"
+    encoding: "continuous"
+    dimension: "Covariate Assessment Window"
+    measurement_min: -90
+    measurement_max: 0
+  - variable: "c_neutrophil_lymphocyte_ratio_cont"
+    label: "Neutrophil to lymphocyte ratio"
+    encoding: "continuous"
+    dimension: "Covariate Assessment Window"
+    measurement_min: -90
+    measurement_max: 0
+  - variable: "c_bmi_cont"
+    label: "Body mass index [kg/m^2]"
+    encoding: "continuous"
+    dimension: "Covariate Assessment Window"
+    measurement_min: -90
+    measurement_max: 0
+  - variable: "c_ast_alt_ratio_cont"
+    label: "Aspartate aminotransferase to alanine aminotransferase ratio"
+    encoding: "continuous"
+    dimension: "Covariate Assessment Window"
+    measurement_min: -90
+    measurement_max: 0
+  - variable: "c_time_dx_to_index"
+    label: "Time from diagnosis to index date [days]"
+    encoding: "continuous"
+    dimension: "Covariate Assessment Window"
+    measurement_min: -90
+    measurement_max: 0
+  - variable: "c_de_novo_mets_dx"
+    label: "De novo metastatic disease at diagnosis"
+    encoding: "binary"
+    dimension: "Covariate Assessment Window"
+    measurement_min: 0
+    measurement_max: 0
+  - variable: "c_height_cont"
+    label: "Height [cm]"
+    encoding: "continuous"
+    dimension: "Covariate Assessment Window"
+    measurement_min: -90
+    measurement_max: 0
+  - variable: "c_weight_cont"
+    label: "Weight [kg]"
+    encoding: "continuous"
+    dimension: "Covariate Assessment Window"
+    measurement_min: -90
+    measurement_max: 0
+  - variable: "c_dbp_cont"
+    label: "Diastolic blood pressure [mmHg]"
+    encoding: "continuous"
+    dimension: "Covariate Assessment Window"
+    measurement_min: -90
+    measurement_max: 0
+  - variable: "c_year_index"
+    label: "Year of index date"
+    encoding: "binary"
+    dimension: "Covariate Assessment Window"
+    measurement_min: 0
+    measurement_max: 0
+  - variable: "treat"
+    label: "Initiation of Drug A or Drug B"
+    encoding: "binary"
+    dimension: "Eligibility Assessment Window"
+    measurement_min: 0
+    measurement_max: 0
+  - variable: "treat"
+    label: "No prior exposure to Drug A or Drug B"
+    encoding: "binary"
+    dimension: "Washout Window"
+    measurement_min: -180
+    measurement_max: 0
+  - variable: "dem_age_index_cont"
+    label: "At least 18 yrs of age"
+    encoding: "binary"
+    dimension: "Eligibility Assessment Window"
+    measurement_min: 0
+    measurement_max: 0
+  - variable: "c_de_novo_mets_dx"
+    label: "Advanced or metastatic disease"
+    encoding: "binary"
+    dimension: "Eligibility Assessment Window"
+    measurement_min: 0
+    measurement_max: 0
+  - variable: "c_egfr"
+    label: "Evidence of EGFR alteration"
+    encoding: "binary"
+    dimension: "Eligibility Assessment Window"
+    measurement_min: -180
+    measurement_max: 0
+  - variable: "c_ecog_cont"
+    label: "ECOG Performance Status"
+    encoding: "ordinal"
+    dimension: "Eligibility Assessment Window"
+    measurement_min: -90
+    measurement_max: 0
+  - variable: "fu_itt_months"
+    label: "Follow-up [days]"
+    encoding: "continuous"
+    dimension: "Follow-up"
+    measurement_min: 0
+    measurement_max: 365

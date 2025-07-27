@@ -3,9 +3,21 @@
 #| label: tbl-data
 #| tbl-cap: "Summary table of the simulated dataset."
 
+# read YAML file
+design_data <- read_yaml(here("_params.yml"))
+
+# combine to a table
+params <- bind_rows(design_data$params)
+
+# named list
+covariates <- params |> 
+  dplyr::filter(dimension == "Covariate Assessment Window")
+
+covariate_list <- as.list(setNames(covariates$label, covariates$variable))
+
 data_miss |> 
   create_table1(
-    covariates = table1_covariates$covariate, 
-    covariates_labels = table1_labels
+    covariates = names(covariate_list),
+    covariates_labels = covariate_list
     )
 ```
