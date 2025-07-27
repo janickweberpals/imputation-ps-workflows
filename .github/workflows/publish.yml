@@ -22,7 +22,7 @@ jobs:
         with:
           r-version: '4.4.0'
 
-      - name: Install dependencoes
+      - name: Install dependencies
         run: |
           sh _requirements.sh
 
