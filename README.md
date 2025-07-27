@@ -1,14 +1,12 @@
 ## Background
 
 Multiple imputation is a powerful tool in presence of missing data.
-However, especially in combination with propensity score analyses,
-multiple imputation can lead to challenges since analytic workflows can
-be become much more complex.
+
+However, especially in combination with propensity score analyses, multiple imputation can lead to challenges since analytic workflows can be become much more complex.
 
 ## Objective
 
-This repository showcases and evaluation different multiple imputation
-&gt; propensity score &gt; outcome analyses and associated
+This repository showcases and evaluation different multiple imputation > propensity score > outcome analyses and associated
 implementation challenges.
 
 ## Dependencies
@@ -28,12 +26,4 @@ Follow these steps in RStudio to reproduce this study:
 2.  Install all necessary dependencies (see above)
 3.  Run all scripts via `quarto render` or (optionally) in RStudio `Build > Render Book` (make sure quarto is installed)
 
-<figure>
-<img src="RStudio_init.png" data-fig-align="center" width="259"
-alt="Steps to clone this repository in RStudio" />
-<figcaption aria-hidden="true">Steps to clone this repository in
-RStudio</figcaption>
-</figure>
-
-The data used in this project is strictly simulated and no real
-patient-level data is used.
+The data used in this project is strictly simulated and no real patient-level data is used.
