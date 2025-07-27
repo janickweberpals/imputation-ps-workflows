@@ -22,5 +22,6 @@ R -e "pak::pak('tibble@3.3.0')"
 R -e "pak::pak('rmarkdown@2.29')"
 R -e "pak::pak('pander@0.6.6')"
 R -e "pak::pak('sessioninfo@1.2.3')"
+R -e "pak::pak('cardx@0.2.5')"
 
 R -e "pak::pak('janickweberpals/encore.analytics@dev')"
