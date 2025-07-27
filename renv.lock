@@ -206,16 +206,16 @@
     },
     "V8": {
       "Package": "V8",
-      "Version": "6.0.4",
+      "Version": "5.0.1",
       "Source": "Repository",
-      "Repository": "CRAN",
+      "Repository": "https://packagemanager.posit.co/cran/2024-09-30",
       "Requirements": [
         "Rcpp",
         "curl",
         "jsonlite",
         "utils"
       ],
-      "Hash": "5e839855647f3223785c408f9c20b60d"
+      "Hash": "7f3867df00a91c63089beb85b9ef0208"
     },
     "WeightIt": {
       "Package": "WeightIt",
