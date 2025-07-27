@@ -51,6 +51,9 @@ vignettes/*.pdf
 # temporary runtime/batch processing files
 .nfs*
 
+# R package library
+.rpkg
+
 # ignore certain file types that could be
 # large or could contain sensitive information.
 # remove if tracking via git is desired.
