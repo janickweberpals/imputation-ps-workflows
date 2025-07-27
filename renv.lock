@@ -206,16 +206,18 @@
     },
     "V8": {
       "Package": "V8",
-      "Version": "5.0.1",
-      "Source": "Repository",
-      "Repository": "https://packagemanager.posit.co/cran/2024-09-30",
+      "Version": "6.0.4",
+      "Source": "URL",
+      "Repository": "RSPM",
+      "RemoteType": "url",
+      "RemoteUrl": "https://packagemanager.posit.co/cran/latest/bin/macosx/big-sur-arm64/contrib/4.4/V8_6.0.4.tgz",
       "Requirements": [
         "Rcpp",
         "curl",
         "jsonlite",
         "utils"
       ],
-      "Hash": "7f3867df00a91c63089beb85b9ef0208"
+      "Hash": "e4c4e0338bf7ee2487ebfff839d2840e"
     },
     "WeightIt": {
       "Package": "WeightIt",
