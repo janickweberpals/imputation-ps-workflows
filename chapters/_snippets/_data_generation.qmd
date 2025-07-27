@@ -10,6 +10,6 @@ data_miss <- simulate_data(
   seed = 42, 
   include_id = FALSE, 
   imposeNA = TRUE,
-  propNA = .33
+  propNA = .25
   )
 ```
