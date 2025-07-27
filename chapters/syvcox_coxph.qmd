@@ -20,7 +20,7 @@ First, we load the required R libraries/packages and some custom functions that 
 ```{r}
 #| label: setup
 #| message: false
-#| include: false
+#| warnings: false
 
 library(dplyr)
 library(survival)
