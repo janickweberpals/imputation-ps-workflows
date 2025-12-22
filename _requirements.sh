@@ -1,29 +1,29 @@
 #!/bin/sh
 
-R -e "install.packages('pak')"
-
-R -e "pak::pak('tidyverse')"
-R -e "pak::pak('survival')"
-R -e "pak::pak('mice@')"
-R -e "pak::pak('MatchThem')"
-R -e "pak::pak('survey')"
-R -e "pak::pak('here')"
-R -e "pak::pak('cardx')"
-R -e "pak::pak('gtsummary')"
-R -e "pak::pak('parallelly')"
-R -e "pak::pak('ranger')"
-R -e "pak::pak('furrr')"
-R -e "pak::pak('cobalt')"
-R -e "pak::pak('gsDesign')"
-R -e "pak::pak('yaml')"
-R -e "pak::pak('gt')"
-R -e "pak::pak('marginaleffects')"
-R -e "pak::pak('tictoc')"
-R -e "pak::pak('tibble')"
-R -e "pak::pak('rmarkdown')"
-R -e "pak::pak('pander')"
-R -e "pak::pak('sessioninfo')"
-R -e "pak::pak('gsDesign')"
-R -e "pak::pak('remotes')"
+R -e "install.packages(c(
+  'pak',
+  'tidyverse',
+  'survival',
+  'mice',
+  'MatchThem',
+  'survey',
+  'here',
+  'cardx',
+  'gtsummary',
+  'parallelly',
+  'ranger',
+  'furrr',
+  'cobalt',
+  'gsDesign',
+  'yaml',
+  'gt',
+  'marginaleffects',
+  'tictoc',
+  'tibble',
+  'rmarkdown',
+  'pander',
+  'sessioninfo',
+  'remotes'
+))"
 
 R -e "remotes::install_github('janickweberpals/encore.analytics', ref = 'dev')"
