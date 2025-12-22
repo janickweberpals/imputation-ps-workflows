@@ -24,6 +24,4 @@ R -e "install.packages(c(
   'pander',
   'sessioninfo',
   'remotes'
-))"
-
-R -e "remotes::install_github('janickweberpals/encore.analytics', ref = 'dev')"
+)); remotes::install_github('janickweberpals/encore.analytics', ref = 'dev')"
