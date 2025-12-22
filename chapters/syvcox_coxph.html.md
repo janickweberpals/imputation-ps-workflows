@@ -17,7 +17,7 @@ In @sec-application-in-cox-ph-models we illustrate a reproducible example on how
 
 First, we load the required R libraries/packages and some custom functions that are part of the `encore.io` R package that is being developed to streamline the analysis of all **ENCORE** trial emulations (non-public package).
 
-::: {.cell}
+::: {.cell warnings='false'}
 
 ```{.r .cell-code}
 library(dplyr)
@@ -28,7 +28,7 @@ library(mice)
 ::: {.cell-output .cell-output-stderr}
 
 ```
-Warning: package 'mice' was built under R version 4.4.1
+Warning: package 'mice' was built under R version 4.5.2
 ```
 
 
@@ -44,7 +44,7 @@ library(gtsummary)
 ::: {.cell-output .cell-output-stderr}
 
 ```
-Warning: package 'gtsummary' was built under R version 4.4.1
+Warning: package 'gtsummary' was built under R version 4.5.2
 ```
 
 
@@ -52,26 +52,26 @@ Warning: package 'gtsummary' was built under R version 4.4.1
 
 ```{.r .cell-code}
 library(parallelly)
-library(ranger)
 ```
 
 ::: {.cell-output .cell-output-stderr}
 
 ```
-Warning: package 'ranger' was built under R version 4.4.1
+Warning: package 'parallelly' was built under R version 4.5.2
 ```
 
 
 :::
 
 ```{.r .cell-code}
+library(ranger)
 library(furrr)
 ```
 
 ::: {.cell-output .cell-output-stderr}
 
 ```
-Warning: package 'future' was built under R version 4.4.1
+Warning: package 'future' was built under R version 4.5.2
 ```
 
 
@@ -79,28 +79,40 @@ Warning: package 'future' was built under R version 4.4.1
 
 ```{.r .cell-code}
 library(cobalt)
+library(gsDesign)
 ```
 
 ::: {.cell-output .cell-output-stderr}
 
 ```
-Warning: package 'cobalt' was built under R version 4.4.1
+Warning: package 'gsDesign' was built under R version 4.5.2
 ```
 
 
 :::
 
 ```{.r .cell-code}
-library(gsDesign)
 library(encore.analytics)
 library(yaml)
+```
+
+::: {.cell-output .cell-output-stderr}
+
+```
+Warning: package 'yaml' was built under R version 4.5.2
+```
+
+
+:::
+
+```{.r .cell-code}
 library(gt)
 ```
 
 ::: {.cell-output .cell-output-stderr}
 
 ```
-Warning: package 'gt' was built under R version 4.4.1
+Warning: package 'gt' was built under R version 4.5.2
 ```
 
 
@@ -108,7 +120,18 @@ Warning: package 'gt' was built under R version 4.4.1
 
 ```{.r .cell-code}
 library(ggplot2)
+```
 
+::: {.cell-output .cell-output-stderr}
+
+```
+Warning: package 'ggplot2' was built under R version 4.5.2
+```
+
+
+:::
+
+```{.r .cell-code}
 source(here("functions", "covariate_vectors.R"))
 
 # track time
@@ -139,12 +162,10 @@ data_miss <- simulate_data(
 :::
 
 
-### Design diagram
-
-Using the `encore.analytics` package, we can also draw a design diagram of the simulated dataset. The design diagram illustrates the longirudinal analytic cohort, the treatment assignment, the measurement of the covariates, and the outcome of interest. We read the study parameters from the `_params.yml` file, which contains the study parameters such as the treatment name, outcome name, and covariates.
+We can use the `create_table1()` function from the `encore.analytics` package to create a summary table of the simulated dataset. The function is a convenient wrapper around the `gtsummary` package [@gtsummary] and allows to create a table in the following fashion:
 
 
-::: {.cell}
+::: {#tbl-data .cell tbl-cap='Summary table of the simulated dataset.'}
 
 ```{.r .cell-code}
 # read YAML file
@@ -153,21 +174,23 @@ design_data <- read_yaml(here("_params.yml"))
 # combine to a table
 params <- bind_rows(design_data$params)
 
-# view the result
-params |> 
-  select(-variable) |> 
-  gt() |> 
-  opt_interactive(
-    use_filters = TRUE, 
-    use_search = TRUE,
-    use_sorting = TRUE
+# named list
+covariates <- params |> 
+  dplyr::filter(dimension == "Covariate Assessment Window")
+
+covariate_list <- as.list(setNames(covariates$label, covariates$variable))
+
+data_miss |> 
+  create_table1(
+    covariates = names(covariate_list),
+    covariates_labels = covariate_list
     )
 ```
 
 ::: {.cell-output-display}
 
 ```{=html}
-<div id="pineguugde" class=".gt_table" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<div id="pineguugde" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
 <style>#pineguugde table {
   font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   -webkit-font-smoothing: antialiased;
@@ -613,539 +636,6 @@ params |>
 }
 
 #pineguugde div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
-  height: 0px !important;
-}
-</style>
-<div id="pineguugde" class="reactable html-widget" style="width:auto;height:auto;"></div>
-<script type="application/json" data-for="pineguugde">{"x":{"tag":{"name":"Reactable","attribs":{"data":{"label":["Age [yrs]","Sex","Smoking history","Number of unqiue metastatic sites","ECOG Performance Status","Stage at initial diagnosis","Race","Geographic region","Socioeconomic status","Hemoglobin [g/dL]","Urea nitrogen [mg/dL]","Platelets [10^9/L]","Calcium [mg/dL]","Glucose [mg/dL]","Lymphocyte to leukocyte ratio","Alkaline phosphatase [U/L]","Protein [g/L]","Alanine aminotransferase [U/L]","Albumin [g/L]","Bilirubin [mg/dL]","Chloride [mmol/L]","Monocytes [10^9/L]","Eosinophils to leukocytes ratio","Lactate dehydrogenase [U/L]","Heart rate [bpm]","Systolic blood pressure [mmHg]","Oxygen saturation [SpO2]","Neutrophil to lymphocyte ratio","Body mass index [kg/m^2]","Aspartate aminotransferase to alanine aminotransferase ratio","Time from diagnosis to index date [days]","De novo metastatic disease at diagnosis","Height [cm]","Weight [kg]","Diastolic blood pressure [mmHg]","Year of index date","Initiation of Drug A or Drug B","No prior exposure to Drug A or Drug B","At least 18 yrs of age","Advanced or metastatic disease","Evidence of EGFR alteration","ECOG Performance Status","Follow-up [days]"],"encoding":["continuous","binary","binary","continuous","ordinal","ordinal","categorical","categorical","ordinal","continuous","continuous","continuous","continuous","continuous","continuous","continuous","continuous","continuous","continuous","continuous","continuous","continuous","continuous","continuous","continuous","continuous","continuous","continuous","continuous","continuous","continuous","binary","continuous","continuous","continuous","binary","binary","binary","binary","binary","binary","ordinal","continuous"],"dimension":["Covariate Assessment Window","Covariate Assessment Window","Covariate Assessment Window","Covariate Assessment Window","Covariate Assessment Window","Covariate Assessment Window","Covariate Assessment Window","Covariate Assessment Window","Covariate Assessment Window","Covariate Assessment Window","Covariate Assessment Window","Covariate Assessment Window","Covariate Assessment Window","Covariate Assessment Window","Covariate Assessment Window","Covariate Assessment Window","Covariate Assessment Window","Covariate Assessment Window","Covariate Assessment Window","Covariate Assessment Window","Covariate Assessment Window","Covariate Assessment Window","Covariate Assessment Window","Covariate Assessment Window","Covariate Assessment Window","Covariate Assessment Window","Covariate Assessment Window","Covariate Assessment Window","Covariate Assessment Window","Covariate Assessment Window","Covariate Assessment Window","Covariate Assessment Window","Covariate Assessment Window","Covariate Assessment Window","Covariate Assessment Window","Covariate Assessment Window","Eligibility Assessment Window","Washout Window","Eligibility Assessment Window","Eligibility Assessment Window","Eligibility Assessment Window","Eligibility Assessment Window","Follow-up"],"measurement_min":[0,0,0,-90,-90,-90,0,0,0,-90,-90,-90,-90,-90,-90,-90,-90,-90,-90,-90,-90,-90,-90,-90,-90,-90,-90,-90,-90,-90,-90,0,-90,-90,-90,0,0,-180,0,0,-180,-90,0],"measurement_max":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,365]},"columns":[{"id":"label","name":"label","type":"character","na":"NA","minWidth":125,"style":"function(rowInfo, colInfo) {\nconst rowIndex = rowInfo.index + 1\n}","html":true,"align":"left"},{"id":"encoding","name":"encoding","type":"character","na":"NA","minWidth":125,"style":"function(rowInfo, colInfo) {\nconst rowIndex = rowInfo.index + 1\n}","html":true,"align":"left"},{"id":"dimension","name":"dimension","type":"character","na":"NA","minWidth":125,"style":"function(rowInfo, colInfo) {\nconst rowIndex = rowInfo.index + 1\n}","html":true,"align":"left"},{"id":"measurement_min","name":"measurement_min","type":"numeric","na":"NA","minWidth":125,"style":"function(rowInfo, colInfo) {\nconst rowIndex = rowInfo.index + 1\n}","html":true,"align":"right"},{"id":"measurement_max","name":"measurement_max","type":"numeric","na":"NA","minWidth":125,"style":"function(rowInfo, colInfo) {\nconst rowIndex = rowInfo.index + 1\n}","html":true,"align":"right"}],"filterable":true,"searchable":true,"defaultPageSize":10,"showPageSizeOptions":false,"pageSizeOptions":[10,25,50,100],"paginationType":"numbers","showPagination":true,"showPageInfo":true,"minRows":1,"height":"auto","theme":{"color":"#333333","backgroundColor":"#FFFFFF","stripedColor":"rgba(128,128,128,0.05)","style":{"font-family":"system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif","fontSize":"16px"},"tableStyle":{"borderTopStyle":"solid","borderTopWidth":"2px","borderTopColor":"#D3D3D3"},"headerStyle":{"fontWeight":"normal","backgroundColor":"transparent","borderBottomStyle":"solid","borderBottomWidth":"2px","borderBottomColor":"#D3D3D3"},"groupHeaderStyle":{"fontWeight":"normal","backgroundColor":"transparent","borderBottomStyle":"solid","borderBottomWidth":"2px","borderBottomColor":"#D3D3D3"},"cellStyle":{"fontWeight":"normal"}},"elementId":"pineguugde","dataKey":"9219389f4516c31a898c49ec928f1626"},"children":[]},"class":"reactR_markup"},"evals":["tag.attribs.columns.0.style","tag.attribs.columns.1.style","tag.attribs.columns.2.style","tag.attribs.columns.3.style","tag.attribs.columns.4.style"],"jsHooks":[]}</script>
-</div>
-```
-
-:::
-:::
-
-With the above table format, the study design diagram can be very easily created by calling the `design_diagram()` function from the `encore.analytics` package. The function takes the parameters from the `_params.yml` file and creates a design diagram that illustrates the study design.
-
-::: {.cell}
-
-```{.r .cell-code}
-custom_colors <- c(
- "Covariate Assessment Window" = "dodgerblue4",
- "Eligibility Assessment Window" = "steelblue",
- "Washout Window" = "azure4",
- "Follow-up" = "seagreen4"
- )
-  
-# create design diagram
-p <- design_diagram(
-  data = params,
-  variable_col = "variable",
-  label_col = "label",
-  dimension_col = "dimension",
-  min_col = "measurement_min",
-  max_col = "measurement_max",
-  index_date_label = "Index Date\n(Cohort Entry)",
-  time_unit = "Days",
-  show_variables_legend = TRUE,
-  box_height = 0.6,
-  text_size = 16,
-  colors = custom_colors
-  )
-
-ggsave(
-  filename = here("images", "design_diagram.png"),
-  plot = p,
-  width = 25, 
-  height = 12, 
-  dpi = 300
-  )
-
-#knitr::include_graphics(here("images", "design_diagram.png"))
-
-# plot
-p
-```
-
-::: {.cell-output-display}
-![Design diagram of the simulated dataset.](syvcox_coxph_files/figure-html/fig-design-diagram-1.png){#fig-design-diagram width=2112}
-:::
-:::
-
-
-We can use the `create_table1()` function from the `encore.analytics` package to create a summary table of the simulated dataset. The function is a convenient wrapper around the `gtsummary` package [@gtsummary] and allows to create a table in the following fashion:
-
-
-::: {#tbl-data .cell tbl-cap='Summary table of the simulated dataset.'}
-
-```{.r .cell-code}
-# read YAML file
-design_data <- read_yaml(here("_params.yml"))
-
-# combine to a table
-params <- bind_rows(design_data$params)
-
-# named list
-covariates <- params |> 
-  dplyr::filter(dimension == "Covariate Assessment Window")
-
-covariate_list <- as.list(setNames(covariates$label, covariates$variable))
-
-data_miss |> 
-  create_table1(
-    covariates = names(covariate_list),
-    covariates_labels = covariate_list
-    )
-```
-
-::: {.cell-output-display}
-
-```{=html}
-<div id="ixzdhtjzjg" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#ixzdhtjzjg table {
-  font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-#ixzdhtjzjg thead, #ixzdhtjzjg tbody, #ixzdhtjzjg tfoot, #ixzdhtjzjg tr, #ixzdhtjzjg td, #ixzdhtjzjg th {
-  border-style: none;
-}
-
-#ixzdhtjzjg p {
-  margin: 0;
-  padding: 0;
-}
-
-#ixzdhtjzjg .gt_table {
-  display: table;
-  border-collapse: collapse;
-  line-height: normal;
-  margin-left: auto;
-  margin-right: auto;
-  color: #333333;
-  font-size: 16px;
-  font-weight: normal;
-  font-style: normal;
-  background-color: #FFFFFF;
-  width: auto;
-  border-top-style: solid;
-  border-top-width: 2px;
-  border-top-color: #A8A8A8;
-  border-right-style: none;
-  border-right-width: 2px;
-  border-right-color: #D3D3D3;
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #A8A8A8;
-  border-left-style: none;
-  border-left-width: 2px;
-  border-left-color: #D3D3D3;
-}
-
-#ixzdhtjzjg .gt_caption {
-  padding-top: 4px;
-  padding-bottom: 4px;
-}
-
-#ixzdhtjzjg .gt_title {
-  color: #333333;
-  font-size: 125%;
-  font-weight: initial;
-  padding-top: 4px;
-  padding-bottom: 4px;
-  padding-left: 5px;
-  padding-right: 5px;
-  border-bottom-color: #FFFFFF;
-  border-bottom-width: 0;
-}
-
-#ixzdhtjzjg .gt_subtitle {
-  color: #333333;
-  font-size: 85%;
-  font-weight: initial;
-  padding-top: 3px;
-  padding-bottom: 5px;
-  padding-left: 5px;
-  padding-right: 5px;
-  border-top-color: #FFFFFF;
-  border-top-width: 0;
-}
-
-#ixzdhtjzjg .gt_heading {
-  background-color: #FFFFFF;
-  text-align: center;
-  border-bottom-color: #FFFFFF;
-  border-left-style: none;
-  border-left-width: 1px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 1px;
-  border-right-color: #D3D3D3;
-}
-
-#ixzdhtjzjg .gt_bottom_border {
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-}
-
-#ixzdhtjzjg .gt_col_headings {
-  border-top-style: solid;
-  border-top-width: 2px;
-  border-top-color: #D3D3D3;
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-  border-left-style: none;
-  border-left-width: 1px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 1px;
-  border-right-color: #D3D3D3;
-}
-
-#ixzdhtjzjg .gt_col_heading {
-  color: #333333;
-  background-color: #FFFFFF;
-  font-size: 100%;
-  font-weight: normal;
-  text-transform: inherit;
-  border-left-style: none;
-  border-left-width: 1px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 1px;
-  border-right-color: #D3D3D3;
-  vertical-align: bottom;
-  padding-top: 5px;
-  padding-bottom: 6px;
-  padding-left: 5px;
-  padding-right: 5px;
-  overflow-x: hidden;
-}
-
-#ixzdhtjzjg .gt_column_spanner_outer {
-  color: #333333;
-  background-color: #FFFFFF;
-  font-size: 100%;
-  font-weight: normal;
-  text-transform: inherit;
-  padding-top: 0;
-  padding-bottom: 0;
-  padding-left: 4px;
-  padding-right: 4px;
-}
-
-#ixzdhtjzjg .gt_column_spanner_outer:first-child {
-  padding-left: 0;
-}
-
-#ixzdhtjzjg .gt_column_spanner_outer:last-child {
-  padding-right: 0;
-}
-
-#ixzdhtjzjg .gt_column_spanner {
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-  vertical-align: bottom;
-  padding-top: 5px;
-  padding-bottom: 5px;
-  overflow-x: hidden;
-  display: inline-block;
-  width: 100%;
-}
-
-#ixzdhtjzjg .gt_spanner_row {
-  border-bottom-style: hidden;
-}
-
-#ixzdhtjzjg .gt_group_heading {
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-  color: #333333;
-  background-color: #FFFFFF;
-  font-size: 100%;
-  font-weight: initial;
-  text-transform: inherit;
-  border-top-style: solid;
-  border-top-width: 2px;
-  border-top-color: #D3D3D3;
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-  border-left-style: none;
-  border-left-width: 1px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 1px;
-  border-right-color: #D3D3D3;
-  vertical-align: middle;
-  text-align: left;
-}
-
-#ixzdhtjzjg .gt_empty_group_heading {
-  padding: 0.5px;
-  color: #333333;
-  background-color: #FFFFFF;
-  font-size: 100%;
-  font-weight: initial;
-  border-top-style: solid;
-  border-top-width: 2px;
-  border-top-color: #D3D3D3;
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-  vertical-align: middle;
-}
-
-#ixzdhtjzjg .gt_from_md > :first-child {
-  margin-top: 0;
-}
-
-#ixzdhtjzjg .gt_from_md > :last-child {
-  margin-bottom: 0;
-}
-
-#ixzdhtjzjg .gt_row {
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-  margin: 10px;
-  border-top-style: solid;
-  border-top-width: 1px;
-  border-top-color: #D3D3D3;
-  border-left-style: none;
-  border-left-width: 1px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 1px;
-  border-right-color: #D3D3D3;
-  vertical-align: middle;
-  overflow-x: hidden;
-}
-
-#ixzdhtjzjg .gt_stub {
-  color: #333333;
-  background-color: #FFFFFF;
-  font-size: 100%;
-  font-weight: initial;
-  text-transform: inherit;
-  border-right-style: solid;
-  border-right-width: 2px;
-  border-right-color: #D3D3D3;
-  padding-left: 5px;
-  padding-right: 5px;
-}
-
-#ixzdhtjzjg .gt_stub_row_group {
-  color: #333333;
-  background-color: #FFFFFF;
-  font-size: 100%;
-  font-weight: initial;
-  text-transform: inherit;
-  border-right-style: solid;
-  border-right-width: 2px;
-  border-right-color: #D3D3D3;
-  padding-left: 5px;
-  padding-right: 5px;
-  vertical-align: top;
-}
-
-#ixzdhtjzjg .gt_row_group_first td {
-  border-top-width: 2px;
-}
-
-#ixzdhtjzjg .gt_row_group_first th {
-  border-top-width: 2px;
-}
-
-#ixzdhtjzjg .gt_summary_row {
-  color: #333333;
-  background-color: #FFFFFF;
-  text-transform: inherit;
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-}
-
-#ixzdhtjzjg .gt_first_summary_row {
-  border-top-style: solid;
-  border-top-color: #D3D3D3;
-}
-
-#ixzdhtjzjg .gt_first_summary_row.thick {
-  border-top-width: 2px;
-}
-
-#ixzdhtjzjg .gt_last_summary_row {
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-}
-
-#ixzdhtjzjg .gt_grand_summary_row {
-  color: #333333;
-  background-color: #FFFFFF;
-  text-transform: inherit;
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-}
-
-#ixzdhtjzjg .gt_first_grand_summary_row {
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-  border-top-style: double;
-  border-top-width: 6px;
-  border-top-color: #D3D3D3;
-}
-
-#ixzdhtjzjg .gt_last_grand_summary_row_top {
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-  border-bottom-style: double;
-  border-bottom-width: 6px;
-  border-bottom-color: #D3D3D3;
-}
-
-#ixzdhtjzjg .gt_striped {
-  background-color: rgba(128, 128, 128, 0.05);
-}
-
-#ixzdhtjzjg .gt_table_body {
-  border-top-style: solid;
-  border-top-width: 2px;
-  border-top-color: #D3D3D3;
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-}
-
-#ixzdhtjzjg .gt_footnotes {
-  color: #333333;
-  background-color: #FFFFFF;
-  border-bottom-style: none;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-  border-left-style: none;
-  border-left-width: 2px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 2px;
-  border-right-color: #D3D3D3;
-}
-
-#ixzdhtjzjg .gt_footnote {
-  margin: 0px;
-  font-size: 90%;
-  padding-top: 4px;
-  padding-bottom: 4px;
-  padding-left: 5px;
-  padding-right: 5px;
-}
-
-#ixzdhtjzjg .gt_sourcenotes {
-  color: #333333;
-  background-color: #FFFFFF;
-  border-bottom-style: none;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-  border-left-style: none;
-  border-left-width: 2px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 2px;
-  border-right-color: #D3D3D3;
-}
-
-#ixzdhtjzjg .gt_sourcenote {
-  font-size: 90%;
-  padding-top: 4px;
-  padding-bottom: 4px;
-  padding-left: 5px;
-  padding-right: 5px;
-}
-
-#ixzdhtjzjg .gt_left {
-  text-align: left;
-}
-
-#ixzdhtjzjg .gt_center {
-  text-align: center;
-}
-
-#ixzdhtjzjg .gt_right {
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-}
-
-#ixzdhtjzjg .gt_font_normal {
-  font-weight: normal;
-}
-
-#ixzdhtjzjg .gt_font_bold {
-  font-weight: bold;
-}
-
-#ixzdhtjzjg .gt_font_italic {
-  font-style: italic;
-}
-
-#ixzdhtjzjg .gt_super {
-  font-size: 65%;
-}
-
-#ixzdhtjzjg .gt_footnote_marks {
-  font-size: 75%;
-  vertical-align: 0.4em;
-  position: initial;
-}
-
-#ixzdhtjzjg .gt_asterisk {
-  font-size: 100%;
-  vertical-align: 0;
-}
-
-#ixzdhtjzjg .gt_indent_1 {
-  text-indent: 5px;
-}
-
-#ixzdhtjzjg .gt_indent_2 {
-  text-indent: 10px;
-}
-
-#ixzdhtjzjg .gt_indent_3 {
-  text-indent: 15px;
-}
-
-#ixzdhtjzjg .gt_indent_4 {
-  text-indent: 20px;
-}
-
-#ixzdhtjzjg .gt_indent_5 {
-  text-indent: 25px;
-}
-
-#ixzdhtjzjg .katex-display {
-  display: inline-flex !important;
-  margin-bottom: 0.75em !important;
-}
-
-#ixzdhtjzjg div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
   height: 0px !important;
 }
 </style>
@@ -1641,17 +1131,15 @@ data_miss |>
 <td headers="stat_2" class="gt_row gt_center">89 (4.4%)</td>
 <td headers="estimate" class="gt_row gt_center"><br /></td></tr>
   </tbody>
-  <tfoot class="gt_sourcenotes">
-    <tr>
-      <td class="gt_sourcenote" colspan="5"><span data-qmd-base64="QWJicmV2aWF0aW9uOiBDSSA9IENvbmZpZGVuY2UgSW50ZXJ2YWw="><span class='gt_from_md'>Abbreviation: CI = Confidence Interval</span></span></td>
-    </tr>
-  </tfoot>
-  <tfoot class="gt_footnotes">
-    <tr>
+  <tfoot>
+    <tr class="gt_footnotes">
       <td class="gt_footnote" colspan="5"><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height:0;"><sup>1</sup></span> <span data-qmd-base64="TWVkaWFuIChRMSwgUTMpOyBuICglKQ=="><span class='gt_from_md'>Median (Q1, Q3); n (%)</span></span></td>
     </tr>
-    <tr>
+    <tr class="gt_footnotes">
       <td class="gt_footnote" colspan="5"><span class="gt_footnote_marks" style="white-space:nowrap;font-style:italic;font-weight:normal;line-height:0;"><sup>2</sup></span> <span data-qmd-base64="U3RhbmRhcmRpemVkIE1lYW4gRGlmZmVyZW5jZQ=="><span class='gt_from_md'>Standardized Mean Difference</span></span></td>
+    </tr>
+    <tr class="gt_sourcenotes">
+      <td class="gt_sourcenote" colspan="5"><span data-qmd-base64="QWJicmV2aWF0aW9uOiBDSSA9IENvbmZpZGVuY2UgSW50ZXJ2YWw="><span class='gt_from_md'>Abbreviation: CI = Confidence Interval</span></span></td>
     </tr>
   </tfoot>
 </table>
@@ -1804,7 +1292,7 @@ A `matchit` object
 
              - estimated with logistic regression
  - caliper: <distance> (0.001)
- - number of obs.: 3500 (original), 2678 (matched)
+ - number of obs.: 3500 (original), 2674 (matched)
  - target estimand: ATT
  - covariates: dem_age_index_cont, dem_sex_cont, c_smoking_history, c_number_met_sites, c_hemoglobin_g_dl_cont, c_urea_nitrogen_mg_dl_cont, c_platelets_10_9_l_cont, c_calcium_mg_dl_cont, c_glucose_mg_dl_cont, c_lymphocyte_leukocyte_ratio_cont, c_alp_u_l_cont, c_protein_g_l_cont, c_alt_u_l_cont, c_albumin_g_l_cont, c_bilirubin_mg_dl_cont, c_chloride_mmol_l_cont, c_monocytes_10_9_l_cont, c_eosinophils_leukocytes_ratio_cont, c_ldh_u_l_cont, c_hr_cont, c_sbp_cont, c_oxygen_cont, c_ecog_cont, c_neutrophil_lymphocyte_ratio_cont, c_bmi_cont, c_ast_alt_ratio_cont, c_stage_initial_dx_cont, dem_race, dem_region, dem_ses, c_time_dx_to_index
 ```
@@ -1891,49 +1379,49 @@ balance_table
 ```
 Balance summary across all imputations
                                         Type Mean.Diff.Adj Max.Diff.Adj
-distance                            Distance        0.0054       0.0060
-dem_age_index_cont                   Contin.        0.0114       0.0234
-dem_sex_cont                          Binary        0.0039       0.0135
-c_smoking_history                     Binary        0.0048       0.0113
-c_number_met_sites                   Contin.        0.0131       0.0341
-c_hemoglobin_g_dl_cont               Contin.        0.0110       0.0222
-c_urea_nitrogen_mg_dl_cont           Contin.        0.0097       0.0202
-c_platelets_10_9_l_cont              Contin.        0.0090       0.0152
-c_calcium_mg_dl_cont                 Contin.        0.0111       0.0245
-c_glucose_mg_dl_cont                 Contin.        0.0146       0.0324
-c_lymphocyte_leukocyte_ratio_cont    Contin.        0.0109       0.0202
-c_alp_u_l_cont                       Contin.        0.0169       0.0364
-c_protein_g_l_cont                   Contin.        0.0161       0.0286
-c_alt_u_l_cont                       Contin.        0.0146       0.0299
-c_albumin_g_l_cont                   Contin.        0.0119       0.0320
-c_bilirubin_mg_dl_cont               Contin.        0.0084       0.0200
-c_chloride_mmol_l_cont               Contin.        0.0200       0.0299
-c_monocytes_10_9_l_cont              Contin.        0.0134       0.0251
-c_eosinophils_leukocytes_ratio_cont  Contin.        0.0071       0.0191
-c_ldh_u_l_cont                       Contin.        0.0171       0.0269
-c_hr_cont                            Contin.        0.0139       0.0274
-c_sbp_cont                           Contin.        0.0182       0.0466
-c_oxygen_cont                        Contin.        0.0080       0.0149
-c_ecog_cont                           Binary        0.0048       0.0095
-c_neutrophil_lymphocyte_ratio_cont   Contin.        0.0122       0.0226
-c_bmi_cont                           Contin.        0.0168       0.0333
-c_ast_alt_ratio_cont                 Contin.        0.0162       0.0298
-c_stage_initial_dx_cont              Contin.        0.0181       0.0346
-dem_race_Asian                        Binary        0.0048       0.0104
-dem_race_Other                        Binary        0.0016       0.0037
-dem_race_White                        Binary        0.0047       0.0126
-dem_region_Midwest                    Binary        0.0051       0.0097
-dem_region_Northeast                  Binary        0.0059       0.0119
-dem_region_South                      Binary        0.0044       0.0089
-dem_region_West                       Binary        0.0064       0.0142
-dem_ses                              Contin.        0.0127       0.0190
-c_time_dx_to_index                   Contin.        0.0140       0.0350
+distance                            Distance        0.0055       0.0058
+dem_age_index_cont                   Contin.        0.0151       0.0304
+dem_sex_cont                          Binary        0.0068       0.0140
+c_smoking_history                     Binary        0.0064       0.0162
+c_number_met_sites                   Contin.        0.0110       0.0271
+c_hemoglobin_g_dl_cont               Contin.        0.0175       0.0478
+c_urea_nitrogen_mg_dl_cont           Contin.        0.0093       0.0180
+c_platelets_10_9_l_cont              Contin.        0.0165       0.0376
+c_calcium_mg_dl_cont                 Contin.        0.0232       0.0440
+c_glucose_mg_dl_cont                 Contin.        0.0123       0.0279
+c_lymphocyte_leukocyte_ratio_cont    Contin.        0.0149       0.0397
+c_alp_u_l_cont                       Contin.        0.0092       0.0245
+c_protein_g_l_cont                   Contin.        0.0161       0.0453
+c_alt_u_l_cont                       Contin.        0.0117       0.0330
+c_albumin_g_l_cont                   Contin.        0.0140       0.0330
+c_bilirubin_mg_dl_cont               Contin.        0.0120       0.0437
+c_chloride_mmol_l_cont               Contin.        0.0172       0.0573
+c_monocytes_10_9_l_cont              Contin.        0.0147       0.0370
+c_eosinophils_leukocytes_ratio_cont  Contin.        0.0169       0.0402
+c_ldh_u_l_cont                       Contin.        0.0170       0.0367
+c_hr_cont                            Contin.        0.0134       0.0269
+c_sbp_cont                           Contin.        0.0167       0.0375
+c_oxygen_cont                        Contin.        0.0131       0.0277
+c_ecog_cont                           Binary        0.0061       0.0141
+c_neutrophil_lymphocyte_ratio_cont   Contin.        0.0153       0.0464
+c_bmi_cont                           Contin.        0.0147       0.0472
+c_ast_alt_ratio_cont                 Contin.        0.0091       0.0172
+c_stage_initial_dx_cont              Contin.        0.0116       0.0318
+dem_race_Asian                        Binary        0.0075       0.0236
+dem_race_Other                        Binary        0.0023       0.0045
+dem_race_White                        Binary        0.0070       0.0199
+dem_region_Midwest                    Binary        0.0029       0.0096
+dem_region_Northeast                  Binary        0.0033       0.0120
+dem_region_South                      Binary        0.0068       0.0154
+dem_region_West                       Binary        0.0054       0.0133
+dem_ses                              Contin.        0.0164       0.0408
+c_time_dx_to_index                   Contin.        0.0195       0.0328
 
 Average sample sizes across imputations
-             0    1
-All       1487 2013
-Matched   1345 1345
-Unmatched  142  668
+               0      1
+All       1487.  2013. 
+Matched   1354.4 1354.4
+Unmatched  132.6  658.6
 ```
 
 
@@ -1978,6 +1466,16 @@ bal.plot(
   colors = c("orange", "blue")
   )
 ```
+
+::: {.cell-output .cell-output-stderr}
+
+```
+Ignoring unknown labels:
+• colour : "Treatment"
+```
+
+
+:::
 
 ::: {.cell-output-display}
 ![](syvcox_coxph_files/figure-html/unnamed-chunk-2-1.png){width=672}
@@ -2035,7 +1533,7 @@ cat("beta is", beta_gsDesign$beta, "\n")
 ::: {.cell-output .cell-output-stdout}
 
 ```
-beta is 7.365499e-05 
+beta is 6.794476e-05 
 ```
 
 
@@ -2048,7 +1546,7 @@ cat("power is", (1-beta_gsDesign$beta)*100, "% \n")
 ::: {.cell-output .cell-output-stdout}
 
 ```
-power is 99.99263 % 
+power is 99.99321 % 
 ```
 
 
@@ -2063,7 +1561,7 @@ beta_gsDesign
 
 ```
    hr      n alpha sided         beta     Power     delta ratio hr0         se
-1 0.8 2661.1  0.05     2 7.365499e-05 0.9999263 0.1115718     1   1 0.03877032
+1 0.8 2679.6  0.05     2 6.794476e-05 0.9999321 0.1115718     1   1 0.03863625
 ```
 
 
@@ -2149,8 +1647,8 @@ rbind(coxph_results, svycoxph_results)
 
 ```
    package  term  estimate  std.error  conf.low conf.high
-1 survival treat 0.7035518 0.04340075 0.6459331 0.7663102
-2   survey treat 0.7035518 0.04341414 0.6459469 0.7662938
+1 survival treat 0.7033953 0.04793132 0.6393670 0.7738356
+2   survey treat 0.7033953 0.04794311 0.6393954 0.7738013
 ```
 
 
@@ -2215,8 +1713,8 @@ rbind(coxph_results, svycoxph_results)
 
 ```
    package  term  estimate  std.error  conf.low conf.high
-1 survival treat 0.7068873 0.03509075 0.6598858 0.7572367
-2   survey treat 0.7068873 0.03509567 0.6598956 0.7572254
+1 survival treat 0.7088542 0.03498062 0.6618659 0.7591783
+2   survey treat 0.7088542 0.03498555 0.6618756 0.7591672
 ```
 
 
@@ -2233,7 +1731,7 @@ rbind(coxph_results, svycoxph_results)
 
 
 
-Script runtime: 0.43 minutes.
+Script runtime: 0.38 minutes.
 
 ::: panel-tabset
 ### Loaded packages
@@ -2249,41 +1747,41 @@ pander::pander(subset(data.frame(sessioninfo::package_info()), attached==TRUE, c
 ---------------------------------------------------------
         &nbsp;              package        loadedversion 
 ---------------------- ------------------ ---------------
-      **cobalt**             cobalt            4.6.0     
+      **cobalt**             cobalt            4.6.1     
 
       **dplyr**              dplyr             1.1.4     
 
- **encore.analytics**   encore.analytics       0.3.0     
+ **encore.analytics**   encore.analytics       0.2.1     
 
       **furrr**              furrr             0.3.1     
 
-      **future**             future           1.58.0     
+      **future**             future           1.68.0     
 
-     **ggplot2**            ggplot2            3.5.2     
+     **ggplot2**            ggplot2            4.0.1     
 
-     **gsDesign**           gsDesign           3.6.9     
+     **gsDesign**           gsDesign           3.8.0     
 
-        **gt**                 gt              1.0.0     
+        **gt**                 gt              1.2.0     
 
-    **gtsummary**          gtsummary           2.3.0     
+    **gtsummary**          gtsummary           2.5.0     
 
-       **here**               here             1.0.1     
+       **here**               here             1.0.2     
 
     **MatchThem**          MatchThem           1.2.1     
 
-      **Matrix**             Matrix            1.7-0     
+      **Matrix**             Matrix            1.7-3     
 
-       **mice**               mice            3.18.0     
+       **mice**               mice            3.19.0     
 
-    **parallelly**         parallelly         1.45.1     
+    **parallelly**         parallelly         1.46.0     
 
       **ranger**             ranger           0.17.0     
 
-      **survey**             survey            4.4-2     
+      **survey**             survey            4.4-8     
 
-     **survival**           survival           3.5-8     
+     **survival**           survival           3.8-3     
 
-       **yaml**               yaml            2.3.10     
+       **yaml**               yaml            2.3.12     
 ---------------------------------------------------------
 
 
@@ -2299,7 +1797,7 @@ pander::pander(sessionInfo())
 ```
 
 ::: {.cell-output-display}
-**R version 4.4.0 (2024-04-24)**
+**R version 4.5.1 (2025-06-13)**
 
 **Platform:** aarch64-apple-darwin20 
 
@@ -2307,13 +1805,13 @@ pander::pander(sessionInfo())
 en_US.UTF-8||en_US.UTF-8||en_US.UTF-8||C||en_US.UTF-8||en_US.UTF-8
 
 **attached base packages:** 
-_grid_, _stats_, _graphics_, _grDevices_, _datasets_, _utils_, _methods_ and _base_
+_grid_, _stats_, _graphics_, _grDevices_, _utils_, _datasets_, _methods_ and _base_
 
 **other attached packages:** 
-_ggplot2(v.3.5.2)_, _gt(v.1.0.0)_, _yaml(v.2.3.10)_, _encore.analytics(v.0.3.0)_, _gsDesign(v.3.6.9)_, _cobalt(v.4.6.0)_, _furrr(v.0.3.1)_, _future(v.1.58.0)_, _ranger(v.0.17.0)_, _parallelly(v.1.45.1)_, _gtsummary(v.2.3.0)_, _here(v.1.0.1)_, _survey(v.4.4-2)_, _Matrix(v.1.7-0)_, _MatchThem(v.1.2.1)_, _mice(v.3.18.0)_, _survival(v.3.5-8)_ and _dplyr(v.1.1.4)_
+_ggplot2(v.4.0.1)_, _gt(v.1.2.0)_, _yaml(v.2.3.12)_, _encore.analytics(v.0.2.1)_, _gsDesign(v.3.8.0)_, _cobalt(v.4.6.1)_, _furrr(v.0.3.1)_, _future(v.1.68.0)_, _ranger(v.0.17.0)_, _parallelly(v.1.46.0)_, _gtsummary(v.2.5.0)_, _here(v.1.0.2)_, _survey(v.4.4-8)_, _Matrix(v.1.7-3)_, _MatchThem(v.1.2.1)_, _mice(v.3.19.0)_, _survival(v.3.8-3)_ and _dplyr(v.1.1.4)_
 
 **loaded via a namespace (and not attached):** 
-_tidyselect(v.1.2.1)_, _farver(v.2.1.2)_, _smd(v.0.8.0)_, _fastmap(v.1.2.0)_, _digest(v.0.6.37)_, _rpart(v.4.1.23)_, _lifecycle(v.1.0.4)_, _magrittr(v.2.0.3)_, _compiler(v.4.4.0)_, _sass(v.0.4.10)_, _rlang(v.1.1.6)_, _tools(v.4.4.0)_, _knitr(v.1.50)_, _labeling(v.0.4.3)_, _htmlwidgets(v.1.6.4)_, _xml2(v.1.3.8)_, _r2rtf(v.1.1.4)_, _RColorBrewer(v.1.1-3)_, _withr(v.3.0.2)_, _purrr(v.1.1.0)_, _nnet(v.7.3-19)_, _jomo(v.2.7-6)_, _xtable(v.1.8-4)_, _globals(v.0.18.0)_, _scales(v.1.4.0)_, _iterators(v.1.0.14)_, _MASS(v.7.3-60.2)_, _cli(v.3.6.5)_, _rmarkdown(v.2.29)_, _crayon(v.1.5.3)_, _reformulas(v.0.4.1)_, _generics(v.0.1.4)_, _rstudioapi(v.0.17.1)_, _sessioninfo(v.1.2.3)_, _commonmark(v.2.0.0)_, _minqa(v.1.2.8)_, _DBI(v.1.2.3)_, _pander(v.0.6.6)_, _stringr(v.1.5.1)_, _splines(v.4.4.0)_, _assertthat(v.0.2.1)_, _parallel(v.4.4.0)_, _base64enc(v.0.1-3)_, _mitools(v.2.4)_, _vctrs(v.0.6.5)_, _WeightIt(v.1.4.0)_, _boot(v.1.3-30)_, _glmnet(v.4.1-10)_, _sandwich(v.3.1-1)_, _jsonlite(v.2.0.0)_, _litedown(v.0.7)_, _mitml(v.0.4-5)_, _listenv(v.0.9.1)_, _locfit(v.1.5-9.12)_, _foreach(v.1.5.2)_, _tidyr(v.1.3.1)_, _glue(v.1.8.0)_, _reactR(v.0.6.1)_, _nloptr(v.2.2.1)_, _pan(v.1.9)_, _chk(v.0.10.0)_, _codetools(v.0.2-20)_, _stringi(v.1.8.7)_, _shape(v.1.4.6.1)_, _gtable(v.0.3.6)_, _lme4(v.1.1-37)_, _tibble(v.3.3.0)_, _pillar(v.1.11.0)_, _htmltools(v.0.5.8.1)_, _reactable(v.0.4.4)_, _R6(v.2.6.1)_, _Rdpack(v.2.6.4)_, _rprojroot(v.2.1.0)_, _evaluate(v.1.0.4)_, _lattice(v.0.22-6)_, _markdown(v.2.0)_, _cards(v.0.6.1)_, _tictoc(v.1.2.1)_, _rbibutils(v.2.3)_, _backports(v.1.5.0)_, _MatchIt(v.4.7.2)_, _broom(v.1.0.8)_, _simsurv(v.1.0.0)_, _renv(v.1.0.7)_, _cardx(v.0.2.5)_, _Rcpp(v.1.1.0)_, _nlme(v.3.1-164)_, _xfun(v.0.52)_, _forcats(v.1.0.0)_, _zoo(v.1.8-14)_ and _pkgconfig(v.2.0.3)_
+_tidyselect(v.1.2.1)_, _farver(v.2.1.2)_, _S7(v.0.2.1)_, _smd(v.0.8.0)_, _fastmap(v.1.2.0)_, _digest(v.0.6.39)_, _rpart(v.4.1.24)_, _lifecycle(v.1.0.4)_, _magrittr(v.2.0.4)_, _compiler(v.4.5.1)_, _sass(v.0.4.10)_, _rlang(v.1.1.6)_, _tools(v.4.5.1)_, _knitr(v.1.51)_, _labeling(v.0.4.3)_, _htmlwidgets(v.1.6.4)_, _xml2(v.1.5.1)_, _r2rtf(v.1.2.0)_, _RColorBrewer(v.1.1-3)_, _withr(v.3.0.2)_, _purrr(v.1.2.0)_, _nnet(v.7.3-20)_, _jomo(v.2.7-6)_, _xtable(v.1.8-4)_, _globals(v.0.18.0)_, _scales(v.1.4.0)_, _iterators(v.1.0.14)_, _MASS(v.7.3-65)_, _cli(v.3.6.5)_, _rmarkdown(v.2.30)_, _crayon(v.1.5.3)_, _reformulas(v.0.4.3)_, _generics(v.0.1.4)_, _rstudioapi(v.0.17.1)_, _sessioninfo(v.1.2.3)_, _commonmark(v.2.0.0)_, _minqa(v.1.2.8)_, _DBI(v.1.2.3)_, _pander(v.0.6.6)_, _stringr(v.1.6.0)_, _splines(v.4.5.1)_, _assertthat(v.0.2.1)_, _parallel(v.4.5.1)_, _base64enc(v.0.1-3)_, _mitools(v.2.4)_, _vctrs(v.0.6.5)_, _WeightIt(v.1.5.1)_, _boot(v.1.3-31)_, _glmnet(v.4.1-10)_, _sandwich(v.3.1-1)_, _jsonlite(v.2.0.0)_, _litedown(v.0.9)_, _mitml(v.0.4-5)_, _listenv(v.0.10.0)_, _locfit(v.1.5-9.12)_, _foreach(v.1.5.2)_, _tidyr(v.1.3.2)_, _glue(v.1.8.0)_, _nloptr(v.2.2.1)_, _pan(v.1.9)_, _chk(v.0.10.0)_, _codetools(v.0.2-20)_, _stringi(v.1.8.7)_, _shape(v.1.4.6.1)_, _gtable(v.0.3.6)_, _lme4(v.1.1-38)_, _tibble(v.3.3.0)_, _pillar(v.1.11.1)_, _htmltools(v.0.5.9)_, _R6(v.2.6.1)_, _Rdpack(v.2.6.4)_, _rprojroot(v.2.1.1)_, _evaluate(v.1.0.5)_, _lattice(v.0.22-7)_, _markdown(v.2.0)_, _cards(v.0.7.1)_, _tictoc(v.1.2.1)_, _rbibutils(v.2.4)_, _backports(v.1.5.0)_, _MatchIt(v.4.7.2)_, _broom(v.1.0.11)_, _simsurv(v.1.0.0)_, _cardx(v.0.3.1)_, _Rcpp(v.1.1.0)_, _nlme(v.3.1-168)_, _xfun(v.0.55)_, _forcats(v.1.0.1)_, _fs(v.1.6.6)_, _zoo(v.1.8-15)_ and _pkgconfig(v.2.0.3)_
 :::
 :::
 
@@ -2330,11 +1828,11 @@ pander::pander(options('repos'))
 
   * **repos**:
 
-    ---------------------------------------------
-                      REPO_NAME
-    ---------------------------------------------
-     https://packagemanager.posit.co/cran/latest
-    ---------------------------------------------
+    --------
+      CRAN
+    --------
+     @CRAN@
+    --------
 
 
 <!-- end of list -->

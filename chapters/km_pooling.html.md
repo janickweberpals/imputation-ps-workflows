@@ -97,7 +97,7 @@ library(mice)
 ::: {.cell-output .cell-output-stderr}
 
 ```
-Warning: package 'mice' was built under R version 4.4.1
+Warning: package 'mice' was built under R version 4.5.2
 ```
 
 
@@ -217,7 +217,7 @@ A `matchit` object
 
              - estimated with logistic regression
  - caliper: <distance> (0.001)
- - number of obs.: 3500 (original), 2678 (matched)
+ - number of obs.: 3500 (original), 2674 (matched)
  - target estimand: ATT
  - covariates: dem_age_index_cont, dem_sex_cont, c_smoking_history, c_number_met_sites, c_hemoglobin_g_dl_cont, c_urea_nitrogen_mg_dl_cont, c_platelets_10_9_l_cont, c_calcium_mg_dl_cont, c_glucose_mg_dl_cont, c_lymphocyte_leukocyte_ratio_cont, c_alp_u_l_cont, c_protein_g_l_cont, c_alt_u_l_cont, c_albumin_g_l_cont, c_bilirubin_mg_dl_cont, c_chloride_mmol_l_cont, c_monocytes_10_9_l_cont, c_eosinophils_leukocytes_ratio_cont, c_ldh_u_l_cont, c_hr_cont, c_sbp_cont, c_oxygen_cont, c_ecog_cont, c_neutrophil_lymphocyte_ratio_cont, c_bmi_cont, c_ast_alt_ratio_cont, c_stage_initial_dx_cont, dem_race, dem_region, dem_ses, c_time_dx_to_index
 ```
@@ -251,10 +251,10 @@ km_out$km_median_survival
 
 ```
 # A tibble: 2 × 4
-  strata  t_median t_lower t_upper
-  <fct>      <dbl>   <dbl>   <dbl>
-1 treat=0     15.5    14.3    16.5
-2 treat=1     21.8    20.5    23.1
+  strata t_median t_lower t_upper
+  <fct>     <dbl>   <dbl>   <dbl>
+1 0          15.5    14.3    16.5
+2 1          21.5    19.8    23.2
 ```
 
 
@@ -264,6 +264,16 @@ km_out$km_median_survival
 # Plot the Kaplan-Meier curve
 km_out$km_plot
 ```
+
+::: {.cell-output .cell-output-stderr}
+
+```
+Warning: Removed 1 row containing missing values or values outside the scale range
+(`geom_ribbon()`).
+```
+
+
+:::
 
 ::: {.cell-output-display}
 ![](km_pooling_files/figure-html/km_pooling-1.png){width=672}

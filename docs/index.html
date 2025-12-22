@@ -7,7 +7,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Janick Weberpals">
-<meta name="dcterms.date" content="2025-07-27">
 <meta name="description" content="Miscellaneous multiple imputation and propensity score workflows">
 
 <title>Multiple imputation-propensity score workflows</title>
@@ -201,10 +200,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#objective" id="toc-objective" class="nav-link" data-scroll-target="#objective">Objective</a></li>
   <li><a href="#sec-dependencies" id="toc-sec-dependencies" class="nav-link" data-scroll-target="#sec-dependencies">Dependencies</a></li>
   <li><a href="#reproducibility" id="toc-reproducibility" class="nav-link" data-scroll-target="#reproducibility">Reproducibility</a></li>
-  <li><a href="#repository-structure-and-files" id="toc-repository-structure-and-files" class="nav-link" data-scroll-target="#repository-structure-and-files">Repository structure and files</a>
-  <ul class="collapse">
-  <li><a href="#directory-overview" id="toc-directory-overview" class="nav-link" data-scroll-target="#directory-overview">Directory overview</a></li>
-  </ul></li>
   </ul>
 <div class="toc-actions"><ul><li><a href="https://github.com/janickweberpals/imputation-ps-workflows/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></nav>
     </div>
@@ -236,7 +231,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">July 27, 2025</p>
+      <p class="date">Invalid Date</p>
     </div>
   </div>
   
@@ -259,29 +254,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="sec-dependencies" class="level2 unnumbered">
 <h2 class="unnumbered anchored" data-anchor-id="sec-dependencies">Dependencies</h2>
-<p>This is a quarto book project and R package dependencies are managed through the <code>renv</code> package. All packages and their versions can be viewed in the lockfile <code>renv.lock</code>. All required packages and the appropriate versions can be installed by running the following command:</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>renv<span class="sc">::</span><span class="fu">restore</span>(<span class="at">repos =</span> <span class="st">"https://packagemanager.posit.co/cran/latest"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<div class="callout callout-style-default callout-important callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-Important
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>The dependencies are managed through Posit’s repository package manager (RSPM). If you use a different operating system than macOS, please head over to the RSPM setup website and follow these steps to adjust the URL above.</p>
-<ol type="1">
-<li><p>Go to the <a href="https://packagemanager.posit.co/client/#/repos/cran/setup?distribution=redhat-9">RSPM setup website</a></p></li>
-<li><p>Choose the operating system (if Linux, also choose the Linux distribution)</p></li>
-<li><p>Go to <strong><code>Repository URL:</code></strong> and copy-paste the URL to the options statement in the <code>.Rprofile</code> file</p>
-<p><em>options(repos = c(REPO_NAME = “URL”))</em></p></li>
-</ol>
-</div>
-</div>
+<p>This is a quarto book project and R package dependencies are managed through the <code>_renv_requirements.sh</code> file. Here, all packages and their versions can be viewed and re-installed by running the following line of code in the Terminal:</p>
+<pre><code>sh _requirements.sh</code></pre>
 </section>
 <section id="reproducibility" class="level2 unnumbered">
 <h2 class="unnumbered anchored" data-anchor-id="reproducibility">Reproducibility</h2>
@@ -297,85 +271,17 @@ Note
 </div>
 <div class="callout-body-container callout-body">
 <ol type="1">
-<li>Clone this repository via <code>git clone &lt;url&gt;</code> or in RStudio via <strong>File &gt; New Project &gt; Version Control &gt; Git &gt; then paste the link to repository URL</strong></li>
+<li>Clone this repository via <code>git clone &lt;url&gt;</code></li>
 <li>Install all necessary dependencies (see above)</li>
-<li>Add/adapt the paths to the datasets in <code>.Renviron</code></li>
-<li>In RStudio, run all scripts via <code>quarto render</code> or <code>Build &gt; Render Book</code> (make sure quarto is installed)</li>
+<li>Run all scripts via <code>quarto render</code> or (optionally) in RStudio <code>Build &gt; Render Book</code> (make sure quarto is installed)</li>
 </ol>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="RStudio_init.png" class="img-fluid figure-img" width="259"></p>
-<figcaption>Steps to clone this repository in RStudio</figcaption>
-</figure>
-</div>
 </div>
 </div>
 <p>The data used in this project is strictly simulated and no real patient-level data is used.</p>
-</section>
-<section id="repository-structure-and-files" class="level2 unnumbered">
-<h2 class="unnumbered anchored" data-anchor-id="repository-structure-and-files">Repository structure and files</h2>
-<section id="directory-overview" class="level3 unnumbered">
-<h3 class="unnumbered anchored" data-anchor-id="directory-overview">Directory overview</h3>
-<div class="cell">
-<div class="cell-output cell-output-stdout">
-<pre><code>.
-├── README.md
-├── RStudio_init.png
-├── _params.yml
-├── _quarto.yml
-├── chapters
-│   ├── _snippets
-│   ├── agreement_metrics.html
-│   ├── agreement_metrics.html.md
-│   ├── agreement_metrics.qmd
-│   ├── agreement_metrics_files
-│   ├── background.html.md
-│   ├── background.qmd
-│   ├── images
-│   ├── km_pooling.html.md
-│   ├── km_pooling.qmd
-│   ├── km_pooling_files
-│   ├── raking_weights.html.md
-│   ├── raking_weights.qmd
-│   ├── raking_weights_files
-│   ├── references.bib
-│   ├── styles.css
-│   ├── subgroup_analysis.html.md
-│   ├── subgroup_analysis.md
-│   ├── subgroup_analysis.qmd
-│   ├── syvcox_coxph.html.md
-│   ├── syvcox_coxph.md
-│   ├── syvcox_coxph.qmd
-│   └── syvcox_coxph_files
-├── docs
-├── functions
-│   ├── covariate_vectors.R
-│   └── subgroup.R
-├── images
-│   ├── design_diagram.png
-│   ├── encore.analytics_hexagon.png
-│   └── workflow.png
-├── imputation-ps-workflows.Rproj
-├── index.qmd
-├── index.rmarkdown
-├── literature
-│   ├── MatchThem_vignette.pdf
-│   └── leyrat-et-al-2017-propensity-score-analysis-with-partially-observed-covariates-how-should-multiple-imputation-be-used.pdf
-├── pharmacoepidemiology-and-drug-safety.csl
-├── references.bib
-├── renv
-│   ├── activate.R
-│   ├── library
-│   ├── settings.json
-│   └── staging
-└── renv.lock</code></pre>
-</div>
-</div>
 
 
 <!-- -->
 
-</section>
 </section>
 
 </main> <!-- /main -->
@@ -863,68 +769,43 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       </a>
   </div>
 </nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
-<div class="sourceCode" id="cb3" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "README"</span></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="an">output:</span><span class="co"> html_document</span></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="an">date:</span><span class="co"> "`r Sys.Date()`"</span></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="an">date-format:</span><span class="co"> long</span></span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="an">code-fold:</span><span class="co"> false</span></span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="fu">## Background {.unnumbered}</span></span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>Multiple imputation is a powerful tool in presence of missing data. However, especially in combination with propensity score analyses, multiple imputation can lead to challenges since analytic workflows can be become much more complex.</span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="al">![](images/encore.analytics_hexagon.png)</span>{width="227"}</span>
-<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a><span class="fu">## Objective {.unnumbered}</span></span>
-<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>This repository showcases and evaluation different multiple imputation <span class="sc">\&gt;</span> propensity score <span class="sc">\&gt;</span> outcome analyses and associated implementation challenges in the emulation of complex oncology clinical trials.</span>
-<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>::::: {.content-visible when-format="html"}</span>
-<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a><span class="fu">## Dependencies {#sec-dependencies .unnumbered}</span></span>
-<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>This is a quarto book project and R package dependencies are managed through the <span class="in">`renv`</span> package. All packages and their versions can be viewed in the lockfile <span class="in">`renv.lock`</span>. All required packages and the appropriate versions can be installed by running the following command:</span>
-<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a><span class="in">```{r, eval=FALSE, echo=TRUE}</span></span>
-<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>renv<span class="sc">::</span><span class="fu">restore</span>(<span class="at">repos =</span> <span class="st">"https://packagemanager.posit.co/cran/latest"</span>)</span>
-<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>::: callout-important</span>
-<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>The dependencies are managed through Posit's repository package manager (RSPM). If you use a different operating system than macOS, please head over to the RSPM setup website and follow these steps to adjust the URL above.</span>
-<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span>Go to the <span class="co">[</span><span class="ot">RSPM setup website</span><span class="co">](https://packagemanager.posit.co/client/#/repos/cran/setup?distribution=redhat-9)</span></span>
-<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a><span class="ss">2.  </span>Choose the operating system (if Linux, also choose the Linux distribution)</span>
-<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a><span class="ss">3.  </span>Go to **`Repository URL:`** and copy-paste the URL to the options statement in the <span class="in">`.Rprofile`</span> file</span>
-<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a>    *options(repos = c(REPO_NAME = "URL"))*</span>
-<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb3-39"><a href="#cb3-39" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-40"><a href="#cb3-40" aria-hidden="true" tabindex="-1"></a><span class="fu">## Reproducibility {.unnumbered}</span></span>
-<span id="cb3-41"><a href="#cb3-41" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-42"><a href="#cb3-42" aria-hidden="true" tabindex="-1"></a>Follow these steps in RStudio to reproduce this study:</span>
-<span id="cb3-43"><a href="#cb3-43" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-44"><a href="#cb3-44" aria-hidden="true" tabindex="-1"></a>::: callout-note</span>
-<span id="cb3-45"><a href="#cb3-45" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span>Clone this repository via <span class="in">`git clone &lt;url&gt;`</span> or in RStudio via **File \&gt; New Project \&gt; Version Control \&gt; Git \&gt; then paste the link to repository URL**</span>
-<span id="cb3-46"><a href="#cb3-46" aria-hidden="true" tabindex="-1"></a><span class="ss">2.  </span>Install all necessary dependencies (see above)</span>
-<span id="cb3-47"><a href="#cb3-47" aria-hidden="true" tabindex="-1"></a><span class="ss">3.  </span>Add/adapt the paths to the datasets in <span class="in">`.Renviron`</span></span>
-<span id="cb3-48"><a href="#cb3-48" aria-hidden="true" tabindex="-1"></a><span class="ss">4.  </span>In RStudio, run all scripts via <span class="in">`quarto render`</span> or <span class="in">`Build &gt; Render Book`</span> (make sure quarto is installed)</span>
-<span id="cb3-49"><a href="#cb3-49" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-50"><a href="#cb3-50" aria-hidden="true" tabindex="-1"></a><span class="al">![Steps to clone this repository in RStudio](RStudio_init.png)</span>{fig-align="center" width="259"}</span>
-<span id="cb3-51"><a href="#cb3-51" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb3-52"><a href="#cb3-52" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-53"><a href="#cb3-53" aria-hidden="true" tabindex="-1"></a>The data used in this project is strictly simulated and no real patient-level data is used.</span>
-<span id="cb3-54"><a href="#cb3-54" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-55"><a href="#cb3-55" aria-hidden="true" tabindex="-1"></a><span class="fu">## Repository structure and files {.unnumbered}</span></span>
-<span id="cb3-56"><a href="#cb3-56" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-57"><a href="#cb3-57" aria-hidden="true" tabindex="-1"></a><span class="fu">### Directory overview {.unnumbered}</span></span>
-<span id="cb3-58"><a href="#cb3-58" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-59"><a href="#cb3-59" aria-hidden="true" tabindex="-1"></a><span class="in">```{r, echo=FALSE}</span></span>
-<span id="cb3-60"><a href="#cb3-60" aria-hidden="true" tabindex="-1"></a>fs<span class="sc">::</span><span class="fu">dir_tree</span>(<span class="at">recurse =</span> <span class="dv">1</span>)</span>
-<span id="cb3-61"><a href="#cb3-61" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb3-62"><a href="#cb3-62" aria-hidden="true" tabindex="-1"></a>:::::</span></code><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb2" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "README"</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="an">output:</span><span class="co"> html_document</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="an">date:</span><span class="co"> "`r Sys.Date()`"</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="an">date-format:</span><span class="co"> long</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="an">code-fold:</span><span class="co"> false</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="fu">## Background {.unnumbered}</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>Multiple imputation is a powerful tool in presence of missing data. However, especially in combination with propensity score analyses, multiple imputation can lead to challenges since analytic workflows can be become much more complex.</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="al">![](images/encore.analytics_hexagon.png)</span>{width="227"}</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="fu">## Objective {.unnumbered}</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>This repository showcases and evaluation different multiple imputation <span class="sc">\&gt;</span> propensity score <span class="sc">\&gt;</span> outcome analyses and associated implementation challenges in the emulation of complex oncology clinical trials.</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a><span class="fu">## Dependencies {#sec-dependencies .unnumbered}</span></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>This is a quarto book project and R package dependencies are managed through the <span class="in">`_renv_requirements.sh`</span> file. Here, all packages and their versions can be viewed and re-installed by running the following line of code in the Terminal:</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a><span class="in">sh _requirements.sh</span></span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a><span class="fu">## Reproducibility {.unnumbered}</span></span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>Follow these steps in RStudio to reproduce this study:</span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>::: callout-note</span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span>Clone this repository via <span class="in">`git clone &lt;url&gt;`</span></span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a><span class="ss">2.  </span>Install all necessary dependencies (see above)</span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a><span class="ss">3.  </span>Run all scripts via <span class="in">`quarto render`</span> or (optionally) in RStudio <span class="in">`Build &gt; Render Book`</span> (make sure quarto is installed)</span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>The data used in this project is strictly simulated and no real patient-level data is used.</span></code><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 
