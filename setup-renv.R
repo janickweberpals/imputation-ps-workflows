@@ -30,7 +30,7 @@ packages <- c(
   'pander',
   'sessioninfo',
   'remotes'
-)
+  )
 
 # Install packages
 for (pkg in packages) {

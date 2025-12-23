@@ -1,15 +1,5 @@
 ---
 subtitle: "Pooled Kaplan-Meier estimates after multiple imputation and propensity score analysis"
-author: Janick Weberpals, RPh, PhD
-date: last-modified
-format: html
-toc: true
-toc-depth: 3
-keep-md: true
-embed-resources: true
-editor: visual
-bibliography: ../references.bib
-csl: ../pharmacoepidemiology-and-drug-safety.csl
 ---
 
 # Pooled Kaplan-Meier Estimates {#sec-pooled-km-estimates}
@@ -18,7 +8,7 @@ In this vignette, we demonstrate how to use the `km_pooling()` function from the
 
 ## Overview
 
-The `km_pooling()` function addresses a common challenge in survival analysis with missing data: how to properly combine Kaplan-Meier estimates across multiple imputed datasets after propensity score matching or weighting. The function implements the methodology recommended by @marshall2009 for pooling survival probabilities using Rubin's rules.
+The `km_pooling()` function addresses a common challenge in survival analysis with missing data: how to properly combine Kaplan-Meier estimates across multiple imputed datasets after propensity score matching or weighting. The function implements the methodology recommended by [@marshall2009] for pooling survival probabilities using Rubin's rules.
 
 ## Key Features
 
@@ -124,7 +114,8 @@ We'll apply propensity score matching to each imputed dataset:
 Now we can use `km_pooling()` to compute and visualize the pooled survival curves:
 
 ```{r}
-#| label: km_pooling
+#| label: fig-km-pooling
+#| fig-cap: "Pooled Kaplan-Meier curve after multiple imputation and propensity score matching."
 
 # specify the survival model
 km_fit <- as.formula(Surv(fu_itt_months, death_itt) ~ treat)
@@ -142,7 +133,7 @@ km_out$km_median_survival
 km_out$km_plot
 ```
 
-## Interpretation
+### Interpretation
 
 The output provides:
 
@@ -175,7 +166,7 @@ The output provides:
 
 3.  **Kaplan-Meier Curve (**`km_plot`**)**: A visualization showing the pooled survival probabilities over time with confidence bands (ggplot2 object)
 
-## Technical Details
+### Technical Details
 
 The function handles several nuances in survival analysis:
 
@@ -184,4 +175,35 @@ The function handles several nuances in survival analysis:
 -   Handles edge cases in median survival time estimation
 -   Incorporates weights and cluster membership for matched/weighted datasets
 
-## References
+### Computing and pooling survival probabilities at specific time points
+
+Another option is to specify time points at which survival probabilities should be estimated and pooled. This can be done by providing a vector of time points to the `times` argument in the `km_pooling()` function. Here, we estimate and pool survival probabilities for each stratum at each month from 0 to 120 months:
+
+```{r}
+#| label: km-pooling-times
+
+# estimate and pool median survival times and Kaplan-Meier curve
+km_out <- km_pooling(
+  x = mimids_data,
+  surv_formula = km_fit,
+  times = seq(0, 120, by = 1)
+  )
+
+# survival probabilities at specific time points
+head(km_out$km_survival_table)
+```
+
+It should be noted that median survival times and Kaplan-Meier plots highly depend on the specification of the `times` argument. If only few time points are specified, the median survival time estimates may be less precise and the Kaplan-Meier plot may appear less smooth.
+
+```{r}
+#| label: fig-km-pooling-times
+#| fig-cap: "Kaplan-Meier curve with survival probabilities estimated at specific time points (0 to 120 months)"
+
+# median survival times based on time grid
+km_out$km_median_survival
+
+# Kaplan-Meier curve
+km_out$km_plot
+```
+
+{{< include _snippets/_sessioninfo.qmd >}}

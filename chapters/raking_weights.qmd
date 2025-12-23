@@ -1,14 +1,5 @@
 ---
 title: "Computing Raking Weights to the Distribution of a Target Population"
-author: Janick Weberpals, RPh, PhD
-date: last-modified
-format: html
-toc: true
-toc-depth: 3
-keep-md: true
-embed-resources: true
-bibliography: ../references.bib
-csl: ../pharmacoepidemiology-and-drug-safety.csl
 ---
 
 ## About raking weights

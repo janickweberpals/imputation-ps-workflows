@@ -1,17 +1,9 @@
 ---
 subtitle: "Agreement metrics for comparing RCT and RWE results"
-author: Janick Weberpals, RPh, PhD
-date: last-modified
 format: 
   html:
     css: styles.css
     page-layout: full
-toc: true
-toc-depth: 3
-keep-md: true
-embed-resources: true
-bibliography: ../references.bib
-csl: ../pharmacoepidemiology-and-drug-safety.csl
 ---
 
 # Agreement Metrics {#sec-agreement-metrics}

@@ -1,14 +1,5 @@
 ---
 subtitle: "Comparison of coxph versus svycoxph after multiple imputation and propensity score matching"
-author: Janick Weberpals, RPh, PhD
-date: last-modified
-format: html
-toc: true
-toc-depth: 3
-keep-md: true
-embed-resources: true
-bibliography: ../references.bib
-csl: ../pharmacoepidemiology-and-drug-safety.csl
 ---
 
 # General Workflow and application in Survival Models {#sec-application-in-cox-ph-models}

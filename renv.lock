@@ -1798,6 +1798,7 @@
       "Description": "This package contains functions to streamline the analytics for the ENCORE trial emulation project.",
       "BugReports": "https://github.com/janickweberpals/encore.analytics/issues",
       "Encoding": "UTF-8",
+      "LazyData": "true",
       "Imports": [
         "anesrake",
         "assertthat",
@@ -1829,18 +1830,14 @@
       "RoxygenNote": "7.3.3",
       "URL": "https://janickweberpals.github.io/encore.analytics/",
       "License": "Apache License (>= 2)",
+      "Author": "Janick Weberpals [aut, cre] (ORCID: <https://orcid.org/0000-0003-0404-7394>)",
+      "Maintainer": "Janick Weberpals <janick.developer@gmail.com>",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
       "RemoteRepo": "encore.analytics",
       "RemoteUsername": "janickweberpals",
       "RemoteRef": "dev",
-      "RemoteSha": "d10c58fc824fd284dd87be8ba04caf5337baa98c",
-      "NeedsCompilation": "no",
-      "Author": "Janick Weberpals [aut, cre] (ORCID: <https://orcid.org/0000-0003-0404-7394>)",
-      "Maintainer": "Janick Weberpals <janick.developer@gmail.com>",
-      "Depends": [
-        "R (>= 4.1.0)"
-      ]
+      "RemoteSha": "d10c58fc824fd284dd87be8ba04caf5337baa98c"
     },
     "evaluate": {
       "Package": "evaluate",

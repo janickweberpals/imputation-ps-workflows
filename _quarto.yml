@@ -1,14 +1,15 @@
 project:
   type: book
-  output-dir: docs  
-    
+  output-dir: docs
+
 book:
   title: "Multiple imputation-propensity score workflows"
   subtitle: "Examples for multiple imputation and propensity score workflows"
-  author: "Janick Weberpals"
+  author: "Janick Weberpals, RPh, PhD"
+  date: last-modified
   description: |
     Miscellaneous multiple imputation and propensity score workflows
-    
+
   chapters:
     # landing page
     - index.qmd
@@ -32,4 +33,10 @@ format:
     page-layout: full
     link-external-icon: true
     link-external-newwindow: true
+    format: html
+    toc: true
+    toc-depth: 3
+    embed-resources: true
+    bibliography: references.bib
+    csl: pharmacoepidemiology-and-drug-safety.csl
 

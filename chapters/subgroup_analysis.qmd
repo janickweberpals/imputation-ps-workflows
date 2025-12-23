@@ -322,35 +322,4 @@ weighted_all |>
 ```
 :::
 
-## References
-
-::: {#refs}
-:::
-
-## Session info
-
-```{r, include=FALSE}
-runtime <- tictoc::toc()
-```
-
-Script runtime: `r formatC((runtime$toc[[1]]-runtime$tic[[1]])/60, format = 'f', digits = 2)` minutes.
-
-::: panel-tabset
-### Loaded packages
-
-```{r}
-pander::pander(subset(data.frame(sessioninfo::package_info()), attached==TRUE, c(package, loadedversion)))
-```
-
-### Session info
-
-```{r}
-pander::pander(sessionInfo())
-```
-
-### Repositories
-
-```{r}
-pander::pander(options('repos'))
-```
-:::
+{{< include _snippets/_sessioninfo.qmd >}}

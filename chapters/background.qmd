@@ -1,16 +1,6 @@
 ---
 title: "Background"
 subtitle: "Multiple imputation workflows with propensity score and survival analysis"
-author: Janick Weberpals, RPh, PhD
-date: last-modified
-format: html
-toc: true
-toc-depth: 3
-keep-md: true
-editor: visual
-embed-resources: true
-bibliography: ../references.bib
-csl: ../pharmacoepidemiology-and-drug-safety.csl
 ---
 
 ```{r}
@@ -93,7 +83,4 @@ To streamline the implementation of multiple imputation \> propensity score work
 
 </iframe>
 
-## References
-
-::: {#refs}
-:::
+{{< include _snippets/_sessioninfo.qmd >}}
