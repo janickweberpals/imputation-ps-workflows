@@ -6,7 +6,7 @@ book:
   title: "Multiple imputation-propensity score workflows"
   subtitle: "Examples for multiple imputation and propensity score workflows"
   author: "Janick Weberpals, RPh, PhD"
-  date: last-modified
+  date: today
   description: |
     Miscellaneous multiple imputation and propensity score workflows
 

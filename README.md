@@ -11,12 +11,18 @@ implementation challenges.
 
 ## Dependencies
 
-This is a quarto book project and R package dependencies are managed
-through the `_renv_requirements.sh` file. Here, all packages and 
-their versions can be viewed and re-installed by running
-the following line of code in the Terminal:
+This is a quarto book project and R package dependencies are listed in the
+`_requirements.sh` file, grouped by topic. Packages are installed with
+[pak](https://pak.r-lib.org/), including the development version of the
+[encore.analytics](https://github.com/janickweberpals/encore.analytics)
+package from GitHub (`dev` branch). To install all packages, run the
+following line of code in the Terminal:
 
     sh _requirements.sh
+
+Packages are installed into a project-local library (`.rpkg/`, set up by
+`.Rprofile`) and are not version-pinned, i.e., the latest available versions
+are installed.
 
 ## Reproducibility
 
@@ -25,5 +31,8 @@ Follow these steps in RStudio to reproduce this study:
 1.  Clone this repository via `git clone <url>`
 2.  Install all necessary dependencies (see above)
 3.  Run all scripts via `quarto render` or (optionally) in RStudio `Build > Render Book` (make sure quarto is installed)
+
+The book is rendered and deployed to GitHub Pages (`gh-pages` branch) by the
+`Quarto Publish` GitHub Action on every push to `main`.
 
 The data used in this project is strictly simulated and no real patient-level data is used.
