@@ -8,7 +8,9 @@ In this vignette, we demonstrate how to use the `km_pooling()` function from the
 
 ## Overview
 
-The `km_pooling()` function addresses a common challenge in survival analysis with missing data: how to properly combine Kaplan-Meier estimates across multiple imputed datasets after propensity score matching or weighting. The function implements the methodology recommended by [@marshall2009] for pooling survival probabilities using Rubin's rules.
+The `km_pooling()` function addresses a common challenge in survival analysis with missing data: how to properly combine Kaplan-Meier estimates across multiple imputed datasets after propensity score matching or weighting. The function implements the methodology recommended by [@morisot2015prostate] for pooling survival probabilities using Rubin's rules.
+
+The function accepts weighted (`wimids`) and matched (`mimids`) objects, imputed (`mids`) objects (unweighted analysis), and lists of data frames (e.g., the output of `raking_weights()`). For lists, weights and clusters are specified explicitly, e.g., `weights = weights, cluster = subclass`. Additional arguments passed via `...` are forwarded to the per-imputation `survfit` call (e.g., `type = "fleming-harrington"`).
 
 ## Key Features
 

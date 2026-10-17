@@ -22,6 +22,13 @@ The `agreement_metrics()` function provides a comprehensive framework to evaluat
 2.  Estimate agreement
 3.  Standardized mean difference (SMD) agreement
 
+Optional arguments of `agreement_metrics()` allow to customize the output:
+
+-   `metrics`: which of the three metrics to compute and display (unselected metrics are skipped)
+-   `digits`: rounding of estimates and confidence limits before agreement is assessed (default 2, `NULL` for no rounding)
+-   `smd_scale`: transformation applied before the SMD calculation (`"log"` [default], `"identity"`, `"logit"`, `"cloglog"`)
+-   `show_aggregate` and `show_aggregate_total`: pooled agreement percentages per metric and across all metrics
+
 ## Methodology
 
 ### Types of Agreement
