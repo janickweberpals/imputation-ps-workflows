@@ -2,7 +2,7 @@
 set -e
 
 # Bootstrap: pak is installed via install.packages, everything else via pak
-R -e "install.packages('pak')"
+R -e "install.packages('pak', repos = 'https://cloud.r-project.org')"
 
 # Core / data wrangling
 R -e "pak::pak('tidyverse')"
