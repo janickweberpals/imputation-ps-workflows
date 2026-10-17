@@ -291,15 +291,24 @@ data_svy |>
 
 ## Estimating final treatment effects
 
-In the final step,  the `cox_pooling()` function that comes with encore.analytics is used to fit and pool the results of a Cox proportional hazards model on the imputed, matched, and raked datasets. The function takes list of imputed data frames with weights and cluster (matching) information (= our matched/smr-weighted and raked datasets) and a formula for the Cox proportional hazards model. The data frames must have column names weights and subclass (for matched datasets to indicate the cluster membership).
+In the final step,  the `cox_pooling()` function that comes with encore.analytics is used to fit and pool the results of a Cox proportional hazards model on the imputed, matched, and raked datasets. The function takes a list of imputed data frames (= our matched/smr-weighted and raked datasets) and a formula for the Cox proportional hazards model.
 
 The `cox_pooling()` function is a convenience wrapper for fitting Cox models to multiple imputed datasets which do not come as a mimids or wimids object. This is useful when there are intermediate steps in the analysis pipeline, such as computing raking weights via `raking_weights()` which are so far not straightforward to implement in a mimids or wimids object.
 
+::: callout-important
+For lists of data frames, `cox_pooling()` does **not** apply the `weights` and `subclass` columns automatically. Weights and clusters must be specified explicitly via `...`:
+
+-   weighted datasets: `weights = weights`
+-   matched datasets: `weights = weights, cluster = subclass`
+
+If they are omitted, an **unweighted** model is fit and a warning names the unused columns. Additional arguments in `...` are forwarded to `survival::coxph()` (e.g., `ties = "breslow"`).
+:::
+
 The function follows the following logic:
 
-1. Fit a Cox proportional hazards model to each imputed dataset. If a \code{subclass} column is present, it is used as a cluster variable for matched pairs.
-2. Convert the list of fitted models into a \code{mira} object using \code{mice::as.mira}.
-3. Pool the results using \code{mice::pool}, which applies Rubin's rules for combining estimates and variances across imputations.
+1. Fit a Cox proportional hazards model to each imputed dataset using the weights and cluster (if any) specified via `...`.
+2. Convert the list of fitted models into a `mira` object using `mice::as.mira`.
+3. Pool the results using `mice::pool`, which applies Rubin's rules for combining estimates and variances across imputations.
 4. Format the pooled results, including exponentiating the hazard ratios and calculating confidence intervals.
 
 Our fitted Cox proportional hazards model is specified as follows:
@@ -318,7 +327,12 @@ cox_fit
 #| label: cox-matched-raking
 
 # fit and pool Cox proportional hazards model results
-cox_pooling(mirwds, surv_formula = cox_fit)
+cox_pooling(
+  x = mirwds,
+  surv_formula = cox_fit,
+  weights = weights,
+  cluster = subclass
+  )
 ```
 
 ### Estimate treatment effects on SMR-weighted and raked list of datasets
@@ -327,7 +341,11 @@ cox_pooling(mirwds, surv_formula = cox_fit)
 #| label: cox-smr-raking
 
 # fit and pool Cox proportional hazards model results
-cox_pooling(wirwds, surv_formula = cox_fit)
+cox_pooling(
+  x = wirwds,
+  surv_formula = cox_fit,
+  weights = weights
+  )
 ```
 
 

@@ -52,7 +52,10 @@ vignettes/*.pdf
 .nfs*
 
 # R package library
-.rpkg
+.rpkg/
+
+# .claude project context
+.claude/
 
 # ignore certain file types that could be
 # large or could contain sensitive information.
